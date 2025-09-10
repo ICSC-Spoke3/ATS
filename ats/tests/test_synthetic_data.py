@@ -290,8 +290,8 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
            total_counts += label_counts
         
         self.assertEqual(total_counts,len(all_mv_anomalies_timeseries_df))
-        for i in range(len(all_mv_anomalies_timeseries_df)):
-            print('{}: {}'.format(i,all_mv_anomalies_timeseries_df.loc[i,'anomaly_label']))
+        #for i in range(len(all_mv_anomalies_timeseries_df)):
+            #print('{}: {}'.format(i,all_mv_anomalies_timeseries_df.loc[i,'anomaly_label']))
         
         # TODO: lo spike_mv viene sovrascritto dalle clouds
         #self.assertEqual(all_mv_anomalies_timeseries_df.loc[393,'anomaly_label'],'spike_mv')
