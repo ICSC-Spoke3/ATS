@@ -6,8 +6,6 @@ import pytz
 import math
 from copy import deepcopy
 
-#rnd.seed(123)
-#np.random.seed(123)
     
 def generate_time_boundaries(time_interval='90D', starting_year=None, starting_month= None, starting_day=None, starting_hour=None, starting_minute=None):
 
