@@ -10,29 +10,15 @@ from ..synthetic_data import generate_time_boundaries
 # Setup logging
 from .. import logger
 logger.setup()
-rnd.seed(123)
-np.random.seed(123)
-
 
 class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
     
-   
-    #def SetUp(self):
-    	#self.default_generator = SyntheticHumiTempTimeseriesGenerator()
-    	
-    	#pattern_uv_anomaly_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
-	    #noise_uv_anomaly_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
-	    
-		#spike_mv_anomaly_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
-		#step_mv_anomaly_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
-		#pattern_mv_anomaly_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
-		#spike_mv_anomaly_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
-		#spike_mv_anomaly_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
-		
-		
+    def setUp(self):
+        rnd.seed(123)
+        np.random.seed(123)
+
 
     def test_defaults(self):
-    	
     	
         default_generator = SyntheticHumiTempTimeseriesGenerator()
         default_timeseries_df = default_generator.generate()
@@ -59,9 +45,9 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertEqual(total_counts,len(default_timeseries_df))
         
         #for i in range(len(default_timeseries_df)):
-         #   print('{}: {}'.format(i,default_timeseries_df.loc[i,'anomaly_label']))
+            #print('{}: {}'.format(i,default_timeseries_df.loc[i,'anomaly_label']))
             
-        self.assertEqual(default_timeseries_df.loc[272,'anomaly_label'],'spike_uv')
+        self.assertEqual(default_timeseries_df.loc[562,'anomaly_label'],'spike_uv')
         for i in range(2160,2836):
             self.assertEqual(default_timeseries_df.loc[i,'anomaly_label'],'step_uv')
             
@@ -133,10 +119,10 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertEqual(total_counts,len(spike_mv_timeseries_df))
         
         #for i in range(len(spike_mv_timeseries_df)):
-         #   print('{}: {}'.format(i,spike_mv_timeseries_df.loc[i,'anomaly_label']))
+            #print('{}: {}'.format(i,spike_mv_timeseries_df.loc[i,'anomaly_label']))
             
         
-        self.assertEqual(spike_mv_timeseries_df.loc[379,'anomaly_label'],'spike_mv')
+        self.assertEqual(spike_mv_timeseries_df.loc[562,'anomaly_label'],'spike_mv')
         
 
 
@@ -233,9 +219,9 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertEqual(total_counts,len(clouds_mv_timeseries_df))
         
         #for i in range(len(clouds_mv_timeseries_df)):
-         #   print('{}: {}'.format(i,clouds_mv_timeseries_df.loc[i,'anomaly_label']))
+            #print('{}: {}'.format(i,clouds_mv_timeseries_df.loc[i,'anomaly_label']))
             
-        for i in range(96,192):
+        for i in range(192,288):
         	self.assertEqual(clouds_mv_timeseries_df.loc[i,'anomaly_label'],'clouds')
 
 
@@ -258,9 +244,9 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertEqual(total_counts,len(all_uv_anomalies_timeseries_df))
         
         #for i in range(len(all_uv_anomalies_timeseries_df)):
-         #   print('{}: {}'.format(i,all_uv_anomalies_timeseries_df.loc[i,'anomaly_label']))
+            #print('{}: {}'.format(i,all_uv_anomalies_timeseries_df.loc[i,'anomaly_label']))
         
-        self.assertEqual(all_uv_anomalies_timeseries_df.loc[393,'anomaly_label'],'spike_uv')
+        self.assertEqual(all_uv_anomalies_timeseries_df.loc[562,'anomaly_label'],'spike_uv')
         
         for i in range(2160,2836):
             self.assertEqual(all_uv_anomalies_timeseries_df.loc[i,'anomaly_label'],'step_uv')
@@ -317,6 +303,13 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertIsInstance(time_boundaries,list)
         self.assertIsNotNone(time_boundaries[0])
         self.assertIsNotNone(time_boundaries[1])
+
+
+ 
+        
+        
+        
+        
         
     
                 
