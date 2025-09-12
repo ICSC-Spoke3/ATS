@@ -2,7 +2,13 @@ name: Python Unit Tests
 
 on:
   push:
-    branches: ["**"]
+    branches-ignore:
+      - main
+      - "test/*"
+  pull_request:
+    branches:
+      - main
+      - develop
 
 jobs:
   test:
