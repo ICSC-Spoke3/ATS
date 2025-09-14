@@ -10,6 +10,8 @@ from ..synthetic_data import add_step_anomaly
 from ..synthetic_data import add_anomalous_noise
 from ..synthetic_data import add_pattern_anomaly
 from ..synthetic_data import generate_synthetic_humitemp_timeseries
+from ..synthetic_data import add_clouds_effects
+
 
 
 # Setup logging
@@ -423,7 +425,41 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         
         
-       
+    def test_add_clouds_effects(self):
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+
+        sampling_interval = dt.timedelta(minutes=15)
+
+        clouds_effect_timeseries_df = add_clouds_effects(bare_timeseries_df,sampling_interval,inplace=False,mv_anomaly=True)
+        
+        #192-288 index range of dp with clouds anomaly
+        #96 points with clouds anomaly
+        #first half: 192 + 48 =240: clouds_effect_intesity=position/48
+        #second half:240 + 48=288: clouds_effect_intesity=2-position/48
+        
+        #for i in range(len(bare_timeseries_df)):
+            #print('{}: {}'.format(i,clouds_anomaly_timeseries_df.loc[i,'anomaly_label']))
+
+        delta_temp_first_half_of_the_day = bare_timeseries_df.loc[195,'temperature'] -clouds_effect_timeseries_df.loc[195,'temperature']
+        #3/48 * 0.3=0.01875
+        aspected_temp_difference1 = 0.01875 * bare_timeseries_df.loc[195,'temperature']
+        self.assertAlmostEqual(delta_temp_first_half_of_the_day,aspected_temp_difference1)
+
+        delta_temp_second_half_of_the_day = bare_timeseries_df.loc[243,'temperature'] -clouds_effect_timeseries_df.loc[243,'temperature']
+        #2-51/48 *0.3= 0.2875
+        aspected_temp_difference2 = 0.28125 * bare_timeseries_df.loc[243,'temperature']
+        self.assertAlmostEqual(delta_temp_second_half_of_the_day,aspected_temp_difference2)
+
+
+
+
+
+
+
+        
+        
+        
 
         
        
