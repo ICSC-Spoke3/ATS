@@ -6,11 +6,14 @@ import random as rnd
 
 from ..synthetic_data import SyntheticHumiTempTimeseriesGenerator
 from ..synthetic_data import generate_time_boundaries
+from ..synthetic_data import add_step_anomaly
+from ..synthetic_data import add_anomalous_noise
+from ..synthetic_data import generate_synthetic_humitemp_timeseries
+
 
 # Setup logging
 from .. import logger
 logger.setup()
-
 
 class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
     
@@ -18,6 +21,15 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         rnd.seed(123)
         np.random.seed(123)
 
+<<<<<<< HEAD
+class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
+    
+    def setUp(self):
+        rnd.seed(123)
+        np.random.seed(123)
+
+=======
+>>>>>>> 7dfe6ce (Add a test for "add_step_anomaly()" function)
 
     def test_defaults(self):
     	
@@ -306,6 +318,35 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertIsNotNone(time_boundaries[1])
 
 
+<<<<<<< HEAD
+=======
+    def test_add_step_anomaly(self):
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+
+        step_uv_anomaly_timeseries_df = add_step_anomaly(bare_timeseries_df,mode='uv',inplace=False)
+        step_mv_anomaly_timeseries_df = add_step_anomaly(bare_timeseries_df,mode='mv',inplace=False)
+        
+        #2880 data points. Start anomaly at point 2160. ramp lenght 50 datapoints---> 2210 
+        #2836-2160
+        #for i in range(len(step_uv_anomaly_timeseries_df)):
+           # print('{}: {}'.format(i,step_uv_anomaly_timeseries_df.loc[i,'anomaly_label']))
+
+        for i in range(2217,2230):
+            uv_temp_diff = step_uv_anomaly_timeseries_df.loc[i,'temperature'] - bare_timeseries_df.loc[i,'temperature']
+            uv_humi_diff = step_uv_anomaly_timeseries_df.loc[i,'humidity'] - bare_timeseries_df.loc[i,'humidity']
+
+            mv_temp_diff = step_mv_anomaly_timeseries_df.loc[i,'temperature'] - bare_timeseries_df.loc[i,'temperature']
+            mv_humi_diff = step_mv_anomaly_timeseries_df.loc[i,'humidity'] - bare_timeseries_df.loc[i,'humidity']
+            
+            self.assertAlmostEqual(uv_temp_diff,10) 
+            self.assertAlmostEqual(uv_humi_diff,-10)
+            
+            self.assertAlmostEqual(mv_temp_diff,10) 
+            self.assertAlmostEqual(mv_humi_diff,10)
+
+
+>>>>>>> 7dfe6ce (Add a test for "add_step_anomaly()" function)
  
         
         
