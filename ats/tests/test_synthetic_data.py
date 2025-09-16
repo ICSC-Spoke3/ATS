@@ -334,6 +334,40 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertAlmostEqual(mv_temp_diff,10) 
             self.assertAlmostEqual(mv_humi_diff,10)
 
+    
+    def test_add_anomalous_noise(self):
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+
+        uv_noise_anomaly_timeseries_df = add_anomalous_noise(bare_timeseries_df,inplace=False,mode='uv')
+        mv_noise_anomaly_timeseries_df = add_anomalous_noise(bare_timeseries_df,inplace=False,mode='mv')
+
+        #for i in range(len(bare_timeseries_df2)):
+        #    print('{}: {}'.format(i,uv_noise_anomaly_timeseries_df.loc[i,'anomaly_label']))
+
+            #768-576
+        for i in range(576,768):
+            uv_temp_diff = uv_noise_anomaly_timeseries_df.loc[i,'temperature'] - bare_timeseries_df.loc[i,'temperature']
+            uv_humi_diff = uv_noise_anomaly_timeseries_df.loc[i,'humidity'] - bare_timeseries_df.loc[i,'humidity']
+
+            mv_temp_diff = mv_noise_anomaly_timeseries_df.loc[i,'temperature'] - bare_timeseries_df.loc[i,'temperature']
+            mv_humi_diff = mv_noise_anomaly_timeseries_df.loc[i,'humidity'] - bare_timeseries_df.loc[i,'humidity']
+            
+            if i % 2 == 0:
+                self.assertAlmostEqual(uv_temp_diff,3) 
+                self.assertAlmostEqual(uv_humi_diff,3)
+
+                self.assertAlmostEqual(mv_temp_diff,3)
+                self.assertAlmostEqual(mv_humi_diff,0)
+
+            else:
+                self.assertAlmostEqual(uv_temp_diff,-3) 
+                self.assertAlmostEqual(uv_humi_diff,-3)
+
+                self.assertAlmostEqual(mv_temp_diff,-3)
+                self.assertAlmostEqual(mv_humi_diff,0)
+
+            
 
 
  
