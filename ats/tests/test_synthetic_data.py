@@ -21,15 +21,6 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         rnd.seed(123)
         np.random.seed(123)
 
-<<<<<<< HEAD
-class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
-    
-    def setUp(self):
-        rnd.seed(123)
-        np.random.seed(123)
-
-=======
->>>>>>> 7dfe6ce (Add a test for "add_step_anomaly()" function)
 
     def test_defaults(self):
     	
@@ -318,8 +309,6 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertIsNotNone(time_boundaries[1])
 
 
-<<<<<<< HEAD
-=======
     def test_add_step_anomaly(self):
         bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
@@ -346,7 +335,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertAlmostEqual(mv_humi_diff,10)
 
 
->>>>>>> 7dfe6ce (Add a test for "add_step_anomaly()" function)
+
  
         
         
