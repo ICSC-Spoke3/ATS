@@ -483,27 +483,3 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertAlmostEqual(mv_humi_diff,5)
         #TODO: a way for knowing the intensity of the espected spike
         
-
-
-        
-        
-        
-
-        
-       
-        
-    
-
-        
-
-
-         
-        
-        
-        
-        
-        
-    
-                
-        
-	
