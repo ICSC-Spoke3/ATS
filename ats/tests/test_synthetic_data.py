@@ -11,6 +11,7 @@ from ..synthetic_data import generate_time_boundaries
 from .. import logger
 logger.setup()
 
+
 class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
     
     def setUp(self):
