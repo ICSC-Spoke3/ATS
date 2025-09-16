@@ -8,6 +8,7 @@ from ..synthetic_data import SyntheticHumiTempTimeseriesGenerator
 from ..synthetic_data import generate_time_boundaries
 from ..synthetic_data import add_step_anomaly
 from ..synthetic_data import add_anomalous_noise
+from ..synthetic_data import add_pattern_anomaly
 from ..synthetic_data import generate_synthetic_humitemp_timeseries
 
 
@@ -368,9 +369,71 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
                 self.assertAlmostEqual(mv_humi_diff,0)
 
             
+    def test_add_pattern_anomaly(self):
+        #2880 points; start anomalous pattern at 960 + 50 (transition points)=1010
+        #+576(anomaly length)=1586 + 50 (transition ) = 1636
+        #96 points in 24h (normal periodicity)
+        #192 points in 48h
+        #mi prendo il tempo a 1010: la temp deve essere la stessa a 48h di distanza
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+
+        sampling_interval = dt.timedelta(minutes=15)
+        
+        uv_pattern_anomaly_timeseries_df = add_pattern_anomaly(bare_timeseries_df,sampling_interval,inplace=False,mode='uv')
+        mv_pattern_anomaly_timeseries_df = add_pattern_anomaly(bare_timeseries_df,sampling_interval,inplace=False,mode='mv')
+        
+                                #UV PATTERN ANOMALY
+        #checking if the periodicity BEFORE the anomalous interval is the ordinary one (24h)
+        before_anomaly_temp = uv_pattern_anomaly_timeseries_df.loc[5,'temperature']
+        before_anomaly_temp_after_24h = uv_pattern_anomaly_timeseries_df.loc[101,'temperature']
+        before_anomaly_humi = uv_pattern_anomaly_timeseries_df.loc[5,'humidity']
+        before_anomaly_humi_after_24h = uv_pattern_anomaly_timeseries_df.loc[101,'humidity']
+        self.assertAlmostEqual(before_anomaly_temp,before_anomaly_temp_after_24h)
+        self.assertAlmostEqual(before_anomaly_humi,before_anomaly_humi_after_24h)
+
+        #checking the anomalous periodicity to be correctly added verifying if the temp(humi) is the same after 48h 
+        anomalous_temp = uv_pattern_anomaly_timeseries_df.loc[1011,'temperature']
+        anomalous_temp_after_48h = uv_pattern_anomaly_timeseries_df.loc[1203,'temperature']
+        anomalous_humi = uv_pattern_anomaly_timeseries_df.loc[1011,'humidity']
+        anomalous_humi_after_48h = uv_pattern_anomaly_timeseries_df.loc[1203,'humidity']
+        self.assertAlmostEqual(anomalous_temp,anomalous_temp_after_48h)
+        self.assertAlmostEqual(anomalous_humi,anomalous_humi_after_48h)
+
+        #checking if the periodicity AFTER the anomalous interval is the ordinary one (24h)
+        after_anomaly_temp = uv_pattern_anomaly_timeseries_df.loc[1637,'temperature']
+        after_anomaly_temp_after_24h = uv_pattern_anomaly_timeseries_df.loc[1733,'temperature']
+        after_anomaly_humi = uv_pattern_anomaly_timeseries_df.loc[1637,'humidity']
+        after_anomaly_humi_after_24h = uv_pattern_anomaly_timeseries_df.loc[1733,'humidity']
+        self.assertAlmostEqual(after_anomaly_temp,after_anomaly_temp_after_24h)
+        self.assertAlmostEqual(after_anomaly_humi,after_anomaly_humi_after_24h)
+
+                                #MV PATTERN ANOMALY
+        #checking the anomalous periodicity to be correctly added verifying if the temp is the same after 48h
+        #also cheking humidity does not change in the case of mv anomaly
+        anomalous_temp_mv = mv_pattern_anomaly_timeseries_df.loc[1011,'temperature']
+        anomalous_temp__mv_after_48h = mv_pattern_anomaly_timeseries_df.loc[1203,'temperature']
+        humi = mv_pattern_anomaly_timeseries_df.loc[1011,'humidity']
+        humi_after_24h = mv_pattern_anomaly_timeseries_df.loc[1107,'humidity']
+        self.assertAlmostEqual(anomalous_temp_mv,anomalous_temp__mv_after_48h)
+        self.assertAlmostEqual(humi,humi_after_24h)
+
+       
+        
+
+        
+        
+       
+
+        
+       
+        
+    
+
+        
 
 
- 
+         
         
         
         
