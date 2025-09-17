@@ -447,7 +447,7 @@ def add_clouds_effects(timeseries,sampling_interval,inplace=False,mv_anomaly=Fal
 
 def add_spike_effect(timeseries,inplace=False,anomaly=False, mode='uv'):
     
-        
+    #TODO: change the way anomalous and normal spikes are added     
     if not inplace:
         timeseries = deepcopy(timeseries)
 
@@ -503,55 +503,6 @@ def add_spike_effect(timeseries,inplace=False,anomaly=False, mode='uv'):
 
                     if mode == 'mv':
                         raise ValueError(f'Multivariate anomalies cannot be added if ther is only one variable in the timeseries')
-
-        number_of_spikes = 0
-    for i in range(len(timeseries)):
-        is_a_spiked_value = True if rnd.randint(0, 50) == 25 else False
-        
-        if is_a_spiked_value:
-            number_of_spikes += 1
-            random_spike_intensity = rnd.choice(list(spike_factor.keys()))
-            
-            if not anomaly:
-                #if 'temperature' in quantities:
-                    #timeseries.loc[i,'temperature'] -= spike_factor[random_spike_intensity]                    
-                
-                if 'humidity' in quantities:
-                    timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
-
-                 
-            if anomaly and number_of_spikes == 10:
-                number_of_spikes = 0
-                anomaly = False
-                if 'temperature' in quantities and 'humidity' in quantities:
-                    if mode == 'uv':
-                        #timeseries.loc[i,'temperature'] -= spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'anomaly_label'] = 'spike_uv'
-                        
-                    if mode == 'mv':
-                        #timeseries.loc[i,'temperature'] -= spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'anomaly_label'] = 'spike_mv'
-                        
-
-                        
-                else:
-                    if mode == 'uv':
-                        if quantities[0] == 'temperature':
-                            #timeseries.loc[i,'temperature'] -= spike_factor[random_spike_intensity]
-                            timeseries.loc[i,'anomaly_label'] = 'spike_uv'
-                            
-                        if quantities[0] == 'humidity':
-                            timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
-                            timeseries.loc[i,'anomaly_label'] = 'spike_uv'
-
-                    if mode == 'mv':
-                        raise ValueError(f'Multivariate anomalies cannot be added if ther is only one variable in the timeseries')
-           
-        
-                        
-                                    
     
     return timeseries
     
