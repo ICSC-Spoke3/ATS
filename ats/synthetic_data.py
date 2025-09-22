@@ -63,7 +63,8 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     temp = []
     humi = []
     time = []
-    anomaly_label = [] 
+    anomaly_label = []
+    effect_label = []
      
     data_points = {}
 
@@ -83,6 +84,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     while time_value < time_boundaries[1]:
         
         anomaly_label.append('normal')
+        effect_label.append('bare')
         time.append(time_value)
         
         time_variable = time_value.hour + time_value.minute/60
@@ -98,6 +100,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
 
     data_points.update({'time': time})
     data_points.update({'anomaly_label': anomaly_label})
+    data_points.update({'effect_label': effect_label})
         
     if temperature:
         data_points.update({'temperature': temp})
@@ -108,7 +111,6 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
         raise ValueError('Error: no data selected for creating the DataFrame. Set at True at least one of the two arguments: temperature or humidity')
         
     return pd.DataFrame(data_points)
-
 
                                             #anomalies
 
