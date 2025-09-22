@@ -36,3 +36,24 @@ def plot_timeseries_df(timeseries_df, *args, **kwargs):
                 datapoint.data_indexes[data_label] = datapoint.data.pop(data_label)
 
     return timeseries.plot(*args, **kwargs)
+
+
+def normalizza_parametro(df, parametro):
+    """
+    Normalizza una singola colonna di un DataFrame usando min-max.
+    Se min = max, restituisce una colonna piena di 1.
+
+    Args:
+        df (pd.DataFrame): DataFrame di input.
+        parametro (str): Nome della colonna da normalizzare.
+
+    Returns:
+        pd.Series: Colonna normalizzata.
+    """
+    max_parameter = df[parametro].max()
+    min_parameter = df[parametro].min()
+
+    if max_parameter == min_parameter:
+        return pd.Series(1, index=df.index)
+    else:
+        return (df[parametro] - min_parameter) / (max_parameter - min_parameter)
