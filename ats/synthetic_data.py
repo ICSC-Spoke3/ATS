@@ -481,11 +481,12 @@ def add_spike_effect(timeseries,inplace=False,anomaly=False, mode='uv'):
                     timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                    
                 
                 if 'humidity' in quantities:
-                    timeseries.loc[i,'humidity'] -= spike_factor[random_spike_intensity]
+                    if (number_of_spikes % 2) == 0:
+                        timeseries.loc[i,'humidity'] -= spike_factor[random_spike_intensity]
+                    else:
+                        timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
 
-                 
             if anomaly and number_of_spikes == 10:
-                number_of_spikes = 0
                 anomaly = False
                 if 'temperature' in quantities and 'humidity' in quantities:
                     if mode == 'uv':
