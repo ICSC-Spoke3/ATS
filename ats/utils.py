@@ -54,7 +54,7 @@ def normalizza_parametro(df, parametro):
     min_parameter = df[parametro].min()
 
     if max_parameter == min_parameter:
-        return pd.Series(1, index=df.index)
+        return pd.Series(1, index=df.index, name = parametro)
     else:
         return (df[parametro] - min_parameter) / (max_parameter - min_parameter)
     
