@@ -58,6 +58,8 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertEqual(default_timeseries_df.loc[474,'anomaly_label'],'spike_uv')
         for i in range(2160,2836):
             self.assertEqual(default_timeseries_df.loc[i,'anomaly_label'],'step_uv')
+
+        
             
             
            
@@ -482,4 +484,10 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertAlmostEqual(mv_temp_diff,5)
         self.assertAlmostEqual(mv_humi_diff,5)
         #TODO: a way for knowing the intensity of the espected spike
+
+    def test_default_effect_label(self):
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+        self.assertEqual(bare_timeseries_df.loc[10,'effect_label'],'bare')
+        
         

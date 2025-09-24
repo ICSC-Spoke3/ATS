@@ -63,7 +63,8 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     temp = []
     humi = []
     time = []
-    anomaly_label = [] 
+    anomaly_label = []
+    effect_label = []
      
     data_points = {}
 
@@ -83,6 +84,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     while time_value < time_boundaries[1]:
         
         anomaly_label.append('normal')
+        effect_label.append('bare')
         time.append(time_value)
         
         time_variable = time_value.hour + time_value.minute/60
@@ -98,6 +100,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
 
     data_points.update({'time': time})
     data_points.update({'anomaly_label': anomaly_label})
+    data_points.update({'effect_label': effect_label})
         
     if temperature:
         data_points.update({'temperature': temp})
@@ -108,7 +111,6 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
         raise ValueError('Error: no data selected for creating the DataFrame. Set at True at least one of the two arguments: temperature or humidity')
         
     return pd.DataFrame(data_points)
-
 
                                             #anomalies
 
@@ -124,6 +126,7 @@ def add_step_anomaly(timeseries,mode='uv',inplace=False):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
         
     
     ramp_height = 10
@@ -199,6 +202,7 @@ def add_anomalous_noise(timeseries,inplace=False,mode='uv'):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
         
 
     def insert_anomalous_noise(quantity,mode):
@@ -240,6 +244,7 @@ def add_pattern_anomaly(timeseries,sampling_interval,inplace=False,mode='uv'):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
         
     start = int(len(timeseries)/3)
     anomalous_pattern_length = int(len(timeseries)/5)#piece of series with anomalous periodicity
@@ -341,6 +346,7 @@ def add_noise_effect(timeseries,inplace=False):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
 
     for quantity in quantities:
         
@@ -359,6 +365,7 @@ def add_seasons_effect(timeseries,starting_year,inplace=False):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
     
     winter_temp = 4.4
     summer_temp = 26
@@ -403,6 +410,7 @@ def add_clouds_effects(timeseries,sampling_interval,inplace=False,mv_anomaly=Fal
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
         
     number_of_points_in_a_day = int(86400/(sampling_interval.total_seconds()))
     if number_of_points_in_a_day == 0:
@@ -454,6 +462,7 @@ def add_spike_effect(timeseries,inplace=False,anomaly=False, mode='uv'):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
     
     spike_factor = { 'low': 5,
                     'medium': 7,
@@ -514,6 +523,7 @@ def csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
     
     data_type = ''
     for quantity in quantities:
@@ -541,6 +551,7 @@ def plot_func(timeseries,anomalies=[]):
     quantities = list(timeseries.columns)
     quantities.remove('time')
     quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
 
     colors = { 'temperature': 'crimson',
               'humidity': 'navy'
