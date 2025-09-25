@@ -26,19 +26,22 @@ class TestEvaluators(unittest.TestCase):
         
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, timeseries_df)
         # Evaluation_results
-        #{ 'normal':     value_anomaly    False
-        #                Name: 2025-06-10 15:00:00+00:00, dtype: bool,
-        #  'anomaly_1':  value_anomaly    True
-        #                Name: 2025-06-10 14:00:00+00:00, dtype: bool,
-        # 'anomaly_2':   value_anomaly    True
-        #                Name: 2025-06-10 16:00:00+00:00, dtype: bool}
+        #{'normal':      timestamp                   value_anomaly
+        #                2025-06-10 15:00:00+00:00   False,
+        #
+        #                timestamp                   value_anomaly
+        # 'anomaly_1':   2025-06-10 15:00:00+00:00   True,
+        #
+        #                timestamp                   value_anomaly
+        # 'anomaly_2':   2025-06-10 14:00:00+00:00   True
+        #}
 
         self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),3)
-        self.assertIsInstance(evaluation_results['anomaly_1'],pd.Series)
-        self.assertEqual(evaluation_results['anomaly_2'].loc['value_anomaly'],True)
-        self.assertEqual(evaluation_results['anomaly_1'].loc['value_anomaly'],True)
-        self.assertEqual(evaluation_results['normal'].loc['value_anomaly'],False)
+        self.assertIsInstance(evaluation_results['anomaly_1'],pd.DataFrame)
+        self.assertEqual(evaluation_results['anomaly_2'].loc['2025-06-10 16:00:00+00:00','value_anomaly'],True)
+        self.assertEqual(evaluation_results['anomaly_1'].loc['2025-06-10 14:00:00+00:00','value_anomaly'],True)
+        self.assertEqual(evaluation_results['normal'].loc['2025-06-10 15:00:00+00:00','value_anomaly'],False)
 
 
 
