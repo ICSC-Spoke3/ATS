@@ -5,6 +5,11 @@ import pandas as pd
 import numpy as np
 from timeseria.datastructures import TimeSeries
 
+# Setup logging
+import logging
+logger = logging.getLogger(__name__)
+
+
 def generate_timeseries_df(start='2025-06-10 14:00:00',  tz='UTC', freq='H', entries=10, pattern='sin', variables=1):
     if pattern not in ['sin']:
         raise ValueError(f'Unknown pattern "{pattern}"')
@@ -76,27 +81,17 @@ def normalize_df(df, parameters_subset=None):
     if parameters_subset:
         parameters = parameters_subset
     else:
-        # usa tutte le colonne del DataFrame
         parameters = df.columns
 
     for parameter in parameters:
         try:
-            # prova a leggere il primo valore
-            first_val = df[parameter].iloc[0]
-
-            # se è bool, consideriamo tutta la colonna bool → skip
-            if isinstance(first_val, (bool, np.bool_)):
-                raise TypeError(f"Colonna '{parameter}' rilevata come bool: saltata.")
-
-            # normalizza la colonna
             df_norm[f"{parameter}_norm"] = normalize_parameter(df, parameter)
+            logger.debug(f"Column '{parameter}' normalized successfully.")
 
         except TypeError as te:
-            # gestione esplicita dei bool
-            print(f"{te}")
+            logger.error(f"Column '{parameter}' is not of a normalizable type.")
 
         except Exception as e:
-            # gestione di altri errori (non numerico, valori non validi, ecc.)
-            print(f" Colonna '{parameter}' non può essere normalizzata: {e} (tipo: {type(e).__name__})")
+            logger.error(f"Normalization failed for column '{parameter}': {e} (type: {type(e).__name__}).")
 
     return df_norm
