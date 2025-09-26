@@ -27,7 +27,7 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
 
             if anomaly_labels.loc[time_index] == anomaly_label:
                 row_evaluation_df = evaluated_anomaly_flags.loc[[time_index],:].isin([1])
-                for column in raw_evaluation_df.columns:
+                for column in row_evaluation_df.columns:
 
                     if row_evaluation_df.loc[time_index,column] == True:
                         if anomaly_label_counts == 0:
