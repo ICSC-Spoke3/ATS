@@ -12,7 +12,7 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
     anomaly_labels = evaluation_timeseries_df['anomaly_label']
 
     if synthetic:
-        no_flag_timeseries_df = evaluation_timeseries_df.drop(columns=['anomaly_label','effect_label'])
+        no_flag_timeseries_df = evaluation_timeseries_df.drop(columns=['time','anomaly_label','effect_label'])
     else:
         no_flag_timeseries_df = evaluation_timeseries_df.drop(columns=['anomaly_label'])
 
