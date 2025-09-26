@@ -26,14 +26,14 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
         for time_index in evaluated_timeseries_df.index:
 
             if anomaly_labels.loc[time_index] == anomaly_label:
-                raw_evaluation_df = evaluated_anomaly_flags.loc[[time_index],:].isin([1])
+                row_evaluation_df = evaluated_anomaly_flags.loc[[time_index],:].isin([1])
                 for column in raw_evaluation_df.columns:
 
-                    if raw_evaluation_df.loc[time_index,column] == True:
+                    if row_evaluation_df.loc[time_index,column] == True:
                         if anomaly_label_counts == 0:
-                            evaluation_results[anomaly_label] = raw_evaluation_df
+                            evaluation_results[anomaly_label] = row_evaluation_df
                         else:
-                            evaluation_results[anomaly_label] = pd.concat([evaluation_results[anomaly_label],raw_evaluation_df],ignore_index=False)
+                            evaluation_results[anomaly_label] = pd.concat([evaluation_results[anomaly_label],row_evaluation_df],ignore_index=False)
 
                         anomaly_label_counts += 1
                         break
