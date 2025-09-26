@@ -72,7 +72,7 @@ class TestEvaluators(unittest.TestCase):
         self.assertIsInstance(evaluation_results,dict)
         self.assertIsInstance(evaluation_results['spike_uv'],pd.DataFrame)
         # The detector does not see the downward spike in temperature as anomalous because the min temperature
-        # value is 17.5.
+        # value is 10.
         # The detector does not see the upward spike in humidity as anomalous because the max humidity
         # value is 70.
         # Evaluation_results:
@@ -81,4 +81,19 @@ class TestEvaluators(unittest.TestCase):
         # 'spike_uv':         temperature_anomaly   humidity_anomaly
         #               474   False                  False
         # }
+
+    def test_evaluate_anomaly_det_on_step_synth_timeseries(self):
+
+        step_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        step_humi_temp_df = step_humi_temp_generator.generate(anomalies=['step_uv'],effects=[])
+        # Generated DataFrame:
+        # Timestamp                    temperature           humidity             anomaly_label    effect_label
+        # ...
+        # 1973-05-25 13:32:00+00:00   34.4037864008933       41.58990293095119    step_uv          bare
+        # ...
+        min_max_anomaly_detector = MinMaxAnomalyDetector()
+        evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, step_humi_temp_df, synthetic=True)
+        self.assertEqual(len(evaluation_results),2)
+        self.assertIsInstance(evaluation_results,dict)
+        self.assertIsInstance(evaluation_results['step_uv'],pd.DataFrame)
 
