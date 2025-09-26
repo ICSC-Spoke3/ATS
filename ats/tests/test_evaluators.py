@@ -47,9 +47,11 @@ class TestEvaluators(unittest.TestCase):
         self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),3)
         self.assertIsInstance(evaluation_results['anomaly_1'],pd.DataFrame)
+        self.assertIsInstance(evaluation_results['anomaly_2'],pd.DataFrame)
+        self.assertIsInstance(evaluation_results['normal'],bool)
         self.assertEqual(evaluation_results['anomaly_2'].loc['2025-06-10 16:00:00+00:00','value_anomaly'],True)
         self.assertEqual(evaluation_results['anomaly_1'].loc['2025-06-10 14:00:00+00:00','value_anomaly'],True)
-        self.assertEqual(evaluation_results['normal'].loc['2025-06-10 15:00:00+00:00','value_anomaly'],False)
+        self.assertEqual(evaluation_results['normal'],False)
 
     def test_evaluate_anomaly_det_on_spiked_synth_timeseries(self):
 
@@ -66,20 +68,34 @@ class TestEvaluators(unittest.TestCase):
         # 1973-05-07 12:17:00+00:00    24.979376388246145    50.05499629801029    normal           bare
         # 1973-05-07 12:32:00+00:00    24.927010515561776    50.194638625168594   normal           bare
         # ...
+        max_temp_index = spiked_humi_temp_df['temperature'].idxmax()
+        min_temp_index = spiked_humi_temp_df['temperature'].idxmin()
+        max_humi_index = spiked_humi_temp_df['humidity'].idxmax()
+        min_humi_index = spiked_humi_temp_df['humidity'].idxmin()
+        label_detected_anomalous_temp1 = spiked_humi_temp_df.loc[max_temp_index,'anomaly_label']
+        label_detected_anomalous_temp2 = spiked_humi_temp_df.loc[min_temp_index,'anomaly_label']
+        label_detected_anomalous_humi1 = spiked_humi_temp_df.loc[max_humi_index,'anomaly_label']
+        label_detected_anomalous_humi2 = spiked_humi_temp_df.loc[min_humi_index,'anomaly_label']
+
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, spiked_humi_temp_df, synthetic=True)
         self.assertEqual(len(evaluation_results),2)
-        self.assertIsInstance(evaluation_results,dict)
-        self.assertIsInstance(evaluation_results['spike_uv'],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],pd.DataFrame)
+
         # The detector does not see the downward spike in temperature as anomalous because the min temperature
         # value is 10.
         # The detector does not see the upward spike in humidity as anomalous because the max humidity
         # value is 70.
         # Evaluation_results:
-        # { 'normal':         temperature_anomaly   humidity_anomaly
-        #               0     False                 False,
-        # 'spike_uv':         temperature_anomaly   humidity_anomaly
-        #               474   False                  False
+        # { 'normal':                                 temperature_anomaly   humidity_anomaly
+        #               1973-05-03 00:02:00+00:00     True                 False
+        #               1973-05-11 23:47:00+00:00     False                True
+        #               1973-05-13 12:02:00+00:00     True                 True,
+        #
+        # 'spike_uv':  False  
         # }
 
     def test_evaluate_anomaly_det_on_step_synth_timeseries(self):
@@ -91,9 +107,27 @@ class TestEvaluators(unittest.TestCase):
         # ...
         # 1973-05-25 13:32:00+00:00   34.4037864008933       41.58990293095119    step_uv          bare
         # ...
+        max_temp_index = step_humi_temp_df['temperature'].idxmax()
+        min_temp_index = step_humi_temp_df['temperature'].idxmin()
+        max_humi_index = step_humi_temp_df['humidity'].idxmax()
+        min_humi_index = step_humi_temp_df['humidity'].idxmin()
+        label_detected_anomalous_temp1 = step_humi_temp_df.loc[max_temp_index,'anomaly_label']
+        label_detected_anomalous_temp2 = step_humi_temp_df.loc[min_temp_index,'anomaly_label']
+        label_detected_anomalous_humi1 = step_humi_temp_df.loc[max_humi_index,'anomaly_label']
+        label_detected_anomalous_humi2 = step_humi_temp_df.loc[min_humi_index,'anomaly_label']
+
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, step_humi_temp_df, synthetic=True)
         self.assertEqual(len(evaluation_results),2)
-        self.assertIsInstance(evaluation_results,dict)
-        self.assertIsInstance(evaluation_results['step_uv'],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],pd.DataFrame)
+        # Evaluation results:
+        # { 'normal':                                 temperature_anomaly   humidity_anomaly
+        #               1973-05-03 00:02:00+00:00     True                 True
+        #
+        # 'step_uv':                                  temperature_anomaly   humidity_anomaly
+        #               1973-05-26 12:02:00+00:00     True                  True
+        # }
 
