@@ -42,7 +42,7 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
             evaluation_results[anomaly_label] = False
 
     if 'normal' in evaluation_results.keys():
-        evaluation_results['false positive'] = evaluation_results.pop('normal')
+        evaluation_results['false_positives'] = evaluation_results.pop('normal')
 
     return evaluation_results
 
