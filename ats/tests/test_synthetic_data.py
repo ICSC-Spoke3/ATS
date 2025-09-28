@@ -38,7 +38,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertIsInstance(default_generator.temperature,bool)
         self.assertIsInstance(default_generator.humidity,bool)
 
-        anomaly_labels_and_counts = default_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = default_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -55,7 +55,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         pattern_uv_timeseries_df = pattern_uv_anomaly_generator.generate(anomalies=['pattern_uv'])
 
         self.assertEqual(len(pattern_uv_timeseries_df),2880)
-        anomaly_labels_and_counts = pattern_uv_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = pattern_uv_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -72,7 +72,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(noise_uv_timeseries_df),2880)
 
-        anomaly_labels_and_counts = noise_uv_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = noise_uv_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -89,7 +89,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(spike_mv_timeseries_df),2880)
 
-        anomaly_labels_and_counts = spike_mv_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = spike_mv_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -104,7 +104,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(step_mv_timeseries_df),2880)             
 
-        anomaly_labels_and_counts = step_mv_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = step_mv_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -121,7 +121,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(pattern_mv_timeseries_df),2880)             
 
-        anomaly_labels_and_counts = pattern_mv_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = pattern_mv_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -138,7 +138,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(noise_mv_timeseries_df),2880)
 
-        anomaly_labels_and_counts = noise_mv_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = noise_mv_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -155,7 +155,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(clouds_mv_timeseries_df),2880)             
 
-        anomaly_labels_and_counts = clouds_mv_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = clouds_mv_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -172,7 +172,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(all_uv_anomalies_timeseries_df),2880)             
 
-        anomaly_labels_and_counts = all_uv_anomalies_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = all_uv_anomalies_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -196,7 +196,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
         self.assertEqual(len(all_mv_anomalies_timeseries_df),2880)             
 
-        anomaly_labels_and_counts = all_mv_anomalies_timeseries_df['anomaly_label'].value_counts()
+        anomaly_labels_and_counts = all_mv_anomalies_timeseries_df['anomaly_label'].value_counts(dropna=False)
         total_counts = 0
 
         for label_counts in anomaly_labels_and_counts:
@@ -343,5 +343,10 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
     def test_default_effect_label(self):
         bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
-        self.assertEqual(bare_timeseries_df.loc[10,'effect_label'],'bare')
+        self.assertIsNone(bare_timeseries_df.loc[10,'effect_label'])
+
+    def test_normal_timeseries_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_df = timeseries_generator.generate(effects=[],anomalies=[])
+        self.assertIsNone(timeseries_df.loc[10,'anomaly_label'])
 

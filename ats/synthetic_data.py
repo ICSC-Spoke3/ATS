@@ -72,8 +72,8 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     time_value = time_boundaries[0]
 
     while time_value < time_boundaries[1]:
-        anomaly_label.append('normal')
-        effect_label.append('bare')
+        anomaly_label.append(None)
+        effect_label.append(None)
         time.append(time_value)
 
         time_variable = time_value.hour + time_value.minute/60
