@@ -20,7 +20,7 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
     evaluated_anomaly_flags = evaluated_timeseries_df.filter(like='_anomaly')
     evaluation_results = {}
 
-    for anomaly_label,frequency in anomaly_labels.value_counts().items():
+    for anomaly_label,frequency in anomaly_labels.value_counts(dropna=False).items():
         anomaly_label_counts = 0
         
         for time_index in evaluated_timeseries_df.index:
@@ -41,8 +41,8 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
         if anomaly_label_counts == 0:
             evaluation_results[anomaly_label] = False
 
-    if 'normal' in evaluation_results.keys():
-        evaluation_results['false_positives'] = evaluation_results.pop('normal')
+    if None in evaluation_results.keys():
+        evaluation_results['false_positives'] = evaluation_results.pop(None)
 
     return evaluation_results
 
