@@ -3,15 +3,11 @@
 
 import pandas as pd
 
+from ..base import AnomalyDetector
+
 # Setup logging
 import logging
 logger = logging.getLogger(__name__)
-
-
-class AnomalyDetector():
-
-    def apply(self, df):
-        raise NotImplementedError()
 
 
 class MinMaxAnomalyDetector(AnomalyDetector):

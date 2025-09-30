@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from ..anomaly_detectors import MinMaxAnomalyDetector
+from ..anomaly_detectors.naive import MinMaxAnomalyDetector
 from ..utils import generate_timeseries_df
 
 # Setup logging
