@@ -98,7 +98,7 @@ def normalize_df(df, parameters_subset=None):
     return df_norm
 
 
-def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness",filters=None,hover_columns=None,marker_size=3,renderer="notebook"):
+def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness",filters=None,hover_columns=None,marker_size=3,renderer="notebook",show = True):
     """
     Creates an interactive 3D scatter plot with Plotly, with optional filters on the DataFrame.
 
@@ -130,6 +130,8 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
     fig = px.scatter_3d( df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns)
 
     fig.update_traces(marker=dict(size=marker_size))
-    fig.show(renderer=renderer)
+
+    if show:
+        fig.show(renderer=renderer)
     
     return fig
