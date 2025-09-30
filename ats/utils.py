@@ -5,6 +5,11 @@ import pandas as pd
 import numpy as np
 from timeseria.datastructures import TimeSeries
 
+# Setup logging
+import logging
+logger = logging.getLogger(__name__)
+
+
 def generate_timeseries_df(start='2025-06-10 14:00:00',  tz='UTC', freq='H', entries=10, pattern='sin', variables=1):
     if pattern not in ['sin']:
         raise ValueError(f'Unknown pattern "{pattern}"')
@@ -25,6 +30,7 @@ def generate_timeseries_df(start='2025-06-10 14:00:00',  tz='UTC', freq='H', ent
     df.index.name = 'timestamp'
     return df
 
+
 def plot_timeseries_df(timeseries_df, *args, **kwargs):
 
     timeseries = TimeSeries.from_df(timeseries_df)
@@ -38,65 +44,54 @@ def plot_timeseries_df(timeseries_df, *args, **kwargs):
     return timeseries.plot(*args, **kwargs)
 
 
-def normalizza_parametro(df, parametro):
+def normalize_parameter(df, parameter):
     """
-    Normalizza una singola colonna di un DataFrame usando min-max.
-    Se min = max, restituisce una colonna piena di 1.
+    Normalizes a single column of a DataFrame using (value-min)/(max-min).
+    If min = max, it returns a column filled with 1s.
 
     Args:
-        df (pd.DataFrame): DataFrame di input.
-        parametro (str): Nome della colonna da normalizzare.
+        df (pd.DataFrame): Input DataFrame.
+        parametro (str): Name of the column to normalize.
 
     Returns:
-        pd.Series: Colonna normalizzata.
+        pd.Series: Normalized column.
     """
-    max_parameter = df[parametro].max()
-    min_parameter = df[parametro].min()
+    max_parameter = df[parameter].max()
+    min_parameter = df[parameter].min()
 
     if max_parameter == min_parameter:
-        return pd.Series(1, index=df.index, name = parametro)
+        return pd.Series(1, index=df.index, name = parameter)
     else:
-        return (df[parametro] - min_parameter) / (max_parameter - min_parameter)
+        return (df[parameter] - min_parameter) / (max_parameter - min_parameter)
     
     
-def normalizzazione_df(df, parameters_subset=None):
+def normalize_df(df, parameters_subset=None):
     """
-    Normalizza le colonne di un DataFrame usando min-max.
-    Usa try/except per catturare eventuali colonne non normalizzabili.
+    Normalizes a single column of a DataFrame using (value-min)/(max-min).
 
     Args:
-        df (pd.DataFrame): DataFrame di input.
-        parameters_subset (list, opzionale): Lista di colonne da normalizzare. 
+        df (pd.DataFrame): Input DataFrame.
+        parameters_subset (list, opt): List of column names to normalize. If None, all columns are used. 
 
     Returns:
-        pd.DataFrame: DataFrame con colonne normalizzate.
+        pd.DataFrame: DataFrame with normalized columns.
     """
     df_norm = pd.DataFrame()
 
     if parameters_subset:
         parameters = parameters_subset
     else:
-        # usa tutte le colonne del DataFrame
         parameters = df.columns
 
-    for parametro in parameters:
+    for parameter in parameters:
         try:
-            # prova a leggere il primo valore
-            first_val = df[parametro].iloc[0]
-
-            # se è bool, consideriamo tutta la colonna bool → skip
-            if isinstance(first_val, (bool, np.bool_)):
-                raise TypeError(f"Colonna '{parametro}' rilevata come bool: saltata.")
-
-            # normalizza la colonna
-            df_norm[f"{parametro}_norm"] = normalizza_parametro(df, parametro)
+            df_norm[f"{parameter}_norm"] = normalize_parameter(df, parameter)
+            logger.debug(f"Column '{parameter}' normalized successfully.")
 
         except TypeError as te:
-            # gestione esplicita dei bool
-            print(f"{te}")
+            logger.error(f"Column '{parameter}' is not of a normalizable type.")
 
         except Exception as e:
-            # gestione di altri errori (non numerico, valori non validi, ecc.)
-            print(f" Colonna '{parametro}' non può essere normalizzata: {e} (tipo: {type(e).__name__})")
+            logger.error(f"Normalization failed for column '{parameter}': {e} (type: {type(e).__name__}).")
 
     return df_norm
