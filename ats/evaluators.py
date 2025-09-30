@@ -1,4 +1,4 @@
-from .anomaly_detectors import MinMaxAnomalyDetector
+from .anomaly_detectors.naive import MinMaxAnomalyDetector
 import pandas as pd
 
 def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthetic=False):

@@ -1,5 +1,5 @@
 from ..evaluators import evaluate_anomaly_detector
-from ..anomaly_detectors import MinMaxAnomalyDetector
+from ..anomaly_detectors.naive import MinMaxAnomalyDetector
 from ..synthetic_data import SyntheticHumiTempTimeseriesGenerator
 from ..utils import generate_timeseries_df
 import unittest
