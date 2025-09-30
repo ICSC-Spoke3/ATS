@@ -98,7 +98,7 @@ def normalize_df(df, parameters_subset=None):
     return df_norm
 
 
-def plot_3d_interactive(df,x="avg_error",y="max_error",z="log_pvalue",color="fitness",filters=None,hover_columns=None,marker_size=3,renderer="notebook"):
+def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness",filters=None,hover_columns=None,marker_size=3,renderer="notebook"):
     """
     Creates an interactive 3D scatter plot with Plotly, with optional filters on the DataFrame.
 
