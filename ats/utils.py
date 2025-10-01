@@ -98,7 +98,8 @@ def normalize_df(df, parameters_subset=None):
     return df_norm
 
 
-def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness",filters=None,hover_columns=None,marker_size=3,renderer="notebook",show = True):
+def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness",filters=None,
+                        hover_columns=None,marker_size=3,renderer="notebook",show = True):
     """
     Creates an interactive 3D scatter plot with Plotly, with optional filters on the DataFrame.
 
@@ -110,12 +111,14 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         hover_columns (list): Columns to display on hover. Default: all columns.
         marker_size (int): Size of the markers.
         renderer (str): Plotly renderer ("notebook", "browser", etc.)
+        show (bool): Whether to display the figure immediately.
 
     Returns:
         plotly.graph_objs._figure.Figure: Interactive figure.
     """
 
     df_plot = df.copy()
+    fig = None 
 
     # Apply filters if provided
     if filters:
@@ -127,11 +130,15 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         hover_columns = df_plot.columns.tolist()
 
     # Create 3D plot
-    fig = px.scatter_3d( df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns)
-
-    fig.update_traces(marker=dict(size=marker_size))
-
-    if show:
-        fig.show(renderer=renderer)
+    try:
+        fig = px.scatter_3d( df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns )
+        fig.update_traces(marker=dict(size=marker_size))
+        if show:
+             fig.show(renderer=renderer)
+    except ValueError as ve:
+        missing_cols = [col for col in (x, y, z, color) if col not in df_plot.columns]
+        logger.error(f"Column(s) {missing_cols} not found in DataFrame.")
+    except Exception as e:
+        logger.error(e)
     
     return fig
