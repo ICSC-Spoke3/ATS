@@ -6,11 +6,11 @@ Created on Tue Sep 16 16:08:31 2025
 """
 
 
-import os
-print("Working directory:", os.getcwd())
-working_dir = "C:/Users/Fede85/Desktop/Stats"
-os.chdir(working_dir)
-os.getcwd()
+#import os
+#print("Working directory:", os.getcwd())
+#working_dir = "C:/Users/Fede85/Desktop/Stats"
+#os.chdir(working_dir)
+#os.getcwd()
 from fDemoFunctions import fSimContaminatedSeries, fDemo 
 import matplotlib.pyplot as plt
 
@@ -91,6 +91,7 @@ see an example of a contaminated series
 '''
 plt.plot(mY[1,:])
 plt.show
+
 
 
 
