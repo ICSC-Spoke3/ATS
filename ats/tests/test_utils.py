@@ -63,23 +63,24 @@ class TestUtils(unittest.TestCase):
         pd.testing.assert_frame_equal(df_norm, expected)
 
     # Test for plot_3d_interactive
-    def test_returns_figure(self):
-        df = pd.DataFrame({
+    def setUp(self):
+        self.df = pd.DataFrame({
             "avg_err": [1, 2, 3, 4, 5],
             "max_err": [2, 4, 6, 8, 10],
             "ks_pvalue": [0.1, 0.2, 0.3, 0.4, 0.5],
             "fitness": [7, 8, 10, 18, 13],
             "extra": [10, 20, 30, 40, 50]
         })
+    def test_returns_figure_andfilter(self):
         filters = {"max_err": (None, 5)}
         
-        fig = plot_3d_interactive(df, renderer="json",show = False,filters=filters)  
+        fig = plot_3d_interactive(self.df, renderer="json",show = False,filters=filters)  
         self.assertIsInstance(fig, go.Figure)
         y_values_filtered = fig.data[0].y
         self.assertTrue(all(val <= 5 for val in y_values_filtered))
 
         filters = {"max_err": (2, 8)}
-        fig = plot_3d_interactive(df, renderer="json",show = False,filters=filters)  
+        fig = plot_3d_interactive(self.df, renderer="json",show = False,filters=filters)  
         y_values_filtered = fig.data[0].y
         self.assertTrue(all(2 <= val <= 8 for val in y_values_filtered))
 
