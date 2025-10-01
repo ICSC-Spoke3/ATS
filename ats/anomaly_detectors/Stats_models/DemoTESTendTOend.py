@@ -48,7 +48,10 @@ mY, mOtlrs = fSimContaminatedSeries(cn,cd,0.4,80,tim=-4 )
 
 '''
 Obtain and PRINT the OUPUT in terms of percentage of the total outliers 
-detected by the COM, HAR an NHAR methodologies.
+detected by the COM, HAR an NHAR methodologies. NOTE: The function 'fDemo' contains the individual functions to run the COM, HAR an NHAR methodologies
+singularly in case you want to split them, s.t. 'fCOM(mRes,mDRes)' run the COM method, 'fARcorsi(mRes, mDRes)' run the HAR method and 'fNHAR(mRes , mDRes, epochs=50)'
+run the NHAR method. The input are the matrix nxd of d time series with n obs ('mRes') and its first difference ('mDRes'). The first output for all functions
+is the array of outliers locations.
 
 df_mOuCOMall, df_mOuREG, df_mOuNAR   =fDemo(mY,mOtlrs,strctmdl=True,fq= 2 * np.pi / 30, fw=2 * np.pi / 7,TREND=2, COM=True, HAR=True, NHAR=True)
 
@@ -88,6 +91,7 @@ see an example of a contaminated series
 '''
 plt.plot(mY[1,:])
 plt.show
+
 
 
 
