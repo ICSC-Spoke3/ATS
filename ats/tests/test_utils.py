@@ -1,7 +1,8 @@
 import unittest
 import pandas as pd
+import plotly.graph_objects as go
 
-from ..utils import generate_timeseries_df, normalize_parameter, normalize_df
+from ..utils import generate_timeseries_df, normalize_parameter, normalize_df, plot_3d_interactive
 
 # Setup logging
 from .. import logger
@@ -61,3 +62,15 @@ class TestUtils(unittest.TestCase):
         df_norm = normalize_df(df,parameters_subset=["a","context","name"])
         pd.testing.assert_frame_equal(df_norm, expected)
 
+    # Test for plot_3d_interactive
+    def test_returns_figure(self):
+        df = pd.DataFrame({
+            "avg_err": [1, 2, 3, 4, 5],
+            "max_err": [2, 4, 6, 8, 10],
+            "ks_pvalue": [0.1, 0.2, 0.3, 0.4, 0.5],
+            "fitness": [7, 8, 10, 18, 13],
+            "extra": [10, 20, 30, 40, 50]
+        })
+        # Use "json" so it doesn’t try to open a window
+        fig = plot_3d_interactive(df, renderer="json",show = False)  
+        self.assertIsInstance(fig, go.Figure)
