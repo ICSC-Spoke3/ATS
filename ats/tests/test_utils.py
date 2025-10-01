@@ -71,6 +71,16 @@ class TestUtils(unittest.TestCase):
             "fitness": [7, 8, 10, 18, 13],
             "extra": [10, 20, 30, 40, 50]
         })
-        # Use "json" so it doesn’t try to open a window
-        fig = plot_3d_interactive(df, renderer="json",show = False)  
+        filters = {"max_err": (None, 5)}
+        
+        fig = plot_3d_interactive(df, renderer="json",show = False,filters=filters)  
         self.assertIsInstance(fig, go.Figure)
+        y_values_filtered = fig.data[0].y
+        self.assertTrue(all(val <= 5 for val in y_values_filtered))
+
+        filters = {"max_err": (2, 8)}
+        fig = plot_3d_interactive(df, renderer="json",show = False,filters=filters)  
+        y_values_filtered = fig.data[0].y
+        self.assertTrue(all(2 <= val <= 8 for val in y_values_filtered))
+
+    
