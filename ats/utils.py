@@ -119,11 +119,15 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
 
     df_plot = df.copy()
     fig = None 
+    allowed_filter_cols = {x, y, z, color}
 
     # Apply filters if provided
     if filters:
         for col, (min_val, max_val) in filters.items():
-            df_plot = df_plot[(df_plot[col] >= min_val) & (df_plot[col] <= max_val)]
+            if col not in  allowed_filter_cols:
+                logger.warning(f"Column '{col}' is not used in the plot (x, y, z, color). Filter ignored.")
+            else:
+                df_plot = df_plot[(df_plot[col] >= min_val) & (df_plot[col] <= max_val)]
 
     # If hover_columns not specified, show all columns
     if hover_columns is None:
