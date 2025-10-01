@@ -42,7 +42,10 @@ df_mOuCOMall, df_mOuREG, df_mOuNAR   =fDemo(mY,mOtlrs,strctmdl=True,fq= 2 * np.p
     -----------
     Obtain and PRINT the OUPUT in terms of percentage of the total outliers 
     detected by the COM, HAR an NHAR methodologies, along with the number of false positive.
-
+    NOTE: The function 'fDemo' contains the individual functions to run the COM, HAR an NHAR methodologies singularly in case you want to split them, 
+    s.t. 'fCOM(mRes,mDRes)' run the COM method, 'fARcorsi(mRes, mDRes)' run the HAR method and 'fNHAR(mRes , mDRes,          epochs=50)'
+    run the NHAR method. The input are the matrix nxd of d time series with n obs ('mRes') and its first difference ('mDRes'). 
+    The first output for all functions is the array of outliers locations.
 
     Parameters
     -------
@@ -69,4 +72,5 @@ df_mOuCOMall, df_mOuREG, df_mOuNAR   =fDemo(mY,mOtlrs,strctmdl=True,fq= 2 * np.p
     df_mOuCOMall : Location of the outliers detected by the COM estimator.
     df_mOuREG : Location of the outliers detected by the HAR method.
     df_mOuNAR : Location of the outliers detected by the NHAR method.
+
 
