@@ -139,7 +139,7 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         fig.update_traces(marker=dict(size=marker_size))
         if show:
              fig.show(renderer=renderer)
-    except ValueError as ve:
+    except KeyError as ke:
         missing_cols = [col for col in (x, y, z, color) if col not in df_plot.columns]
         logger.error(f"Column(s) {missing_cols} not found in DataFrame.")
     except Exception as e:
