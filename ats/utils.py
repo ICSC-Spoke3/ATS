@@ -153,3 +153,23 @@ def save_df_to_csv(df, outputfile="normalized_output.csv"):
     """
     df.to_csv(outputfile, index=False, header=True)
     logger.info(f" Saved: {outputfile}")
+
+def rename_column(df, old_name, new_name):
+    """
+    Renames a column in a DataFrame.
+    If the column does not exist, it catches the error and reports its type.
+    """
+    try:
+        # try renaming
+        df.rename(columns={old_name: new_name}, inplace=True)
+        logger.info(f" Column '{old_name}' renamed to '{new_name}'.")
+    
+    except KeyError as ke:
+        # the column does not exist
+        logger.error(f" Error: the name '{old_name}' does not exist. Available columns: {list(df.columns)}")
+    
+    except Exception as e:
+        # any other error
+        logger.error(f" Unable to rename column '{old_name}': {e} (type: {type(e).__name__})")
+    
+    return df
