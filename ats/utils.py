@@ -146,3 +146,10 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         logger.error(e)
     
     return fig
+
+def save_df_to_csv(df, outputfile="normalized_output.csv"):
+    """
+    Save a DataFrame to CSV.
+    """
+    df.to_csv(outputfile, index=False, header=True)
+    logger.info(f" Saved: {outputfile}")
