@@ -34,19 +34,22 @@ class TestEvaluators(unittest.TestCase):
         
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, timeseries_df)
         # Evaluation_results:
-        #{ 'false_positives': False,
+        #{ 'false_positives': 0,
         #  'anomaly_1':       True,
         #  'anomaly_2':       True
         #}
 
         self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),3)
+        self.assertIn('anomaly_1',evaluation_results.keys())
+        self.assertIn('anomaly_2',evaluation_results.keys())
+        self.assertIn('false_positives',evaluation_results.keys())
         self.assertIsInstance(evaluation_results['anomaly_1'],bool)
         self.assertIsInstance(evaluation_results['anomaly_2'],bool)
-        self.assertIsInstance(evaluation_results['false_positives'],bool)
+        self.assertIsInstance(evaluation_results['false_positives'],int)
         self.assertEqual(evaluation_results['anomaly_2'],True)
         self.assertEqual(evaluation_results['anomaly_1'],True)
-        self.assertEqual(evaluation_results['false_positives'],False)
+        self.assertEqual(evaluation_results['false_positives'],0)
 
     def test_evaluate_anomaly_det_on_spiked_synth_timeseries(self):
 
@@ -63,29 +66,22 @@ class TestEvaluators(unittest.TestCase):
         # 1973-05-07 12:17:00+00:00    24.979376388246145    50.05499629801029     None            None
         # 1973-05-07 12:32:00+00:00    24.927010515561776    50.194638625168594    None            None
         # ...
-        max_temp_index = humi_temp_df['temperature'].idxmax()
-        min_temp_index = humi_temp_df['temperature'].idxmin()
-        max_humi_index = humi_temp_df['humidity'].idxmax()
-        min_humi_index = humi_temp_df['humidity'].idxmin()
-        label_detected_anomalous_temp1 = humi_temp_df.loc[max_temp_index,'anomaly_label'] if humi_temp_df.loc[max_temp_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_temp2 = humi_temp_df.loc[min_temp_index,'anomaly_label'] if humi_temp_df.loc[min_temp_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_humi1 = humi_temp_df.loc[max_humi_index,'anomaly_label'] if humi_temp_df.loc[max_humi_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_humi2 = humi_temp_df.loc[min_humi_index,'anomaly_label'] if humi_temp_df.loc[min_humi_index,'anomaly_label'] is  not None else 'false_positives'
 
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, humi_temp_df, synthetic=True)
+        self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),2)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],bool)
-
+        self.assertIn('spike_uv',evaluation_results.keys())
+        self.assertIn('false_positives',evaluation_results.keys())
+        self.assertIsInstance(evaluation_results['spike_uv'],bool)
+        self.assertIsInstance(evaluation_results['false_positives'],int)
+        self.assertEqual(evaluation_results['false_positives'],2)
         # The detector does not see the downward spike in temperature as anomalous because the min temperature
         # value is 10.
         # The detector does not see the upward spike in humidity as anomalous because the max humidity
         # value is 70.
         # Evaluation_results:
-        # { 'false_positives': True
+        # { 'false_positives': 2
         #   'spike_uv':        False  
         # }
 
@@ -98,24 +94,18 @@ class TestEvaluators(unittest.TestCase):
         # ...
         # 1973-05-25 13:32:00+00:00   34.4037864008933       41.58990293095119    step_uv           None
         # ...
-        max_temp_index = step_humi_temp_df['temperature'].idxmax()
-        min_temp_index = step_humi_temp_df['temperature'].idxmin()
-        max_humi_index = step_humi_temp_df['humidity'].idxmax()
-        min_humi_index = step_humi_temp_df['humidity'].idxmin()
-        label_detected_anomalous_temp1 = step_humi_temp_df.loc[max_temp_index,'anomaly_label'] if step_humi_temp_df.loc[max_temp_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_temp2 = step_humi_temp_df.loc[min_temp_index,'anomaly_label'] if step_humi_temp_df.loc[min_temp_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_humi1 = step_humi_temp_df.loc[max_humi_index,'anomaly_label'] if step_humi_temp_df.loc[max_humi_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_humi2 = step_humi_temp_df.loc[min_humi_index,'anomaly_label'] if step_humi_temp_df.loc[min_humi_index,'anomaly_label'] is  not None else 'false_positives'
-
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, step_humi_temp_df, synthetic=True)
+
+        self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),2)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],bool)
+        self.assertIn('step_uv',evaluation_results.keys())
+        self.assertIn('false_positives',evaluation_results.keys())
+        self.assertIsInstance(evaluation_results['step_uv'],bool)
+        self.assertIsInstance(evaluation_results['false_positives'],int)
+        self.assertEqual(evaluation_results['false_positives'],1)
         # Evaluation results:
-        # { 'false_positives': True
+        # { 'false_positives': 1
         #   'step_uv':         True
         # }
 
@@ -129,23 +119,14 @@ class TestEvaluators(unittest.TestCase):
         # 1973-05-07 11:17:00+00:00    24.868377982941322    50.350992045489804    None            None
         # 1973-05-07 11:32:00+00:00    24.944096137309916    50.14907696717356     None            None
         # ...
-        max_temp_index = humi_temp_df['temperature'].idxmax()
-        min_temp_index = humi_temp_df['temperature'].idxmin()
-        max_humi_index = humi_temp_df['humidity'].idxmax()
-        min_humi_index = humi_temp_df['humidity'].idxmin()
-        label_detected_anomalous_temp1 = humi_temp_df.loc[max_temp_index,'anomaly_label'] if humi_temp_df.loc[max_temp_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_temp2 = humi_temp_df.loc[min_temp_index,'anomaly_label'] if humi_temp_df.loc[min_temp_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_humi1 = humi_temp_df.loc[max_humi_index,'anomaly_label'] if humi_temp_df.loc[max_humi_index,'anomaly_label'] is  not None else 'false_positives'
-        label_detected_anomalous_humi2 = humi_temp_df.loc[min_humi_index,'anomaly_label'] if humi_temp_df.loc[min_humi_index,'anomaly_label'] is  not None else 'false_positives'
-
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, humi_temp_df, synthetic=True)
+        self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),1)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],bool)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],bool)
+        self.assertIn('false_positives',evaluation_results.keys())
+        self.assertIsInstance(evaluation_results['false_positives'],int)
+        self.assertEqual(evaluation_results['false_positives'],2)
         # Evaluation results:
-        # { 'false_positives': True
+        # { 'false_positives': 2
         # }
 
