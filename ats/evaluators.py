@@ -30,8 +30,8 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
                 for column in evaluated_anomaly_flags.columns:
 
                     if evaluated_anomaly_flags.loc[time_index,column]:
-                        evaluation_results[anomaly_label] = True
                         anomaly_label_counts += 1
+                        evaluation_results[anomaly_label] = True if anomaly_label is not None else anomaly_label_counts
                         break
                         '''if anomaly_label_counts == 0:
                             evaluation_results[anomaly_label] = row_details_df
@@ -42,7 +42,7 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
                         break'''
         
         if not anomaly_label_counts:
-            evaluation_results[anomaly_label] = False
+            evaluation_results[anomaly_label] = False if anomaly_label is not None else 0
 
     if None in evaluation_results.keys():
         evaluation_results['false_positives'] = evaluation_results.pop(None)
