@@ -464,23 +464,24 @@ def add_spike_effect(timeseries,inplace=False,mode='uv'):
                     'medium': 7,
                     'high': 9
     }
-
+    spike_n = 0
     for i in range(len(timeseries)):
         is_a_spiked_value = True if rnd.randint(0, 50) == 25 else False
 
         if is_a_spiked_value:
+            spike_n += 1
             random_spike_intensity = rnd.choice(list(spike_factor.keys()))
 
-        if 'temperature' in quantities:
-            timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                  
+            if 'temperature' in quantities:
+                timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                  
 
-        if 'humidity' in quantities:
+            if 'humidity' in quantities:
 
-            if (number_of_spikes % 2) == 0:
-                timeseries.loc[i,'humidity'] -= spike_factor[random_spike_intensity]
+                if (spike_n % 2) == 0:
+                    timeseries.loc[i,'humidity'] -= spike_factor[random_spike_intensity]
 
-            else:
-                timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
+                else:
+                    timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
 
     return timeseries
 
