@@ -130,7 +130,7 @@ def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
     if mode == 'mv':
         timeseries.loc[anomalous_spike_position,'anomaly_label'] = 'spike_mv'
         if 'temperature' in quantities and 'humidity' in quantities:
-            timeseries.loc[anomalous_spike_position,'temperature'] += spike_intensities[intensity]
+            timeseries.loc[anomalous_spike_position,'temperature'] -= spike_intensities[intensity]
             timeseries.loc[anomalous_spike_position,'humidity'] += spike_intensities[intensity]
         else:
             raise ValueError('Cannot insert multivariate anomaly on a one dimensional timeseries')
