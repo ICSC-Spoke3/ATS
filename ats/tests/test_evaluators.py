@@ -33,24 +33,19 @@ class TestEvaluators(unittest.TestCase):
         # 2025-06-10 17:00:00+00:00   0.1411200080598672      None
         
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, timeseries_df)
-        # Evaluation_results
-        #{'false_positives':      timestamp                   value_anomaly
-        #                         2025-06-10 15:00:00+00:00   False,
-        #
-        #                timestamp                   value_anomaly
-        # 'anomaly_1':   2025-06-10 15:00:00+00:00   True,
-        #
-        #                timestamp                   value_anomaly
-        # 'anomaly_2':   2025-06-10 14:00:00+00:00   True
+        # Evaluation_results:
+        #{ 'false_positives': False,
+        #  'anomaly_1':       True,
+        #  'anomaly_2':       True
         #}
 
         self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),3)
-        self.assertIsInstance(evaluation_results['anomaly_1'],pd.DataFrame)
-        self.assertIsInstance(evaluation_results['anomaly_2'],pd.DataFrame)
+        self.assertIsInstance(evaluation_results['anomaly_1'],bool)
+        self.assertIsInstance(evaluation_results['anomaly_2'],bool)
         self.assertIsInstance(evaluation_results['false_positives'],bool)
-        self.assertEqual(evaluation_results['anomaly_2'].loc['2025-06-10 16:00:00+00:00','value_anomaly'],True)
-        self.assertEqual(evaluation_results['anomaly_1'].loc['2025-06-10 14:00:00+00:00','value_anomaly'],True)
+        self.assertEqual(evaluation_results['anomaly_2'],True)
+        self.assertEqual(evaluation_results['anomaly_1'],True)
         self.assertEqual(evaluation_results['false_positives'],False)
 
     def test_evaluate_anomaly_det_on_spiked_synth_timeseries(self):
@@ -80,22 +75,18 @@ class TestEvaluators(unittest.TestCase):
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, humi_temp_df, synthetic=True)
         self.assertEqual(len(evaluation_results),2)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],bool)
 
         # The detector does not see the downward spike in temperature as anomalous because the min temperature
         # value is 10.
         # The detector does not see the upward spike in humidity as anomalous because the max humidity
         # value is 70.
         # Evaluation_results:
-        # { 'false_positives':                                 temperature_anomaly   humidity_anomaly
-        #                        1973-05-03 00:02:00+00:00     True                  False
-        #                        1973-05-11 23:47:00+00:00     False                 True
-        #                        1973-05-13 12:02:00+00:00     True                  True,
-        #
-        # 'spike_uv':  False  
+        # { 'false_positives': True
+        #   'spike_uv':        False  
         # }
 
     def test_evaluate_anomaly_det_on_step_synth_timeseries(self):
@@ -119,16 +110,13 @@ class TestEvaluators(unittest.TestCase):
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, step_humi_temp_df, synthetic=True)
         self.assertEqual(len(evaluation_results),2)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],bool)
         # Evaluation results:
-        # { 'false_positives':                               temperature_anomaly  humidity_anomaly
-        #                      1973-05-03 00:02:00+00:00     True                 True
-        #
-        # 'step_uv':                                         temperature_anomaly   humidity_anomaly
-        #                      1973-05-26 12:02:00+00:00     True                  True
+        # { 'false_positives': True
+        #   'step_uv':         True
         # }
 
     def test_evaluate_anomaly_det_on_synth_not_anomalous_timeseries(self):
@@ -153,13 +141,11 @@ class TestEvaluators(unittest.TestCase):
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation_results = evaluate_anomaly_detector(min_max_anomaly_detector, humi_temp_df, synthetic=True)
         self.assertEqual(len(evaluation_results),1)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],pd.DataFrame)
-        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],pd.DataFrame)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp1],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_temp2],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi1],bool)
+        self.assertIsInstance(evaluation_results[label_detected_anomalous_humi2],bool)
         # Evaluation results:
-        # { 'false_positives':                              temperature_anomaly  humidity_anomaly
-        #                     1973-05-03 00:02:00+00:00     True                 True
-        #                     1973-05-03 12:02:00+00:00     True                 True
+        # { 'false_positives': True
         # }
 
