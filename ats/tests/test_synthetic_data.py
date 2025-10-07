@@ -338,6 +338,11 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         mv_humi_diff = bare_timeseries_df.loc[562,'humidity'] - mv_spiked_timeseries_df.loc[562,'humidity']
         self.assertAlmostEqual(mv_temp_diff,5)
         self.assertAlmostEqual(mv_humi_diff,5)
+
+        for i in range(len(bare_timeseries_df)):
+
+            if uv_spiked_timeseries_df.loc[i,'anomaly_label'] != 'spike_uv':
+                self.assertAlmostEqual(bare_timeseries_df.loc[i,'humidity'],uv_spiked_timeseries_df.loc[i,'humidity'])
         # TODO: a way for knowing the intensity of the espected spike
 
     def test_default_effect_label(self):
