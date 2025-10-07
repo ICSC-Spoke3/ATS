@@ -10,7 +10,7 @@ from ..synthetic_data import add_anomalous_noise
 from ..synthetic_data import add_pattern_anomaly
 from ..synthetic_data import generate_synthetic_humitemp_timeseries
 from ..synthetic_data import add_clouds_effects
-from ..synthetic_data import add_spike_effect
+from ..synthetic_data import add_spike_anomaly
 
 # Setup logging
 from .. import logger
@@ -323,11 +323,11 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         espected_temp_difference2 = 0.28125 * bare_timeseries_df.loc[243,'temperature']
         self.assertAlmostEqual(delta_temp_second_half_of_the_day,espected_temp_difference2)
 
-    def test_add_spike_effect(self):
+    def test_add_spike_anomaly(self):
         bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
-        uv_spiked_timeseries_df = add_spike_effect(bare_timeseries_df,inplace=False,anomaly=True, mode='uv')
-        mv_spiked_timeseries_df = add_spike_effect(bare_timeseries_df,inplace=False,anomaly=True, mode='mv')
+        uv_spiked_timeseries_df = add_spike_anomaly(bare_timeseries_df,inplace=False,mode='uv')
+        mv_spiked_timeseries_df = add_spike_anomaly(bare_timeseries_df,inplace=False,mode='mv')
 
         uv_temp_diff = bare_timeseries_df.loc[474,'temperature'] - uv_spiked_timeseries_df.loc[474,'temperature']
         uv_humi_diff = uv_spiked_timeseries_df.loc[474,'humidity'] - bare_timeseries_df.loc[474,'humidity']
