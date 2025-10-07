@@ -45,7 +45,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
            total_counts += label_counts
 
         self.assertEqual(total_counts,len(default_timeseries_df))
-        self.assertEqual(default_timeseries_df.loc[474,'anomaly_label'],'spike_uv')
+        self.assertEqual(default_timeseries_df.loc[10,'anomaly_label'],'spike_uv')
 
         for i in range(2160,2836):
             self.assertEqual(default_timeseries_df.loc[i,'anomaly_label'],'step_uv')
@@ -96,7 +96,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
            total_counts += label_counts
 
         self.assertEqual(total_counts,len(spike_mv_timeseries_df))
-        self.assertEqual(spike_mv_timeseries_df.loc[474,'anomaly_label'],'spike_mv')
+        self.assertEqual(spike_mv_timeseries_df.loc[10,'anomaly_label'],'spike_mv')
 
     def test_step_mv_timeseries_generator(self):       
         step_mv_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
@@ -179,7 +179,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
            total_counts += label_counts
 
         self.assertEqual(total_counts,len(all_uv_anomalies_timeseries_df))
-        self.assertEqual(all_uv_anomalies_timeseries_df.loc[474,'anomaly_label'],'spike_uv')
+        self.assertEqual(all_uv_anomalies_timeseries_df.loc[10,'anomaly_label'],'spike_uv')
 
         for i in range(2160,2836):
             self.assertEqual(all_uv_anomalies_timeseries_df.loc[i,'anomaly_label'],'step_uv')
@@ -329,13 +329,13 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         uv_spiked_timeseries_df = add_spike_anomaly(bare_timeseries_df,inplace=False,mode='uv')
         mv_spiked_timeseries_df = add_spike_anomaly(bare_timeseries_df,inplace=False,mode='mv')
 
-        uv_temp_diff = bare_timeseries_df.loc[474,'temperature'] - uv_spiked_timeseries_df.loc[474,'temperature']
-        uv_humi_diff = uv_spiked_timeseries_df.loc[474,'humidity'] - bare_timeseries_df.loc[474,'humidity']
-        self.assertAlmostEqual(uv_temp_diff,9)
-        self.assertAlmostEqual(uv_humi_diff,9)
+        uv_temp_diff = bare_timeseries_df.loc[10,'temperature'] - uv_spiked_timeseries_df.loc[10,'temperature']
+        uv_humi_diff = uv_spiked_timeseries_df.loc[10,'humidity'] - bare_timeseries_df.loc[10,'humidity']
+        self.assertAlmostEqual(uv_temp_diff,5)
+        self.assertAlmostEqual(uv_humi_diff,5)
 
-        mv_temp_diff = bare_timeseries_df.loc[562,'temperature'] - mv_spiked_timeseries_df.loc[562,'temperature']
-        mv_humi_diff = bare_timeseries_df.loc[562,'humidity'] - mv_spiked_timeseries_df.loc[562,'humidity']
+        mv_temp_diff = bare_timeseries_df.loc[10,'temperature'] - mv_spiked_timeseries_df.loc[10,'temperature']
+        mv_humi_diff = mv_spiked_timeseries_df.loc[10,'humidity'] - bare_timeseries_df.loc[10,'humidity']
         self.assertAlmostEqual(mv_temp_diff,5)
         self.assertAlmostEqual(mv_humi_diff,5)
 
