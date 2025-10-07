@@ -26,19 +26,22 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
         for time_index in evaluated_timeseries_df.index:
 
             if anomaly_labels.loc[time_index] == anomaly_label:
-                row_evaluation_df = evaluated_anomaly_flags.loc[[time_index],:].isin([1])
-                for column in row_evaluation_df.columns:
+                #row_details_df = evaluated_anomaly_flags.loc[[time_index],:].isin([1])
+                for column in evaluated_anomaly_flags.columns:
 
-                    if row_evaluation_df.loc[time_index,column] == True:
-                        if anomaly_label_counts == 0:
-                            evaluation_results[anomaly_label] = row_evaluation_df
-                        else:
-                            evaluation_results[anomaly_label] = pd.concat([evaluation_results[anomaly_label],row_evaluation_df],ignore_index=False)
-
+                    if evaluated_anomaly_flags.loc[time_index,column]:
+                        evaluation_results[anomaly_label] = True
                         anomaly_label_counts += 1
                         break
+                        '''if anomaly_label_counts == 0:
+                            evaluation_results[anomaly_label] = row_details_df
+                        else:
+                            evaluation_results[anomaly_label] = pd.concat([evaluation_results[anomaly_label],row_details_df],ignore_index=False)
+
+                        anomaly_label_counts += 1
+                        break'''
         
-        if anomaly_label_counts == 0:
+        if not anomaly_label_counts:
             evaluation_results[anomaly_label] = False
 
     if None in evaluation_results.keys():
