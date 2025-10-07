@@ -215,8 +215,8 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         for i in range(576,768):
             self.assertEqual(all_mv_anomalies_timeseries_df.loc[i,'anomaly_label'],'noise_mv')
 
-        for i in range(192,288):
-        	self.assertEqual(all_mv_anomalies_timeseries_df.loc[i,'anomaly_label'],'clouds')
+        for i in range(96,192):
+            self.assertEqual(all_mv_anomalies_timeseries_df.loc[i,'anomaly_label'],'clouds')
 
     def test_generate_time_boundaries(self):
         time_boundaries = generate_time_boundaries()
