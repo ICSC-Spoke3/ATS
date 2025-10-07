@@ -103,6 +103,41 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     return pd.DataFrame(data_points)
 
 
+# Spike anomaly
+def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
+    if not inplace:
+        timeseries = deepcopy(timeseries)
+
+    quantities = list(timeseries.columns)
+    quantities.remove('time')
+    quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
+
+    spike_intensities = {'low': 5,
+    'medium':7,
+    'high':9
+    }
+    anomalous_spike_position = 10
+    intensity = rnd.choice(list(spike_intensities.keys()))
+
+    if mode == 'uv':
+        timeseries.loc[anomalous_spike_position,'anomaly_label'] = 'spike_uv'
+        if 'temperature' in quantities:
+            timeseries.loc[anomalous_spike_position,'temperature'] -= spike_intensities[intensity]
+        if 'humidity' in quantities:
+            timeseries.loc[anomalous_spike_position,'humidity'] += spike_intensities[intensity]
+
+    if mode == 'mv':
+        timeseries.loc[anomalous_spike_position,'anomaly_label'] = 'spike_mv'
+        if 'temperature' in quantities and 'humidity' in quantities:
+            timeseries.loc[anomalous_spike_position,'temperature'] += spike_intensities[intensity]
+            timeseries.loc[anomalous_spike_position,'humidity'] += spike_intensities[intensity]
+        else:
+            raise ValueError('Cannot insert multivariate anomaly on a one dimensional timeseries')
+
+    return timeseries
+
+
 # Step anomaly
 def add_step_anomaly(timeseries,mode='uv',inplace=False):
     if not inplace:
@@ -585,15 +620,13 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                                                                        self.sampling_interval,mode='mv')
 
                 if 'spike_uv' in anomalies:
-                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df,
-                                                                    anomaly=True, mode='uv')
+                    final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='uv')
 
                     if 'spike_mv' in anomalies:
                         raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same time')
 
                 if 'spike_mv' in anomalies:
-                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df,
-                                                                    anomaly=True, mode='mv')
+                    final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='mv')
 
                 if 'step_uv' in anomalies:
                     final_humitemp_timeseries_df = add_step_anomaly(final_humitemp_timeseries_df,mode='uv')
@@ -637,7 +670,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                                                                       self.sampling_interval)
 
                 if 'spike' in effects:
-                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df,anomaly=False)
+                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df)
 
         if plot:
             plot_func(final_humitemp_timeseries_df,anomalies)
