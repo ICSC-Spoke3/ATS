@@ -11,6 +11,7 @@ from ..synthetic_data import add_pattern_anomaly
 from ..synthetic_data import generate_synthetic_humitemp_timeseries
 from ..synthetic_data import add_clouds_effects
 from ..synthetic_data import add_spike_anomaly
+from ..synthetic_data import add_spike_effect
 
 # Setup logging
 from .. import logger
@@ -354,4 +355,14 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         timeseries_df = timeseries_generator.generate(effects=[],anomalies=[])
         self.assertIsNone(timeseries_df.loc[10,'anomaly_label'])
+
+    def test_add_spike_effect(self):
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+        spike_effect_timeseries_df = add_spike_effect(bare_timeseries_df,inplace=False)
+
+        for i in range(len(bare_timeseries_df)):
+            temp = bare_timeseries_df.loc[i,'temperature']
+            spiked_temp = spike_effect_timeseries_df.loc[i,'temperature']
+            self.assertTrue((spiked_temp - temp) >= 0)
 
