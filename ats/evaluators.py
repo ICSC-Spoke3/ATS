@@ -15,7 +15,6 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
 
     if not isinstance(anomaly_detector,MinMaxAnomalyDetector):
         raise ValueError('Only MinMaxAnomalyDetector is supported')
-
     if 'anomaly_label' not in evaluation_timeseries_df.columns:
         raise ValueError('The anomaly_label column is missing: it is necessary for evaluation')
 
@@ -26,9 +25,7 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
     evaluation_details = {}
     for anomaly_label,frequency in anomaly_labels.value_counts(dropna=False).items():
         anomaly_label_counts = 0
-        
         for time_index in evaluated_timeseries_df.index:
-
             if anomaly_labels.loc[time_index] == anomaly_label:
                 for column in evaluated_anomaly_flags.columns:
                     is_anomalous_value = evaluated_anomaly_flags.loc[time_index,column]
@@ -39,7 +36,6 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
                             evaluation_details[anomaly_label][time_index]={quantity: bool(evaluated_anomaly_flags.loc[time_index,quantity]) for quantity in evaluated_anomaly_flags.columns}
                         anomaly_label_counts += 1
                         evaluation_results[anomaly_label] = True if anomaly_label is not None else anomaly_label_counts
-
         if not anomaly_label_counts:
             evaluation_results[anomaly_label] = False if anomaly_label is not None else 0
 
