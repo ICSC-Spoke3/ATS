@@ -145,8 +145,8 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(details['anomaly_1'][pd.Timestamp('2025-06-10 14:00:00+00:00')]['value_anomaly'],1)
         self.assertEqual(details['anomaly_2'][pd.Timestamp('2025-06-10 16:00:00+00:00')]['value_anomaly'],1)
         # Evaluation_details
-        # anomaly_1: {Timestamp('2025-06-10 14:00:00+0000', tz='UTC'): {'value_anomaly': 1}}
-        # anomaly_2: {Timestamp('2025-06-10 16:00:00+0000', tz='UTC'): {'value_anomaly': 1}}
+        # anomaly_1: {Timestamp('2025-06-10 14:00:00+0000', tz='UTC'): {'value_anomaly': True}}
+        # anomaly_2: {Timestamp('2025-06-10 16:00:00+0000', tz='UTC'): {'value_anomaly': True}}
 
     def test_evaluation_details_on_synth_spiked_timeseries(self):
         spiked_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
@@ -161,7 +161,7 @@ class TestEvaluators(unittest.TestCase):
         self.assertIn('false_positives',details.keys())
         self.assertNotIn('spike_uv',details.keys())
         # Evaluation_details
-        # false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': 1, 'humidity_anomaly': 1}, Timestamp('1973-05-03 12:02:00+0000', tz='UTC'): {'temperature_anomaly': 1, 'humidity_anomaly': 1}}
+        # false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}, Timestamp('1973-05-03 12:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
 
     def test_evaluation_details_on_synth_step_timeseries(self):
         step_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
@@ -178,8 +178,8 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(details['step_uv']),1)
         self.assertEqual(len(details['false_positives']),1)
         # Evaluation_details
-        # step_uv: {Timestamp('1973-05-26 12:02:00+0000', tz='UTC'): {'temperature_anomaly': 1, 'humidity_anomaly': 1}}
-        # false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': 1, 'humidity_anomaly': 1}}
+        # step_uv: {Timestamp('1973-05-26 12:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
+        # false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
 
     def test_evaluation_details_on_synth_not_anomalous_timeseries(self):
         humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
@@ -193,5 +193,5 @@ class TestEvaluators(unittest.TestCase):
         self.assertIsInstance(details['false_positives'],dict)
         self.assertEqual(len(details['false_positives']),2)
         # Evaluation_details
-        #false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': 1, 'humidity_anomaly': 1}, Timestamp('1973-05-03 12:02:00+0000', tz='UTC'): {'temperature_anomaly': 1, 'humidity_anomaly': 1}}
+        #false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}, Timestamp('1973-05-03 12:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
 
