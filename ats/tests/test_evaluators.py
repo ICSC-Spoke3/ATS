@@ -152,6 +152,6 @@ class TestEvaluators(unittest.TestCase):
         self.assertIsInstance(details,dict)
         self.assertEqual(len(details),1)
         self.assertIsInstance(details['false_positives'],dict)
-        #self.assertEqual(len(details['false_positives']),2)
+        self.assertEqual(len(details['false_positives']),2)
         self.assertIn('false_positives',details.keys())
 
