@@ -11,7 +11,7 @@ def _format_for_anomaly_detector(input_df,synthetic=False):
     input_df.drop(columns=['anomaly_label'],inplace=True)
     return input_df,anomaly_labels
 
-def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthetic=False):
+def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthetic=False,details=False):
 
     if not isinstance(anomaly_detector,MinMaxAnomalyDetector):
         raise ValueError('Only MinMaxAnomalyDetector is supported')
@@ -19,12 +19,11 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
     if 'anomaly_label' not in evaluation_timeseries_df.columns:
         raise ValueError('The anomaly_label column is missing: it is necessary for evaluation')
 
-    evaluation_timeseries_df, anomaly_labels = _format_for_anomaly_detector(evaluation_timeseries_df,
-                                                                            synthetic=synthetic)
+    evaluation_timeseries_df, anomaly_labels = _format_for_anomaly_detector(evaluation_timeseries_df,synthetic=synthetic)
     evaluated_timeseries_df = anomaly_detector.apply(evaluation_timeseries_df)
     evaluated_anomaly_flags = evaluated_timeseries_df.filter(like='_anomaly')
     evaluation_results = {}
-
+    evaluation_details = {}
     for anomaly_label,frequency in anomaly_labels.value_counts(dropna=False).items():
         anomaly_label_counts = 0
         
@@ -32,8 +31,9 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
 
             if anomaly_labels.loc[time_index] == anomaly_label:
                 for column in evaluated_anomaly_flags.columns:
-
-                    if evaluated_anomaly_flags.loc[time_index,column]:
+                    is_anomalous_value = evaluated_anomaly_flags.loc[time_index,column]
+                    if is_anomalous_value:
+                        evaluation_details[anomaly_label]={ time_index: {quantity: evaluated_anomaly_flags.loc[time_index,quantity] for quantity in evaluated_anomaly_flags.columns}}
                         anomaly_label_counts += 1
                         evaluation_results[anomaly_label] = True if anomaly_label is not None else anomaly_label_counts
                         break
@@ -43,6 +43,11 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
 
     if None in evaluation_results.keys():
         evaluation_results['false_positives'] = evaluation_results.pop(None)
+    if None in evaluation_details.keys():
+        evaluation_details['false_positives'] = evaluation_details.pop(None)
 
-    return evaluation_results
+    if details:
+        return evaluation_results,evaluation_details
+    else:
+        return evaluation_results
 
