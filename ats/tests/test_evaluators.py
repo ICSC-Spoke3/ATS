@@ -103,9 +103,9 @@ class TestEvaluators(unittest.TestCase):
         self.assertIn('false_positives',evaluation_results.keys())
         self.assertIsInstance(evaluation_results['step_uv'],bool)
         self.assertIsInstance(evaluation_results['false_positives'],int)
-        self.assertEqual(evaluation_results['false_positives'],1)
+        self.assertEqual(evaluation_results['false_positives'],2)
         # Evaluation results:
-        # { 'false_positives': 1
+        # { 'false_positives': 2
         #   'step_uv':         True
         # }
 

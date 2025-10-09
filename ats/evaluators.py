@@ -36,7 +36,6 @@ def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthe
                         evaluation_details[anomaly_label]={ time_index: {quantity: evaluated_anomaly_flags.loc[time_index,quantity] for quantity in evaluated_anomaly_flags.columns}}
                         anomaly_label_counts += 1
                         evaluation_results[anomaly_label] = True if anomaly_label is not None else anomaly_label_counts
-                        break
 
         if not anomaly_label_counts:
             evaluation_results[anomaly_label] = False if anomaly_label is not None else 0
