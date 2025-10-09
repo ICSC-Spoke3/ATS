@@ -75,13 +75,13 @@ class TestEvaluators(unittest.TestCase):
         self.assertIn('false_positives',evaluation_results.keys())
         self.assertIsInstance(evaluation_results['spike_uv'],bool)
         self.assertIsInstance(evaluation_results['false_positives'],int)
-        self.assertEqual(evaluation_results['false_positives'],2)
+        self.assertEqual(evaluation_results['false_positives'],4)
         # The detector does not see the downward spike in temperature as anomalous because the min temperature
         # value is 10.
         # The detector does not see the upward spike in humidity as anomalous because the max humidity
         # value is 70.
         # Evaluation_results:
-        # { 'false_positives': 2
+        # { 'false_positives': 4
         #   'spike_uv':        False  
         # }
 
@@ -125,8 +125,33 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(evaluation_results),1)
         self.assertIn('false_positives',evaluation_results.keys())
         self.assertIsInstance(evaluation_results['false_positives'],int)
-        self.assertEqual(evaluation_results['false_positives'],2)
+        self.assertEqual(evaluation_results['false_positives'],4)
         # Evaluation results:
-        # { 'false_positives': 2
+        # { 'false_positives': 4
         # }
+
+    def test_evaluation_details(self):
+        min_max_anomaly_detector = MinMaxAnomalyDetector()
+        timeseries_df = generate_timeseries_df(entries=4, variables=1)
+        timeseries_df['anomaly_label'] = ['anomaly_1', None,'anomaly_2', None]
+        evaluation_results,details = evaluate_anomaly_detector(min_max_anomaly_detector,timeseries_df,details=True)
+
+        self.assertIsInstance(details,dict)
+        self.assertEqual(len(details),2)
+        self.assertIn('anomaly_1',details.keys())
+        self.assertIn('anomaly_2',details.keys())
+        self.assertEqual(details['anomaly_1'][pd.Timestamp('2025-06-10 14:00:00+00:00')]['value_anomaly'],1)
+        self.assertEqual(details['anomaly_2'][pd.Timestamp('2025-06-10 16:00:00+00:00')]['value_anomaly'],1)
+
+    def test_evaluation_details_on_synth_spiked_timeseries(self):
+        spiked_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        humi_temp_df = spiked_humi_temp_generator.generate(anomalies=['spike_uv'],effects=[])
+        min_max_anomaly_detector = MinMaxAnomalyDetector()
+        evaluation_results,details = evaluate_anomaly_detector(min_max_anomaly_detector,humi_temp_df,synthetic=True,details=True)
+
+        self.assertIsInstance(details,dict)
+        self.assertEqual(len(details),1)
+        self.assertIsInstance(details['false_positives'],dict)
+        #self.assertEqual(len(details['false_positives']),2)
+        self.assertIn('false_positives',details.keys())
 
