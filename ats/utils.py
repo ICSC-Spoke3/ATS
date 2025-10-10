@@ -66,13 +66,14 @@ def normalize_parameter(df, parameter):
         return (df[parameter] - min_parameter) / (max_parameter - min_parameter)
     
     
-def normalize_df(df, parameters_subset=None):
+def normalize_df(df, parameters_subset=None,save=False):
     """
     Normalizes a single column of a DataFrame using (value-min)/(max-min).
 
     Args:
         df (pd.DataFrame): Input DataFrame.
-        parameters_subset (list, opt): List of column names to normalize. If None, all columns are used. 
+        parameters_subset (list, opt): List of column names to normalize. If None, all columns are used.
+        save (bool ,opt): save the DataFrame in "normalized_output.csv" file
 
     Returns:
         pd.DataFrame: DataFrame with normalized columns.
@@ -94,6 +95,9 @@ def normalize_df(df, parameters_subset=None):
 
         except Exception as e:
             logger.error(f"Normalization failed for column '{parameter}': {e} (type: {type(e).__name__}).")
+
+    if save:
+        save_df_to_csv(df_norm, outputfile="normalized_output.csv")
 
     return df_norm
 
