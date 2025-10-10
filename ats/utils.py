@@ -192,6 +192,19 @@ def merge_df(df1, df2):
     return pd.concat([df1, df2], axis=1)
 
 def find_best_parameter(df, parameter, mode="min"):
+    """
+    Find the row in a DataFrame that has the best (minimum or maximum) value 
+    for a given parameter.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to search.
+        parameter (str): The name of the column to evaluate.
+        mode (str, optional): The optimization criterion. 
+            Accepts "min" or "max". Defaults to "min".
+
+    Returns:
+        pd.Series: The row of the DataFrame corresponding to the best parameter value.
+    """
     operations = {
         "min": df[parameter].idxmin,
         "max": df[parameter].idxmax,
