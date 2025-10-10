@@ -195,6 +195,7 @@ def find_best_parameter(df, parameter, mode="min"):
     operations = {
         "min": df[parameter].idxmin,
         "max": df[parameter].idxmax,
+        # Others implementation here ...
     }
 
     if mode not in operations:
@@ -207,3 +208,5 @@ def find_best_parameter(df, parameter, mode="min"):
         logger.error(f" '{parameter}' does'nt exist. Aviables columns: {list(df.columns)}")
     except Exception as e:
         logger.error(f"Error finding {mode} for '{parameter}': {e} ({type(e).__name__})")
+    
+    return df.loc[idx_best]
