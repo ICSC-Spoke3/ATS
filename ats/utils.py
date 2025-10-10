@@ -153,7 +153,15 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
 
 def save_df_to_csv(df, outputfile="normalized_output.csv"):
     """
-    Save a DataFrame to CSV.
+    Save a DataFrame to CSV,including column headers and excluding the index.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to save.
+        outputfile (str, optional): The output CSV file path. 
+            Defaults to "normalized_output.csv".
+
+    Returns:
+        None
     """
     df.to_csv(outputfile, index=False, header=True)
     logger.info(f" Saved: {outputfile}")
@@ -161,7 +169,14 @@ def save_df_to_csv(df, outputfile="normalized_output.csv"):
 def rename_column(df, old_name, new_name):
     """
     Renames a column in a DataFrame in Place.
-    If the column does not exist, it catches the error and reports its type.
+    
+    Args:
+        df (pd.DataFrame): The DataFrame containing the column to rename.
+        old_name (str): The current column name.
+        new_name (str): The new column name.
+
+    Returns:
+        pd.DataFrame: The updated DataFrame (renamed in place).
     """
     try:
         # try renaming
