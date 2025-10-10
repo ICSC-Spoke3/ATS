@@ -69,7 +69,7 @@ def normalize_parameter(df, parameter):
     
 def normalize_df(df, parameters_subset=None,save=False):
     """
-    Normalizes a single column of a DataFrame using (value-min)/(max-min).
+    Normalizes a DataFrame using (value-min)/(max-min).
 
     Args:
         df (pd.DataFrame): Input DataFrame.
