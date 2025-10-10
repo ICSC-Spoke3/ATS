@@ -173,3 +173,16 @@ def rename_column(df, old_name, new_name):
         logger.error(f" Unable to rename column '{old_name}': {e} (type: {type(e).__name__})")
     
     return df
+
+def merge_df(df1, df2):
+    """
+    Merge two DataFrames side by side (column-wise).
+
+    Args:
+        df1 (pd.DataFrame): First DataFrame.
+        df2 (pd.DataFrame): Second DataFrame.
+
+    Returns:
+        pd.DataFrame: Combined DataFrame with columns from both inputs.
+    """
+    return pd.concat([df1, df2], axis=1)
