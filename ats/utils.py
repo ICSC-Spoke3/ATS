@@ -160,7 +160,7 @@ def save_df_to_csv(df, outputfile="normalized_output.csv"):
 
 def rename_column(df, old_name, new_name):
     """
-    Renames a column in a DataFrame.
+    Renames a column in a DataFrame in Place.
     If the column does not exist, it catches the error and reports its type.
     """
     try:
@@ -190,3 +190,20 @@ def merge_df(df1, df2):
         pd.DataFrame: Combined DataFrame with columns from both inputs.
     """
     return pd.concat([df1, df2], axis=1)
+
+def find_best_parameter(df, parameter, mode="min"):
+    operations = {
+        "min": df[parameter].idxmin,
+        "max": df[parameter].idxmax,
+    }
+
+    if mode not in operations:
+        logger.error(f"Mode '{mode}' is not valid. Use one of {list(operations.keys())}.")
+
+    try:
+        idx_best = operations[mode]()
+        return df.loc[idx_best]
+    except KeyError:
+        logger.error(f" '{parameter}' does'nt exist. Aviables columns: {list(df.columns)}")
+    except Exception as e:
+        logger.error(f"Error finding {mode} for '{parameter}': {e} ({type(e).__name__})")
