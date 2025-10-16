@@ -254,7 +254,7 @@ def plotter_from_df(df, x,y,fixed_parameters):
         fixed_parameters (dict): Dictionary of column=value pairs (or list/tuple of values) to filter by.
 
     Returns:
-        matplotlib.figure.Figure: The generated matplotlib figure.
+         Plot the generated matplotlib figure.
     """
     df_filtered = df.copy()
     if fixed_parameters:
@@ -269,6 +269,8 @@ def plotter_from_df(df, x,y,fixed_parameters):
                 df_filtered = df_filtered[df_filtered[key] == val]
         
     df_filtered = df_filtered.sort_values(by=[x, y])
+
+    context_info = " | ".join(f"{k}={v}" for k, v in (fixed_parameters or {}).items())
  
     try:
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -279,7 +281,6 @@ def plotter_from_df(df, x,y,fixed_parameters):
         ax.grid(True)
         plt.tight_layout()
         plt.show()
-        return fig
 
     except Exception as e:
         logger.error(f"Error while plotting {y} vs {x}: {e}")
