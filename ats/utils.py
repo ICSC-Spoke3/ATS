@@ -166,10 +166,11 @@ def save_df_to_csv(df, outputfile="normalized_output.csv"):
     df.to_csv(outputfile, index=False, header=True)
     logger.info(f" Saved: {outputfile}")
 
+
 def rename_column(df, old_name, new_name):
     """
     Renames a column in a DataFrame in Place.
-    
+
     Args:
         df (pd.DataFrame): The DataFrame containing the column to rename.
         old_name (str): The current column name.
@@ -193,6 +194,7 @@ def rename_column(df, old_name, new_name):
     
     return df
 
+
 def merge_df(df1, df2):
     """
     Merge two DataFrames side by side (column-wise).
@@ -205,6 +207,7 @@ def merge_df(df1, df2):
         pd.DataFrame: Combined DataFrame with columns from both inputs.
     """
     return pd.concat([df1, df2], axis=1)
+
 
 def find_best_parameter(df, parameter, mode="min"):
     """
@@ -238,3 +241,45 @@ def find_best_parameter(df, parameter, mode="min"):
         logger.error(f"Error finding {mode} for '{parameter}': {e} ({type(e).__name__})")
     
     return df.loc[idx_best]
+
+def plotter_from_df(df, x,y,fixed_parameters):
+    """
+    Filters a DataFrame based on fixed parameters and plots y vs x.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        x (str): Column for the x-axis.
+        y (str): Column for the y-axis.
+        fixed_parameters (dict): Dictionary of column=value pairs (or list/tuple of values) to filter by.
+
+    Returns:
+        matplotlib.figure.Figure: The generated matplotlib figure.
+    """
+    df_filtered = df.copy()
+    if fixed_parameters:
+        for key, val in fixed_parameters.items():
+            if key not in df_filtered.columns:
+                logger.warning(f"'{key}' not in DataFrame columns. Skipping filter.")
+                continue
+            
+            if isinstance(val, (list, tuple, set)):
+                df_filtered = df_filtered[df_filtered[key].isin(val)]
+            else:
+                df_filtered = df_filtered[df_filtered[key] == val]
+        
+    df_filtered = df_filtered.sort_values(by=[x, y])
+ 
+    try:
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(df_filtered[x], df_filtered[y], marker="o")
+        ax.set_xlabel(x)
+        ax.set_ylabel(y)
+        ax.set_title(f"{y} vs {x}" + (f" | {context_info}" if context_info else ""))
+        ax.grid(True)
+        plt.tight_layout()
+        plt.show()
+        return fig
+
+    except Exception as e:
+        logger.error(f"Error while plotting {y} vs {x}: {e}")
+        return None
