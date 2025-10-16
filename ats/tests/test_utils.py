@@ -7,7 +7,8 @@ from ..utils import (generate_timeseries_df,
                      normalize_parameter, 
                      normalize_df, 
                      plot_3d_interactive,
-                     save_df_to_csv
+                     save_df_to_csv,
+                     rename_column
                      )
 
 # Setup logging
@@ -99,4 +100,16 @@ class TestUtils(unittest.TestCase):
         df_loaded = pd.read_csv(outputfile)
         pd.testing.assert_frame_equal(df_loaded, self.df)
         os.remove(outputfile)
+
+    def test_rename_column_success(self):
+        df_copy = self.df.copy()
+        rename_column(df_copy, "avg_err", "avg_error")
+        self.assertIn("avg_error", df_copy.columns)
+        self.assertNotIn("avg_err", df_copy.columns)
+
+    def test_rename_column_invalid_name_logs_error(self):
+        df_copy = self.df.copy()
+        with self.assertLogs('ats',level='ERROR') as cm:
+            rename_column(df_copy, "nonexistent", "new_col")
+        self.assertTrue(any("does not exist" in msg for msg in cm.output))
     
