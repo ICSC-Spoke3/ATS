@@ -2,6 +2,7 @@ import unittest
 import os
 import pandas as pd
 import plotly.graph_objects as go
+from unittest.mock import patch
 
 from ..utils import (generate_timeseries_df, 
                      normalize_parameter, 
@@ -10,7 +11,8 @@ from ..utils import (generate_timeseries_df,
                      save_df_to_csv,
                      rename_column,
                      merge_df,
-                     find_best_parameter
+                     find_best_parameter,
+                     plotter_from_df
                      )
 
 # Setup logging
@@ -132,3 +134,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(result["fitness"], 18)
 
     # To be implemented ... test with logger.error
+
+    @patch("matplotlib.pyplot.show")
+    def test_plotter_from_df_runs_and_filters(self, mock_show):
+        plotter_from_df(self.df, "avg_err", "fitness", {"max_err": [2, 4]})
+        mock_show.assert_called_once()
