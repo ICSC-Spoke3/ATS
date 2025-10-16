@@ -3,6 +3,7 @@
 
 import pandas as pd
 import numpy as np
+import plotly.express as px
 from timeseria.datastructures import TimeSeries
 
 # Setup logging
@@ -95,3 +96,53 @@ def normalize_df(df, parameters_subset=None):
             logger.error(f"Normalization failed for column '{parameter}': {e} (type: {type(e).__name__}).")
 
     return df_norm
+
+
+def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness",filters=None,
+                        hover_columns=None,marker_size=3,renderer="notebook",show = True):
+    """
+    Creates an interactive 3D scatter plot with Plotly, with optional filters on the DataFrame.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        x, y, z (str): Columns for the axes.
+        color (str): Column used to color the points.
+        filters (dict): Dictionary with key=column, value=tuple(min,max) to filter the data.
+        hover_columns (list): Columns to display on hover. Default: all columns.
+        marker_size (int): Size of the markers.
+        renderer (str): Plotly renderer ("notebook", "browser", etc.)
+        show (bool): Whether to display the figure immediately.
+
+    Returns:
+        plotly.graph_objs._figure.Figure: Interactive figure.
+    """
+
+    df_plot = df.copy()
+    fig = None 
+    allowed_filter_cols = {x, y, z, color}
+
+    # Apply filters if provided
+    if filters:
+        for col, (min_val, max_val) in filters.items():
+            if col not in  allowed_filter_cols:
+                logger.warning(f"Column '{col}' is not used in the plot (x, y, z, color). Filter ignored.")
+            else:
+                df_plot = df_plot[(df_plot[col] >= min_val) & (df_plot[col] <= max_val)]
+
+    # If hover_columns not specified, show all columns
+    if hover_columns is None:
+        hover_columns = df_plot.columns.tolist()
+
+    # Create 3D plot
+    try:
+        fig = px.scatter_3d( df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns )
+        fig.update_traces(marker=dict(size=marker_size))
+        if show:
+             fig.show(renderer=renderer)
+    except KeyError as ke:
+        missing_cols = [col for col in (x, y, z, color) if col not in df_plot.columns]
+        logger.error(f"Column(s) {missing_cols} not found in DataFrame.")
+    except Exception as e:
+        logger.error(e)
+    
+    return fig

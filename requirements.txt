@@ -1,1 +1,2 @@
 timeseria==2.2.0
+plotly==6.3.0
