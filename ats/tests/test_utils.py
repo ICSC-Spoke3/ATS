@@ -1,8 +1,14 @@
 import unittest
+import os
 import pandas as pd
 import plotly.graph_objects as go
 
-from ..utils import generate_timeseries_df, normalize_parameter, normalize_df, plot_3d_interactive
+from ..utils import (generate_timeseries_df, 
+                     normalize_parameter, 
+                     normalize_df, 
+                     plot_3d_interactive,
+                     save_df_to_csv
+                     )
 
 # Setup logging
 from .. import logger
@@ -84,4 +90,13 @@ class TestUtils(unittest.TestCase):
         y_values_filtered = fig.data[0].y
         self.assertTrue(all(2 <= val <= 8 for val in y_values_filtered))
 
+    def test_save_df_to_csv(self):
+        outputfile = "test_output.csv"
+        save_df_to_csv(self.df, outputfile)
+        self.assertTrue(os.path.exists(outputfile))
+
+        # Verify contents are the same
+        df_loaded = pd.read_csv(outputfile)
+        pd.testing.assert_frame_equal(df_loaded, self.df)
+        os.remove(outputfile)
     
