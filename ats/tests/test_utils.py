@@ -9,7 +9,8 @@ from ..utils import (generate_timeseries_df,
                      plot_3d_interactive,
                      save_df_to_csv,
                      rename_column,
-                     merge_df
+                     merge_df,
+                     find_best_parameter
                      )
 
 # Setup logging
@@ -121,3 +122,13 @@ class TestUtils(unittest.TestCase):
         result = merge_df(df1, df2)
         self.assertEqual(result.shape[1], 4)
         self.assertIn("fitness", result.columns)
+
+    def test_find_best_parameter_min(self):
+        result = find_best_parameter(self.df, "ks_pvalue", mode="min")
+        self.assertEqual(result["ks_pvalue"], 0.1)
+
+    def test_find_best_parameter_max(self):
+        result = find_best_parameter(self.df, "fitness", mode="max")
+        self.assertEqual(result["fitness"], 18)
+
+    # To be implemented ... test with logger.error
