@@ -242,7 +242,7 @@ def find_best_parameter(df, parameter, mode="min"):
     
     return df.loc[idx_best]
 
-def plotter_from_df(df, x,y,fixed_parameters):
+def plot_from_df(df, x,y,fixed_parameters):
     """
     Filters a DataFrame based on fixed parameters and plots y vs x.
 
