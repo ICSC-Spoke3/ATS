@@ -12,7 +12,7 @@ from ..utils import (generate_timeseries_df,
                      rename_column,
                      merge_df,
                      find_best_parameter,
-                     plotter_from_df
+                     plot_from_df
                      )
 
 # Setup logging
@@ -137,5 +137,5 @@ class TestUtils(unittest.TestCase):
 
     @patch("matplotlib.pyplot.show")
     def test_plotter_from_df_runs_and_filters(self, mock_show):
-        plotter_from_df(self.df, "avg_err", "fitness", {"max_err": [2, 4]})
+        plot_from_df(self.df, "avg_err", "fitness", {"max_err": [2, 4]})
         mock_show.assert_called_once()
