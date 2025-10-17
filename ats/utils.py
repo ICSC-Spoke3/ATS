@@ -244,7 +244,7 @@ def find_best_parameter(df, parameter, mode="min"):
 
 def plot_from_df(df, x,y,fixed_parameters):
     """
-    Filters a DataFrame based on fixed parameters and plots y vs x.
+    2D plot of DataFrame (y vs x). It allow to select fixed parameter
 
     Args:
         df (pd.DataFrame): Input DataFrame.
