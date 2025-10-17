@@ -152,14 +152,14 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
     
     return fig
 
-def save_df_to_csv(df, outputfile="normalized_output.csv"):
+def save_df_to_csv(df, outputfile="output.csv"):
     """
     Save a DataFrame to CSV,including column headers and excluding the index.
 
     Args:
         df (pd.DataFrame): The DataFrame to save.
         outputfile (str, optional): The output CSV file path. 
-            Defaults to "normalized_output.csv".
+            Defaults to "output.csv".
 
     Returns:
         None
