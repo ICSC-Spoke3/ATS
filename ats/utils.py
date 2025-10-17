@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def generate_timeseries_df(start='2025-06-10 14:00:00',  tz='UTC', freq='H', entries=10, pattern='sin', variables=1):
+def generate_timeseries_df(start='2025-06-10 14:00:00',  tz='UTC', freq='h', entries=10, pattern='sin', variables=1):
     if pattern not in ['sin']:
         raise ValueError(f'Unknown pattern "{pattern}"')
 
