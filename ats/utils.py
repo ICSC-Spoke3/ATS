@@ -242,7 +242,7 @@ def find_best_parameter(df, parameter, mode="min"):
     
     return df.loc[idx_best]
 
-def plot_from_df(df, x,y,fixed_parameters):
+def plot_from_df(df, x,y,fixed_parameters=None):
     """
     2D plot of DataFrame (y vs x). It allow to select fixed parameter
 
@@ -250,7 +250,7 @@ def plot_from_df(df, x,y,fixed_parameters):
         df (pd.DataFrame): Input DataFrame.
         x (str): Column for the x-axis.
         y (str): Column for the y-axis.
-        fixed_parameters (dict): Dictionary of column=value pairs (or list/tuple of values) to filter by.
+        fixed_parameters (dict, opt): Dictionary of column=value pairs (or list/tuple of values) to filter by.
 
     Returns:
          Plot the generated matplotlib figure.
