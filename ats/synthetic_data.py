@@ -103,6 +103,41 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     return pd.DataFrame(data_points)
 
 
+# Spike anomaly
+def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
+    if not inplace:
+        timeseries = deepcopy(timeseries)
+
+    quantities = list(timeseries.columns)
+    quantities.remove('time')
+    quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
+
+    spike_intensities = {'low': 5,
+    'medium':7,
+    'high':9
+    }
+    anomalous_spike_position = 10
+    intensity = rnd.choice(list(spike_intensities.keys()))
+
+    if mode == 'uv':
+        timeseries.loc[anomalous_spike_position,'anomaly_label'] = 'spike_uv'
+        if 'temperature' in quantities:
+            timeseries.loc[anomalous_spike_position,'temperature'] -= spike_intensities[intensity]
+        if 'humidity' in quantities:
+            timeseries.loc[anomalous_spike_position,'humidity'] += spike_intensities[intensity]
+
+    if mode == 'mv':
+        timeseries.loc[anomalous_spike_position,'anomaly_label'] = 'spike_mv'
+        if 'temperature' in quantities and 'humidity' in quantities:
+            timeseries.loc[anomalous_spike_position,'temperature'] -= spike_intensities[intensity]
+            timeseries.loc[anomalous_spike_position,'humidity'] += spike_intensities[intensity]
+        else:
+            raise ValueError('Cannot insert multivariate anomaly on a one dimensional timeseries')
+
+    return timeseries
+
+
 # Step anomaly
 def add_step_anomaly(timeseries,mode='uv',inplace=False):
     if not inplace:
@@ -416,7 +451,7 @@ def add_clouds_effects(timeseries,sampling_interval,inplace=False,mv_anomaly=Fal
 
 
 # Spike effect
-def add_spike_effect(timeseries,inplace=False,anomaly=False, mode='uv'): 
+def add_spike_effect(timeseries,inplace=False,mode='uv'): 
     if not inplace:
         timeseries = deepcopy(timeseries)
 
@@ -429,57 +464,24 @@ def add_spike_effect(timeseries,inplace=False,anomaly=False, mode='uv'):
                     'medium': 7,
                     'high': 9
     }
-    number_of_spikes = 0
-
+    spike_n = 0
     for i in range(len(timeseries)):
         is_a_spiked_value = True if rnd.randint(0, 50) == 25 else False
 
         if is_a_spiked_value:
-            number_of_spikes += 1
+            spike_n += 1
             random_spike_intensity = rnd.choice(list(spike_factor.keys()))
 
-            if not anomaly:
+            if 'temperature' in quantities:
+                timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                  
 
-                if 'temperature' in quantities:
-                    timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                  
+            if 'humidity' in quantities:
 
-                if 'humidity' in quantities:
-
-                    if (number_of_spikes % 2) == 0:
-                        timeseries.loc[i,'humidity'] -= spike_factor[random_spike_intensity]
-
-                    else:
-                        timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
-
-            if anomaly and number_of_spikes == 10:
-                anomaly = False
-
-                if 'temperature' in quantities and 'humidity' in quantities:
-
-                    if mode == 'uv':
-                        timeseries.loc[i,'temperature'] -= spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'anomaly_label'] = 'spike_uv'
-
-                    if mode == 'mv':
-                        timeseries.loc[i,'temperature'] -= spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'humidity'] -= spike_factor[random_spike_intensity]
-                        timeseries.loc[i,'anomaly_label'] = 'spike_mv'
+                if (spike_n % 2) == 0:
+                    timeseries.loc[i,'humidity'] -= spike_factor[random_spike_intensity]
 
                 else:
-
-                    if mode == 'uv':
-
-                        if quantities[0] == 'temperature':
-                            timeseries.loc[i,'temperature'] -= spike_factor[random_spike_intensity]
-                            timeseries.loc[i,'anomaly_label'] = 'spike_uv'
-
-                        if quantities[0] == 'humidity':
-                            timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
-                            timeseries.loc[i,'anomaly_label'] = 'spike_uv'
-
-                    if mode == 'mv':
-                        raise ValueError(f'Multivariate anomalies cannot be added if ther is only one variable in the timeseries')
+                    timeseries.loc[i,'humidity'] += spike_factor[random_spike_intensity]
 
     return timeseries
 
@@ -619,15 +621,13 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                                                                        self.sampling_interval,mode='mv')
 
                 if 'spike_uv' in anomalies:
-                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df,
-                                                                    anomaly=True, mode='uv')
+                    final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='uv')
 
                     if 'spike_mv' in anomalies:
                         raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same time')
 
                 if 'spike_mv' in anomalies:
-                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df,
-                                                                    anomaly=True, mode='mv')
+                    final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='mv')
 
                 if 'step_uv' in anomalies:
                     final_humitemp_timeseries_df = add_step_anomaly(final_humitemp_timeseries_df,mode='uv')
@@ -671,7 +671,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                                                                       self.sampling_interval)
 
                 if 'spike' in effects:
-                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df,anomaly=False)
+                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df)
 
         if plot:
             plot_func(final_humitemp_timeseries_df,anomalies)
