@@ -377,9 +377,15 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         change_effect_label(bare_timeseries_df,4,'effect_2')
         self.assertEqual(bare_timeseries_df.loc[4,'effect_label'],'effect_1_effect_2')
 
-    def test_couds_effect_label(self):
+    def test_clouds_effect_label(self):
         timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         clouds_effect_timeseries_df = timeseries_generator.generate(effects=['clouds'],anomalies=[])
         self.assertEqual(clouds_effect_timeseries_df.loc[1248,'effect_label'],'clouds')
         self.assertEqual(clouds_effect_timeseries_df.loc[1248+95,'effect_label'],'clouds')
+
+    def test_noise_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        noise_effect_timeseries_df = timeseries_generator.generate(effects=['noise'],anomalies=[])
+        for i in range(len(noise_effect_timeseries_df)):
+            self.assertEqual(noise_effect_timeseries_df.loc[i,'effect_label'],'noise')
 
