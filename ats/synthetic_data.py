@@ -346,6 +346,8 @@ def change_effect_label(timeseries,index,new_effect):
 
     if timeseries.loc[index,'effect_label'] is None:
         timeseries.loc[index,'effect_label'] = new_effect
+    elif new_effect in timeseries.loc[index,'effect_label']:
+        pass
     else:
         timeseries.loc[index,'effect_label'] += '_' + new_effect
 
