@@ -142,6 +142,7 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
     try:
         fig = px.scatter_3d( df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns )
         fig.update_traces(marker=dict(size=marker_size))
+        fig.update_layout(width=1000, height=800) 
         if show:
              fig.show(renderer=renderer)
         else:
