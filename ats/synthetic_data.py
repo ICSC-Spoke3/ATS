@@ -340,6 +340,15 @@ def add_clouds_anomaly(timeseries,sampling_interval,inplace=False):
     return add_clouds_effects(timeseries,sampling_interval,inplace=inplace,mv_anomaly=True)
 
 
+def change_effect_label(timeseries,index,new_effect):
+    if not isinstance(new_effect,str):
+        raise TypeError('The "new_effect" argument has to be of type string')
+
+    if timeseries.loc[index,'effect_label'] is None:
+        timeseries.loc[index,'effect_label'] = new_effect
+    else:
+        timeseries.loc[index,'effect_label'] += '_' + new_effect
+
 # Noise effect
 def add_noise_effect(timeseries,inplace=False):
     if not inplace:
