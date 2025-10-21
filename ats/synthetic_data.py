@@ -367,6 +367,18 @@ def add_noise_effect(timeseries,inplace=False):
 
 
 # Season effect
+def calculate_seasonal_sin_value(timeseries):
+
+        seasonal_sin_values = []
+        for i in range(len(timeseries)):
+            delta_t = timeseries.loc[i,'time'] - time_offset
+            time_variable = delta_t.total_seconds()/3600
+            sin_value = math.sin((2*math.pi/seasonal_periodicity)*time_variable)
+            change_effect_label(timeseries,i,'seasons')
+            seasonal_sin_values.append(sin_value)
+
+        return pd.Series(seasonal_sin_values) 
+
 def add_seasons_effect(timeseries,starting_year,inplace=False):
     import calendar
 
