@@ -361,7 +361,8 @@ def add_noise_effect(timeseries,inplace=False):
 
     for quantity in quantities:
         timeseries[quantity] += np.random.normal(0,2,size=len(timeseries))
-
+    for i in range(len(timeseries)):
+        change_effect_label(timeseries,i,'noise')
     return timeseries
 
 
