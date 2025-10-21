@@ -367,6 +367,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             spiked_temp = spike_effect_timeseries_df.loc[i,'temperature']
             self.assertTrue((spiked_temp - temp) >= 0)
 
+<<<<<<< HEAD
     def test_change_effect_label(self):
         bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
@@ -377,3 +378,10 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         change_effect_label(bare_timeseries_df,4,'effect_2')
         self.assertEqual(bare_timeseries_df.loc[4,'effect_label'],'effect_1_effect_2')
 
+=======
+    def test_couds_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        clouds_effect_timeseries_df = timeseries_generator.generate(effects=['clouds'],anomalies=[])
+        self.assertEqual(clouds_effect_timeseries_df.loc[1248,'effect_label'],'clouds')
+        self.assertEqual(clouds_effect_timeseries_df.loc[1248+95,'effect_label'],'clouds')
+>>>>>>> b95d701 (Add test for the change of "effect_label" inside the "add_clouds_effect()")
