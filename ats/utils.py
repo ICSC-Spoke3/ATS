@@ -207,8 +207,8 @@ def merge_df(df1, df2):
         pd.DataFrame: Combined DataFrame with columns from both inputs.
     """
     df2_copy = df2.copy()
-        for col in df1.columns.intersection(df2.columns):
-            if not df1[col].equals(df2[col]):
+    for col in df1.columns.intersection(df2.columns):
+        if not df1[col].equals(df2[col]):
             # Rename the column in df2 to avoid conflict
             new_col_name = col + "_df2"
             logger.warning(f"Warning: Column '{col}' has different values in df2. Renaming second DataFrame column to '{new_col_name}'.")
