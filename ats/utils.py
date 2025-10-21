@@ -149,8 +149,6 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         logger.error(f"Column(s) {missing_cols} not found in DataFrame.")
     except Exception as e:
         logger.error(e)
-    
-    return fig
 
 def save_df_to_csv(df, outputfile="output.csv"):
     """
