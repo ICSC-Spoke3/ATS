@@ -120,7 +120,7 @@ class TestUtils(unittest.TestCase):
     
     def test_merge_df_combines_columns(self):
         df1 = self.df[["avg_err", "max_err"]]
-        df2 = self.df[["fitness", "extra"]]
+        df2 = self.df[["fitness", "extra","avg_err"]]
         result = merge_df(df1, df2)
         self.assertEqual(result.shape[1], 4)
         self.assertIn("fitness", result.columns)
