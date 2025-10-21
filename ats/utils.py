@@ -197,7 +197,7 @@ def rename_column(df, old_name, new_name):
 
 def merge_df(df1, df2):
     """
-    Merge two DataFrames side by side (column-wise).
+    Merge two DataFrames side by side (column-wise) with duplicate column handling.
 
     Args:
         df1 (pd.DataFrame): First DataFrame.
@@ -206,7 +206,18 @@ def merge_df(df1, df2):
     Returns:
         pd.DataFrame: Combined DataFrame with columns from both inputs.
     """
-    return pd.concat([df1, df2], axis=1)
+    df2_copy = df2.copy()
+        for col in df1.columns.intersection(df2.columns):
+            if not df1[col].equals(df2[col]):
+            # Rename the column in df2 to avoid conflict
+            new_col_name = col + "_df2"
+            logger.warning(f"Warning: Column '{col}' has different values in df2. Renaming second DataFrame column to '{new_col_name}'.")
+            rename_column(df2_copy,col, new_col_name)
+        else:
+            # Drop the duplicate column in df2 if identical
+            df2_copy.drop(columns=[col], inplace=True)
+
+    return pd.concat([df1, df2_copy], axis=1)
 
 
 def find_best_parameter(df, parameter, mode="min"):
