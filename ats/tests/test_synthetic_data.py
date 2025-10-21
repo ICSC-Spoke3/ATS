@@ -401,3 +401,9 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         season_effect_timeseries_df = timeseries_generator.generate(effects=['seasons'],anomalies=[])
         for i in range(len(season_effect_timeseries_df)):
             self.assertEqual(season_effect_timeseries_df.loc[i,'effect_label'],'seasons')
+
+    def test_spike_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        spike_effect_timeseries_df = timeseries_generator.generate(effects=['spike'],anomalies=[])
+        self.assertEqual(spike_effect_timeseries_df.loc[54,'effect_label'],'spike')
+
