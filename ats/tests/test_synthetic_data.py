@@ -396,3 +396,8 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         returned_timeseries = calculate_seasonal_sin_value(timeseries_df,starting_year=timeseries_generator.starting_year)
         self.assertEqual(len(returned_timeseries),len(timeseries_df))
 
+    def test_seasons_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        season_effect_timeseries_df = timeseries_generator.generate(effects=['seasons'],anomalies=[])
+        for i in range(len(season_effect_timeseries_df)):
+            self.assertEqual(season_effect_timeseries_df.loc[i,'effect_label'],'seasons')
