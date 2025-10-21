@@ -441,7 +441,7 @@ def add_clouds_effects(timeseries,sampling_interval,inplace=False,mv_anomaly=Fal
 
                 else:
                     clouds_effect_intesity = 2 - (position_in_the_day/int(number_of_points_in_a_day/2))
-                timeseries.loc[index,'effect_label'] = 'clouds'
+                change_effect_label(timeseries,index,'clouds')
                 for quantity in quantities:
 
                     if quantity == 'temperature':
