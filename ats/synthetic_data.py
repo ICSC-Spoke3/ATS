@@ -485,7 +485,7 @@ def add_spike_effect(timeseries,inplace=False,mode='uv'):
         if is_a_spiked_value:
             spike_n += 1
             random_spike_intensity = rnd.choice(list(spike_factor.keys()))
-
+            change_effect_label(timeseries,i,'spike')
             if 'temperature' in quantities:
                 timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                  
 
