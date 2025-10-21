@@ -13,6 +13,7 @@ from ..synthetic_data import add_clouds_effects
 from ..synthetic_data import add_spike_anomaly
 from ..synthetic_data import add_spike_effect
 from ..synthetic_data import change_effect_label
+from ..synthetic_data import calculate_seasonal_sin_value
 
 # Setup logging
 from .. import logger
@@ -388,4 +389,10 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         noise_effect_timeseries_df = timeseries_generator.generate(effects=['noise'],anomalies=[])
         for i in range(len(noise_effect_timeseries_df)):
             self.assertEqual(noise_effect_timeseries_df.loc[i,'effect_label'],'noise')
+
+    def test_calculate_seasonal_sin_value(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator(starting_year=1999)
+        timeseries_df = timeseries_generator.generate(effects=[],anomalies=[])
+        returned_timeseries = calculate_seasonal_sin_value(timeseries_df,starting_year=timeseries_generator.starting_year)
+        self.assertEqual(len(returned_timeseries),len(timeseries_df))
 
