@@ -12,6 +12,7 @@ from ..synthetic_data import generate_synthetic_humitemp_timeseries
 from ..synthetic_data import add_clouds_effects
 from ..synthetic_data import add_spike_anomaly
 from ..synthetic_data import add_spike_effect
+from ..synthetic_data import change_effect_label
 
 # Setup logging
 from .. import logger
@@ -365,4 +366,14 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             temp = bare_timeseries_df.loc[i,'temperature']
             spiked_temp = spike_effect_timeseries_df.loc[i,'temperature']
             self.assertTrue((spiked_temp - temp) >= 0)
+
+    def test_change_effect_label(self):
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+
+        change_effect_label(bare_timeseries_df,4,'effect_1')
+        self.assertEqual(bare_timeseries_df.loc[4,'effect_label'],'effect_1')
+
+        change_effect_label(bare_timeseries_df,4,'effect_2')
+        self.assertEqual(bare_timeseries_df.loc[4,'effect_label'],'effect_1_effect_2')
 
