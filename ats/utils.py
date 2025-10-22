@@ -278,7 +278,7 @@ def plot_from_df(df, x,y,fixed_parameters=None):
             else:
                 df_filtered = df_filtered[df_filtered[key] == val]
         
-    df_filtered = df_filtered.sort_values(by=[x, y])
+    df_filtered = df_filtered.sort_values(by=x)
 
     context_info = " | ".join(f"{k}={v}" for k, v in (fixed_parameters or {}).items())
  
@@ -293,5 +293,5 @@ def plot_from_df(df, x,y,fixed_parameters=None):
         plt.show()
 
     except Exception as e:
-        logger.error(f"Error while plotting {y} vs {x}: {e}")
+        logger.error(f"Error while plotting {y} vs {x}: {e} ({type(e).__name__})")
         return None
