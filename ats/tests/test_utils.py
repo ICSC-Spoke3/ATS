@@ -38,7 +38,7 @@ class TestUtils(unittest.TestCase):
     def test_normalize_costant_parameter(self):
         df = pd.DataFrame({"b": [7, 7, 7]})
         normalized = normalize_parameter(df, "b")
-        expected = pd.Series([1, 1, 1], name="b")
+        expected = pd.Series([1.0, 1.0, 1.0], name="b")
         pd.testing.assert_series_equal(normalized.reset_index(drop=True), expected)
     
     # Tests for normalize_df
