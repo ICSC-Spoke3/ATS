@@ -242,17 +242,17 @@ def find_best_parameter(df, parameter, mode="min"):
     }
 
     if mode not in operations:
-        logger.error(f"Mode '{mode}' is not valid. Use one of {list(operations.keys())}.")
+        raise ValueError(f"Mode '{mode}' is not valid. Use one of {list(operations.keys())}.")
 
     try:
         idx_best = operations[mode]()
         return df.loc[idx_best]
     except KeyError:
-        logger.error(f" '{parameter}' does'nt exist. Aviables columns: {list(df.columns)}")
+        logger.error(f" '{parameter}' does'nt exist. Available columns: {list(df.columns)}")
+        return None
     except Exception as e:
         logger.error(f"Error finding {mode} for '{parameter}': {e} ({type(e).__name__})")
-    
-    return df.loc[idx_best]
+        return None
 
 def plot_from_df(df, x,y,fixed_parameters=None):
     """
