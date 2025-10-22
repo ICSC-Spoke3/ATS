@@ -118,6 +118,12 @@ def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
     'high':9
     }
     anomalous_spike_position = 10
+    for i in range(anomalous_spike_position,len(timeseries)-anomalous_spike_position):
+        data_point_effect = timeseries.loc[i,'effect_label']
+        if data_point_effect is not None and 'spike' in data_point_effect:
+            anomalous_spike_position +=1
+        else:
+            break
     intensity = rnd.choice(list(spike_intensities.keys()))
 
     if mode == 'uv':
