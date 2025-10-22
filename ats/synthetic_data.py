@@ -337,7 +337,7 @@ def add_clouds_anomaly(timeseries,sampling_interval,inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
 
-    return add_clouds_effects(timeseries,sampling_interval,inplace=inplace,mv_anomaly=True)
+    return add_clouds_effect(timeseries,sampling_interval,inplace=inplace,mv_anomaly=True)
 
 
 def change_effect_label(timeseries,index,new_effect):
@@ -415,7 +415,7 @@ def add_seasons_effect(timeseries,starting_year,inplace=False):
 
 
 # Clouds effect
-def add_clouds_effects(timeseries,sampling_interval,inplace=False,mv_anomaly=False):
+def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=False):
     if not inplace:
         timeseries=deepcopy(timeseries)
 
@@ -681,7 +681,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                                                                       datetime_boundaries[0].year)
 
                 if 'clouds' in effects:
-                    final_humitemp_timeseries_df = add_clouds_effects(final_humitemp_timeseries_df,
+                    final_humitemp_timeseries_df = add_clouds_effect(final_humitemp_timeseries_df,
                                                                       self.sampling_interval)
 
                 if 'spike' in effects:
