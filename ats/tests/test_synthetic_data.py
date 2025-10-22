@@ -9,7 +9,7 @@ from ..synthetic_data import add_step_anomaly
 from ..synthetic_data import add_anomalous_noise
 from ..synthetic_data import add_pattern_anomaly
 from ..synthetic_data import generate_synthetic_humitemp_timeseries
-from ..synthetic_data import add_clouds_effects
+from ..synthetic_data import add_clouds_effect
 from ..synthetic_data import add_spike_anomaly
 from ..synthetic_data import add_spike_effect
 from ..synthetic_data import change_effect_label
@@ -314,7 +314,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
         sampling_interval = dt.timedelta(minutes=15)
-        clouds_effect_timeseries_df = add_clouds_effects(bare_timeseries_df,sampling_interval,inplace=False,mv_anomaly=True)
+        clouds_effect_timeseries_df = add_clouds_effect(bare_timeseries_df,sampling_interval,inplace=False,mv_anomaly=True)
 
         delta_temp_first_half_of_the_day = bare_timeseries_df.loc[195,'temperature'] -clouds_effect_timeseries_df.loc[195,'temperature']
 
