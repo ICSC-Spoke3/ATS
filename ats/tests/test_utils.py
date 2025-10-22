@@ -111,12 +111,10 @@ class TestUtils(unittest.TestCase):
         self.assertIn("avg_error", df_copy.columns)
         self.assertNotIn("avg_err", df_copy.columns)
 
-    # To be fixed...
-    #def test_rename_column_invalid_name_logs_error(self):
-     #   df_copy = self.df.copy()
-      #  with self.assertLogs('ats',level='ERROR') as cm:
-       #     rename_column(df_copy, "nonexistent", "new_col")
-       # self.assertTrue(any("does not exist" in msg for msg in cm.output))
+    def test_rename_column_missing_raises(self):
+        df_copy = self.df.copy()
+        with self.assertRaises(KeyError):
+            rename_column(df_copy, "nonexistent_column", "new_col")
     
     def test_merge_df_combines_columns(self):
         df1 = self.df[["avg_err", "max_err"]]
@@ -134,7 +132,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(result["fitness"], 18)
 
     def test_plot_3d_interactive_missing_columns_raises(self):
-        # Remove a required column to force KeyError
+        # remove a required column to force KeyError
         df_missing = self.df.drop(columns=["ks_pvalue"])  # z axis missing
         with self.assertRaises(KeyError):
             plot_3d_interactive(df_missing, renderer="json", show=False)
