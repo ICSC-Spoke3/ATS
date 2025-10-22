@@ -1,8 +1,19 @@
 import unittest
+import os
 import pandas as pd
 import plotly.graph_objects as go
+from unittest.mock import patch
 
-from ..utils import generate_timeseries_df, normalize_parameter, normalize_df, plot_3d_interactive
+from ..utils import (generate_timeseries_df, 
+                     normalize_parameter, 
+                     normalize_df, 
+                     plot_3d_interactive,
+                     save_df_to_csv,
+                     rename_column,
+                     merge_df,
+                     find_best_parameter,
+                     plot_from_df
+                     )
 
 # Setup logging
 from .. import logger
@@ -84,4 +95,47 @@ class TestUtils(unittest.TestCase):
         y_values_filtered = fig.data[0].y
         self.assertTrue(all(2 <= val <= 8 for val in y_values_filtered))
 
+    def test_save_df_to_csv(self):
+        outputfile = "test_output.csv"
+        save_df_to_csv(self.df, outputfile)
+        self.assertTrue(os.path.exists(outputfile))
+
+        # Verify contents are the same
+        df_loaded = pd.read_csv(outputfile)
+        pd.testing.assert_frame_equal(df_loaded, self.df)
+        os.remove(outputfile)
+
+    def test_rename_column_success(self):
+        df_copy = self.df.copy()
+        rename_column(df_copy, "avg_err", "avg_error")
+        self.assertIn("avg_error", df_copy.columns)
+        self.assertNotIn("avg_err", df_copy.columns)
+
+    # To be fixed...
+    #def test_rename_column_invalid_name_logs_error(self):
+     #   df_copy = self.df.copy()
+      #  with self.assertLogs('ats',level='ERROR') as cm:
+       #     rename_column(df_copy, "nonexistent", "new_col")
+       # self.assertTrue(any("does not exist" in msg for msg in cm.output))
     
+    def test_merge_df_combines_columns(self):
+        df1 = self.df[["avg_err", "max_err"]]
+        df2 = self.df[["fitness", "extra"]]
+        result = merge_df(df1, df2)
+        self.assertEqual(result.shape[1], 4)
+        self.assertIn("fitness", result.columns)
+
+    def test_find_best_parameter_min(self):
+        result = find_best_parameter(self.df, "ks_pvalue", mode="min")
+        self.assertEqual(result["ks_pvalue"], 0.1)
+
+    def test_find_best_parameter_max(self):
+        result = find_best_parameter(self.df, "fitness", mode="max")
+        self.assertEqual(result["fitness"], 18)
+
+    # To be implemented ... test with logger.error
+
+    @patch("matplotlib.pyplot.show")
+    def test_plotter_from_df_runs_and_filters(self, mock_show):
+        plot_from_df(self.df, "avg_err", "fitness", {"max_err": [2, 4]})
+        mock_show.assert_called_once()

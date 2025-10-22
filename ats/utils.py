@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import matplotlib.pyplot as plt
 from timeseria.datastructures import TimeSeries
 
 # Setup logging
@@ -66,13 +67,14 @@ def normalize_parameter(df, parameter):
         return (df[parameter] - min_parameter) / (max_parameter - min_parameter)
     
     
-def normalize_df(df, parameters_subset=None):
+def normalize_df(df, parameters_subset=None,save=False):
     """
     Normalizes a single column of a DataFrame using (value-min)/(max-min).
 
     Args:
         df (pd.DataFrame): Input DataFrame.
-        parameters_subset (list, opt): List of column names to normalize. If None, all columns are used. 
+        parameters_subset (list, opt): List of column names to normalize. If None, all columns are used.
+        save (bool ,opt): save the DataFrame in "normalized_output.csv" file
 
     Returns:
         pd.DataFrame: DataFrame with normalized columns.
@@ -94,6 +96,9 @@ def normalize_df(df, parameters_subset=None):
 
         except Exception as e:
             logger.error(f"Normalization failed for column '{parameter}': {e} (type: {type(e).__name__}).")
+
+    if save:
+        save_df_to_csv(df_norm, outputfile="normalized_output.csv")
 
     return df_norm
 
@@ -146,3 +151,136 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         logger.error(e)
     
     return fig
+
+def save_df_to_csv(df, outputfile="output.csv"):
+    """
+    Save a DataFrame to CSV,including column headers and excluding the index.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to save.
+        outputfile (str, optional): The output CSV file path. 
+            Defaults to "output.csv".
+
+    Returns:
+        None
+    """
+    df.to_csv(outputfile, index=False, header=True)
+    logger.info(f" Saved: {outputfile}")
+
+
+def rename_column(df, old_name, new_name):
+    """
+    Renames a column in a DataFrame in Place.
+
+    Args:
+        df (pd.DataFrame): The DataFrame containing the column to rename.
+        old_name (str): The current column name.
+        new_name (str): The new column name.
+
+    Returns:
+        pd.DataFrame: The updated DataFrame (renamed in place).
+    """
+    try:
+        # Try renaming
+        df.rename(columns={old_name: new_name}, inplace=True)
+        logger.info(f" Column '{old_name}' renamed to '{new_name}'.")
+    
+    except KeyError as ke:
+        # The column does not exist
+        logger.error(f" Error: the name '{old_name}' does not exist. Available columns: {list(df.columns)}")
+    
+    except Exception as e:
+        logger.error(f" Unable to rename column '{old_name}': {e} (type: {type(e).__name__})")
+    
+    return df
+
+
+def merge_df(df1, df2):
+    """
+    Merge two DataFrames side by side (column-wise).
+
+    Args:
+        df1 (pd.DataFrame): First DataFrame.
+        df2 (pd.DataFrame): Second DataFrame.
+
+    Returns:
+        pd.DataFrame: Combined DataFrame with columns from both inputs.
+    """
+    return pd.concat([df1, df2], axis=1)
+
+
+def find_best_parameter(df, parameter, mode="min"):
+    """
+    Find the row in a DataFrame that has the best (minimum or maximum) value 
+    for a given parameter.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to search.
+        parameter (str): The name of the column to evaluate.
+        mode (str, optional): The optimization criterion. 
+            Accepts "min" or "max". Defaults to "min".
+
+    Returns:
+        pd.Series: The row of the DataFrame corresponding to the best parameter value.
+    """
+    operations = {
+        "min": df[parameter].idxmin,
+        "max": df[parameter].idxmax,
+        # Others implementation here ...
+    }
+
+    if mode not in operations:
+        logger.error(f"Mode '{mode}' is not valid. Use one of {list(operations.keys())}.")
+
+    try:
+        idx_best = operations[mode]()
+        return df.loc[idx_best]
+    except KeyError:
+        logger.error(f" '{parameter}' does'nt exist. Aviables columns: {list(df.columns)}")
+    except Exception as e:
+        logger.error(f"Error finding {mode} for '{parameter}': {e} ({type(e).__name__})")
+    
+    return df.loc[idx_best]
+
+def plot_from_df(df, x,y,fixed_parameters=None):
+    """
+    2D plot of DataFrame (y vs x). It allow to select fixed parameter
+
+    Args:
+        df (pd.DataFrame): Input DataFrame.
+        x (str): Column for the x-axis.
+        y (str): Column for the y-axis.
+        fixed_parameters (dict, opt): Dictionary of column=value pairs (or list/tuple of values) to filter by.
+
+    Returns:
+         Plot the generated matplotlib figure.
+    """
+    df_filtered = df.copy()
+    if fixed_parameters:
+        for key, val in fixed_parameters.items():
+            if key not in df_filtered.columns:
+                logger.warning(f"'{key}' not in DataFrame columns. Skipping filter.")
+                continue
+            
+            if isinstance(val, (list, tuple, set)):
+                df_filtered = df_filtered[df_filtered[key].isin(val)]
+            else:
+                df_filtered = df_filtered[df_filtered[key] == val]
+        
+    df_filtered = df_filtered.sort_values(by=[x, y])
+
+    context_info = " | ".join(f"{k}={v}" for k, v in (fixed_parameters or {}).items())
+ 
+    try:
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(df_filtered[x], df_filtered[y], marker="o")
+        ax.set_xlabel(x)
+        ax.set_ylabel(y)
+        ax.set_title(f"{y} vs {x}" + (f" | {context_info}" if context_info else ""))
+        ax.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    except Exception as e:
+        logger.error(f"Error while plotting {y} vs {x}: {e}")
+        return None
