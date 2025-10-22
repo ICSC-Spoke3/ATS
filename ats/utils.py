@@ -92,7 +92,7 @@ def normalize_df(df, parameters_subset=None,save=False):
             logger.debug(f"Column '{parameter}' normalized successfully.")
 
         except TypeError as te:
-            logger.error(f"Column '{parameter}' is not of a normalizable type.")
+            logger.error(f"Column '{parameter}' is not of a normalizable type. '{parameter}' ignored")
 
         except Exception as e:
             logger.error(f"Normalization failed for column '{parameter}': {e} (type: {type(e).__name__}).")
@@ -139,19 +139,23 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         hover_columns = df_plot.columns.tolist()
 
     # Create 3D plot
+    missing_cols = [col for col in (x, y, z, color) if col not in df_plot.columns]
+    if missing_cols:
+        raise KeyError(f"Column(s) {missing_cols} not found in DataFrame.") from None
     try:
-        fig = px.scatter_3d( df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns )
+        fig = px.scatter_3d(df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns)
         fig.update_traces(marker=dict(size=marker_size))
-        fig.update_layout(width=1000, height=800) 
+        fig.update_layout(width=1000, height=800)
         if show:
-             fig.show(renderer=renderer)
+            fig.show(renderer=renderer)
         else:
             return fig
     except KeyError as ke:
-        missing_cols = [col for col in (x, y, z, color) if col not in df_plot.columns]
-        logger.error(f"Column(s) {missing_cols} not found in DataFrame.")
+        logger.error("Missing column when creating 3D scatter: %s", ke)
+        return None
     except Exception as e:
-        logger.error(e)
+        logger.error("Unexpected error while creating 3D interactive plot: %s", e)
+        return None     
 
 def save_df_to_csv(df, outputfile="output.csv"):
     """
