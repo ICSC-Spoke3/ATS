@@ -185,18 +185,14 @@ def rename_column(df, old_name, new_name):
     Returns:
         pd.DataFrame: The updated DataFrame (renamed in place).
     """
+    if old_name not in df.columns:
+        raise KeyError(f"Error: column '{old_name}' not found. Available columns: {list(df.columns)}")
     try:
-        # Try renaming
         df.rename(columns={old_name: new_name}, inplace=True)
         logger.info(f" Column '{old_name}' renamed to '{new_name}'.")
-    
-    except KeyError as ke:
-        # The column does not exist
-        logger.error(f" Error: the name '{old_name}' does not exist. Available columns: {list(df.columns)}")
-    
     except Exception as e:
-        logger.error(f" Unable to rename column '{old_name}': {e} (type: {type(e).__name__})")
-    
+        logger.error(f"Unable to rename column '{old_name}': {e} (type: {type(e).__name__})")
+        raise
     return df
 
 
