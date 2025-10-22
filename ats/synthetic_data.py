@@ -555,7 +555,7 @@ def plot_func(timeseries,anomalies=[]):
                     start_band_position =  timeseries.loc[i,'time']
                     inside_band = True
 
-                elif anomaly_target == 'normal' and inside_band:
+                elif anomaly_target is None and inside_band:
                     stop_band_position = timeseries.loc[i,'time']
                     break
 
@@ -565,7 +565,7 @@ def plot_func(timeseries,anomalies=[]):
                 else:
                     continue
 
-    ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
+            ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
     ax.set_xlabel("time")
     ax.legend()
     ax.grid(True)
