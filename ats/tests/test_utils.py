@@ -133,7 +133,11 @@ class TestUtils(unittest.TestCase):
         result = find_best_parameter(self.df, "fitness", mode="max")
         self.assertEqual(result["fitness"], 18)
 
-    # To be implemented ... test with logger.error
+    def test_plot_3d_interactive_missing_columns_raises(self):
+        # Remove a required column to force KeyError
+        df_missing = self.df.drop(columns=["ks_pvalue"])  # z axis missing
+        with self.assertRaises(KeyError):
+            plot_3d_interactive(df_missing, renderer="json", show=False)
 
     @patch("matplotlib.pyplot.show")
     def test_plotter_from_df_runs_and_filters(self, mock_show):
