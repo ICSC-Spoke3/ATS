@@ -73,7 +73,7 @@ def normalize_df(df, parameters_subset=None,save=False):
     Args:
         df (pd.DataFrame): Input DataFrame.
         parameters_subset (list, opt): List of column names to normalize. If None, all columns are used.
-        save (bool ,opt): save the DataFrame in "normalized_output.csv" file
+        save (bool, opt): save the DataFrame in "normalized_output.csv" file
 
     Returns:
         pd.DataFrame: DataFrame with normalized columns.
