@@ -53,7 +53,7 @@ def normalize_parameter(df, parameter):
 
     Args:
         df (pd.DataFrame): Input DataFrame.
-        parametro (str): Name of the column to normalize.
+        parameter (str): Name of the column to normalize.
 
     Returns:
         pd.Series: Normalized column.
@@ -62,10 +62,9 @@ def normalize_parameter(df, parameter):
     min_parameter = df[parameter].min()
 
     if max_parameter == min_parameter:
-        return pd.Series(1, index=df.index, name = parameter)
+        return pd.Series(1.0, index=df.index, name=parameter)
     else:
-        return (df[parameter] - min_parameter) / (max_parameter - min_parameter)
-    
+        return (df[parameter] - min_parameter) / (max_parameter - min_parameter).astype(float)
     
 def normalize_df(df, parameters_subset=None,save=False):
     """
