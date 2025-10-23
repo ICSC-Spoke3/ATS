@@ -53,7 +53,7 @@ def normalize_parameter(df, parameter):
 
     Args:
         df (pd.DataFrame): Input DataFrame.
-        parametro (str): Name of the column to normalize.
+        parameter (str): Name of the column to normalize.
 
     Returns:
         pd.Series: Normalized column.
@@ -62,19 +62,18 @@ def normalize_parameter(df, parameter):
     min_parameter = df[parameter].min()
 
     if max_parameter == min_parameter:
-        return pd.Series(1, index=df.index, name = parameter)
+        return pd.Series(1.0, index=df.index, name=parameter)
     else:
-        return (df[parameter] - min_parameter) / (max_parameter - min_parameter)
-    
+        return (df[parameter] - min_parameter) / (max_parameter - min_parameter).astype(float)
     
 def normalize_df(df, parameters_subset=None,save=False):
     """
-    Normalizes a single column of a DataFrame using (value-min)/(max-min).
+    Normalizes a DataFrame using (value-min)/(max-min).
 
     Args:
         df (pd.DataFrame): Input DataFrame.
         parameters_subset (list, opt): List of column names to normalize. If None, all columns are used.
-        save (bool ,opt): save the DataFrame in "normalized_output.csv" file
+        save (bool, opt): save the DataFrame in "normalized_output.csv" file
 
     Returns:
         pd.DataFrame: DataFrame with normalized columns.
@@ -92,7 +91,7 @@ def normalize_df(df, parameters_subset=None,save=False):
             logger.debug(f"Column '{parameter}' normalized successfully.")
 
         except TypeError as te:
-            logger.error(f"Column '{parameter}' is not of a normalizable type.")
+            logger.error(f"Column '{parameter}' is not of a normalizable type. '{parameter}' ignored")
 
         except Exception as e:
             logger.error(f"Normalization failed for column '{parameter}': {e} (type: {type(e).__name__}).")
@@ -139,18 +138,23 @@ def plot_3d_interactive(df,x="avg_err",y="max_err",z="ks_pvalue",color="fitness"
         hover_columns = df_plot.columns.tolist()
 
     # Create 3D plot
+    missing_cols = [col for col in (x, y, z, color) if col not in df_plot.columns]
+    if missing_cols:
+        raise KeyError(f"Column(s) {missing_cols} not found in DataFrame.") from None
     try:
-        fig = px.scatter_3d( df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns )
+        fig = px.scatter_3d(df_plot, x=x, y=y, z=z, color=color, hover_data=hover_columns)
         fig.update_traces(marker=dict(size=marker_size))
+        fig.update_layout(width=1000, height=800)
         if show:
-             fig.show(renderer=renderer)
+            fig.show(renderer=renderer)
+        else:
+            return fig
     except KeyError as ke:
-        missing_cols = [col for col in (x, y, z, color) if col not in df_plot.columns]
-        logger.error(f"Column(s) {missing_cols} not found in DataFrame.")
+        logger.error("Missing column when creating 3D scatter: %s", ke)
+        return None
     except Exception as e:
-        logger.error(e)
-    
-    return fig
+        logger.error("Unexpected error while creating 3D interactive plot: %s", e)
+        return None     
 
 def save_df_to_csv(df, outputfile="output.csv"):
     """
@@ -180,24 +184,20 @@ def rename_column(df, old_name, new_name):
     Returns:
         pd.DataFrame: The updated DataFrame (renamed in place).
     """
+    if old_name not in df.columns:
+        raise KeyError(f"Error: column '{old_name}' not found. Available columns: {list(df.columns)}")
     try:
-        # Try renaming
         df.rename(columns={old_name: new_name}, inplace=True)
         logger.info(f" Column '{old_name}' renamed to '{new_name}'.")
-    
-    except KeyError as ke:
-        # The column does not exist
-        logger.error(f" Error: the name '{old_name}' does not exist. Available columns: {list(df.columns)}")
-    
     except Exception as e:
-        logger.error(f" Unable to rename column '{old_name}': {e} (type: {type(e).__name__})")
-    
+        logger.error(f"Unable to rename column '{old_name}': {e} (type: {type(e).__name__})")
+        raise
     return df
 
 
 def merge_df(df1, df2):
     """
-    Merge two DataFrames side by side (column-wise).
+    Merge two DataFrames side by side (column-wise) with duplicate column handling.
 
     Args:
         df1 (pd.DataFrame): First DataFrame.
@@ -206,7 +206,18 @@ def merge_df(df1, df2):
     Returns:
         pd.DataFrame: Combined DataFrame with columns from both inputs.
     """
-    return pd.concat([df1, df2], axis=1)
+    df2_copy = df2.copy()
+    for col in df1.columns.intersection(df2.columns):
+        if not df1[col].equals(df2[col]):
+            # Rename the column in df2 to avoid conflict
+            new_col_name = col + "_df2"
+            logger.warning(f"Warning: Column '{col}' has different values in df2. Renaming second DataFrame column to '{new_col_name}'.")
+            rename_column(df2_copy,col, new_col_name)
+        else:
+            # Drop the duplicate column in df2 if identical
+            df2_copy.drop(columns=[col], inplace=True)
+
+    return pd.concat([df1, df2_copy], axis=1)
 
 
 def find_best_parameter(df, parameter, mode="min"):
@@ -230,17 +241,17 @@ def find_best_parameter(df, parameter, mode="min"):
     }
 
     if mode not in operations:
-        logger.error(f"Mode '{mode}' is not valid. Use one of {list(operations.keys())}.")
+        raise ValueError(f"Mode '{mode}' is not valid. Use one of {list(operations.keys())}.")
 
     try:
         idx_best = operations[mode]()
         return df.loc[idx_best]
     except KeyError:
-        logger.error(f" '{parameter}' does'nt exist. Aviables columns: {list(df.columns)}")
+        logger.error(f" '{parameter}' does'nt exist. Available columns: {list(df.columns)}")
+        return None
     except Exception as e:
         logger.error(f"Error finding {mode} for '{parameter}': {e} ({type(e).__name__})")
-    
-    return df.loc[idx_best]
+        return None
 
 def plot_from_df(df, x,y,fixed_parameters=None):
     """
@@ -267,7 +278,7 @@ def plot_from_df(df, x,y,fixed_parameters=None):
             else:
                 df_filtered = df_filtered[df_filtered[key] == val]
         
-    df_filtered = df_filtered.sort_values(by=[x, y])
+    df_filtered = df_filtered.sort_values(by=x)
 
     context_info = " | ".join(f"{k}={v}" for k, v in (fixed_parameters or {}).items())
  
@@ -282,5 +293,5 @@ def plot_from_df(df, x,y,fixed_parameters=None):
         plt.show()
 
     except Exception as e:
-        logger.error(f"Error while plotting {y} vs {x}: {e}")
+        logger.error(f"Error while plotting {y} vs {x}: {e} ({type(e).__name__})")
         return None

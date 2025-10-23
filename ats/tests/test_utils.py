@@ -38,7 +38,7 @@ class TestUtils(unittest.TestCase):
     def test_normalize_costant_parameter(self):
         df = pd.DataFrame({"b": [7, 7, 7]})
         normalized = normalize_parameter(df, "b")
-        expected = pd.Series([1, 1, 1], name="b")
+        expected = pd.Series([1.0, 1.0, 1.0], name="b")
         pd.testing.assert_series_equal(normalized.reset_index(drop=True), expected)
     
     # Tests for normalize_df
@@ -111,16 +111,14 @@ class TestUtils(unittest.TestCase):
         self.assertIn("avg_error", df_copy.columns)
         self.assertNotIn("avg_err", df_copy.columns)
 
-    # To be fixed...
-    #def test_rename_column_invalid_name_logs_error(self):
-     #   df_copy = self.df.copy()
-      #  with self.assertLogs('ats',level='ERROR') as cm:
-       #     rename_column(df_copy, "nonexistent", "new_col")
-       # self.assertTrue(any("does not exist" in msg for msg in cm.output))
+    def test_rename_column_missing_raises(self):
+        df_copy = self.df.copy()
+        with self.assertRaises(KeyError):
+            rename_column(df_copy, "nonexistent_column", "new_col")
     
     def test_merge_df_combines_columns(self):
         df1 = self.df[["avg_err", "max_err"]]
-        df2 = self.df[["fitness", "extra"]]
+        df2 = self.df[["fitness", "extra","avg_err"]]
         result = merge_df(df1, df2)
         self.assertEqual(result.shape[1], 4)
         self.assertIn("fitness", result.columns)
@@ -133,7 +131,11 @@ class TestUtils(unittest.TestCase):
         result = find_best_parameter(self.df, "fitness", mode="max")
         self.assertEqual(result["fitness"], 18)
 
-    # To be implemented ... test with logger.error
+    def test_plot_3d_interactive_missing_columns_raises(self):
+        # remove a required column to force KeyError
+        df_missing = self.df.drop(columns=["ks_pvalue"])  # z axis missing
+        with self.assertRaises(KeyError):
+            plot_3d_interactive(df_missing, renderer="json", show=False)
 
     @patch("matplotlib.pyplot.show")
     def test_plotter_from_df_runs_and_filters(self, mock_show):
