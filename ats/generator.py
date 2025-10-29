@@ -40,8 +40,8 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
                                                 anomalies = None, 
                                                 plot = False, 
                                                 generate_csv = False)
+            logger.info(f"Dataset {i+1} generato con effetti: {chosen_effects}")
             reference_dataset.append(reference_data)
-
 
         return reference_dataset
 
