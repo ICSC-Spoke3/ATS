@@ -1,6 +1,10 @@
 from .synthetic_data import SyntheticHumiTempTimeseriesGenerator
 import random as rnd
 
+# Setup logging
+import logging
+logger = logging.getLogger(__name__)
+
 class EvaluationDataGenerator():
     pass
 
