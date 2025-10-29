@@ -9,9 +9,11 @@ from ..synthetic_data import add_step_anomaly
 from ..synthetic_data import add_anomalous_noise
 from ..synthetic_data import add_pattern_anomaly
 from ..synthetic_data import generate_synthetic_humitemp_timeseries
-from ..synthetic_data import add_clouds_effects
+from ..synthetic_data import add_clouds_effect
 from ..synthetic_data import add_spike_anomaly
 from ..synthetic_data import add_spike_effect
+from ..synthetic_data import change_effect_label
+from ..synthetic_data import calculate_seasonal_sin_value
 
 # Setup logging
 from .. import logger
@@ -312,7 +314,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
         sampling_interval = dt.timedelta(minutes=15)
-        clouds_effect_timeseries_df = add_clouds_effects(bare_timeseries_df,sampling_interval,inplace=False,mv_anomaly=True)
+        clouds_effect_timeseries_df = add_clouds_effect(bare_timeseries_df,sampling_interval,inplace=False,mv_anomaly=True)
 
         delta_temp_first_half_of_the_day = bare_timeseries_df.loc[195,'temperature'] -clouds_effect_timeseries_df.loc[195,'temperature']
 
@@ -365,4 +367,43 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             temp = bare_timeseries_df.loc[i,'temperature']
             spiked_temp = spike_effect_timeseries_df.loc[i,'temperature']
             self.assertTrue((spiked_temp - temp) >= 0)
+
+    def test_change_effect_label(self):
+        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[])
+
+        change_effect_label(bare_timeseries_df,4,'effect_1')
+        self.assertEqual(bare_timeseries_df.loc[4,'effect_label'],'effect_1')
+
+        change_effect_label(bare_timeseries_df,4,'effect_2')
+        self.assertEqual(bare_timeseries_df.loc[4,'effect_label'],'effect_1_effect_2')
+
+    def test_clouds_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        clouds_effect_timeseries_df = timeseries_generator.generate(effects=['clouds'],anomalies=[])
+        self.assertEqual(clouds_effect_timeseries_df.loc[1248,'effect_label'],'clouds')
+        self.assertEqual(clouds_effect_timeseries_df.loc[1248+95,'effect_label'],'clouds')
+
+    def test_noise_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        noise_effect_timeseries_df = timeseries_generator.generate(effects=['noise'],anomalies=[])
+        for i in range(len(noise_effect_timeseries_df)):
+            self.assertEqual(noise_effect_timeseries_df.loc[i,'effect_label'],'noise')
+
+    def test_calculate_seasonal_sin_value(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator(starting_year=1999)
+        timeseries_df = timeseries_generator.generate(effects=[],anomalies=[])
+        returned_timeseries = calculate_seasonal_sin_value(timeseries_df,starting_year=timeseries_generator.starting_year)
+        self.assertEqual(len(returned_timeseries),len(timeseries_df))
+
+    def test_seasons_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        season_effect_timeseries_df = timeseries_generator.generate(effects=['seasons'],anomalies=[])
+        for i in range(len(season_effect_timeseries_df)):
+            self.assertEqual(season_effect_timeseries_df.loc[i,'effect_label'],'seasons')
+
+    def test_spike_effect_label(self):
+        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        spike_effect_timeseries_df = timeseries_generator.generate(effects=['spike'],anomalies=[])
+        self.assertEqual(spike_effect_timeseries_df.loc[54,'effect_label'],'spike')
 
