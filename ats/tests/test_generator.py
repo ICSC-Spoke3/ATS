@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from ..generator import HumiTempEvaluationDataGenerator
+from ..generators import HumiTempEvaluationDataGenerator
 
 # Setup logging
 from .. import logger
@@ -9,14 +9,14 @@ logger.setup()
 
 class TestGenerator(unittest.TestCase):
 
-    def test_generate_reference_datasets(self):
+    def test_generate_reference_dataset(self):
         generator = HumiTempEvaluationDataGenerator()
-        reference_datasets = generator.generate_reference_datasets()
+        reference_dataset = generator.generate_reference_dataset()
         expected_points = generator.__expected_points__()
 
-        self.assertEqual(len(reference_datasets), 3)
-        for i, dataset in enumerate(reference_datasets):
+        self.assertEqual(len(reference_dataset), 3)
+        for i, series in enumerate(reference_dataset):
             with self.subTest(dataset=i):
-                self.assertIn('temperature', dataset.columns)
-                self.assertIn('humidity', dataset.columns)
-                self.assertEqual(len(dataset), expected_points)
+                self.assertIn('temperature', series.columns)
+                self.assertIn('humidity', series.columns)
+                self.assertEqual(len(series), expected_points)
