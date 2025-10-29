@@ -21,7 +21,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         self.observation_window = observation_window
 
     def generate_reference_dataset(self, howmany_series=3):
-        # It wuold be nice to have a fuction of syntetic data to achieve theese:
+        # It would be nice to have a function of synthetic data to achieve these:
         available_effects = ['noise', 'seasons', 'clouds']
         reference_dataset = []
 
