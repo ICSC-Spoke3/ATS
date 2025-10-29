@@ -1,4 +1,4 @@
-from .synthetic_data import SyntheticHumiTempTimeseriesGenerator
+from synthetic_data import SyntheticHumiTempTimeseriesGenerator
 import random as rnd
 
 # Setup logging
@@ -10,20 +10,19 @@ class EvaluationDataGenerator():
 
 class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
-    def __init__(self, howmany_dataset,# Series_lenght è ridodante
+    def __init__(self,# Series_lenght è ridodante
                  temperature=True, humidity=True,
                  sampling_interval= '15min',
                  observation_window='30D'):
-        self.howmany_dataset = howmany_dataset
         self.temperature = temperature
         self.humidity = humidity
         self.sampling_interval = sampling_interval
         self.observation_window = observation_window
 
-    def generate_reference_data(self, howmany_dataset=3):
+    def generate_reference_datasets(self, howmany_datasets=3):
         # It wuold be nice to have a fuction of syntetic data to achieve theese:
-        aviable_effects = ['noise', 'seasons', 'clouds']
-        reference_dataset = []
+        available_effects = ['noise', 'seasons', 'clouds']
+        reference_datasets = []
 
         generator = SyntheticHumiTempTimeseriesGenerator(
                 sampling_interval=self.sampling_interval,
@@ -32,18 +31,17 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
                 humidity=self.humidity
         )
 
-        for i in range(howmany_dataset):
+        for i in range(howmany_datasets):
             n_effects = rnd.randint(0, len(available_effects))
             chosen_effects = rnd.sample(available_effects, n_effects)
-            
-            reference_data = generator.generate(effects=chosen_effects
-                                                anomalies = None, 
-                                                plot = False, 
-                                                generate_csv = False)
+            reference_dataset = generator.generate(effects=chosen_effects,
+                                                anomalies=[], 
+                                                plot=False, 
+                                                generate_csv=False)
             logger.info(f"Dataset {i+1} generato con effetti: {chosen_effects}")
-            reference_dataset.append(reference_data)
+            reference_datasets.append(reference_dataset)
 
-        return reference_dataset
+        return reference_datasets
 
     #def generate_test_data(self, dataset_test_size, effect_type=[]):
        # generator = SyntheticHumiTempTimeseriesGenerator()
