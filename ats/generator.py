@@ -48,7 +48,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
     def __expected_points__(self): 
         obs_window = pd.Timedelta(self.observation_window)
         samp_interval = pd.Timedelta(self.sampling_interval)
-    return int(obs_window / samp_interval)
+        return int(obs_window / samp_interval)
 
     #def generate_test_data(self, dataset_test_size, effect_type=[]):
        # generator = SyntheticHumiTempTimeseriesGenerator()
