@@ -141,3 +141,8 @@ class TestUtils(unittest.TestCase):
     def test_plotter_from_df_runs_and_filters(self, mock_show):
         plot_from_df(self.df, "avg_err", "fitness", {"max_err": [2, 4]})
         mock_show.assert_called_once()
+
+    def test_plotter_from_df_missing_columns_raises(self):
+        df_missing = self.df.drop(columns=["fitness"])
+        with self.assertRaises(KeyError):
+            plot_from_df(df_missing, "avg_err", "fitness", {})

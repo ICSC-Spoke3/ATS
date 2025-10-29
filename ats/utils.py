@@ -252,6 +252,7 @@ def find_best_parameter(df, parameter, mode="min"):
     except Exception as e:
         logger.error(f"Error finding {mode} for '{parameter}': {e} ({type(e).__name__})")
         return None
+    
 
 def plot_from_df(df, x,y,fixed_parameters=None):
     """
@@ -266,6 +267,10 @@ def plot_from_df(df, x,y,fixed_parameters=None):
     Returns:
          Plot the generated matplotlib figure.
     """
+    missing_cols = [col for col in (x, y) if col not in df.columns]
+    if missing_cols:
+        raise KeyError(f"Columns not found in DataFrame: {missing_cols}. Cannot plot")
+
     df_filtered = df.copy()
     if fixed_parameters:
         for key, val in fixed_parameters.items():
