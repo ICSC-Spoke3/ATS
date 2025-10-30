@@ -3,8 +3,8 @@ import pandas as pd
 
 def _format_for_anomaly_detector(input_df,synthetic=False):
     if synthetic:
-        input_df.set_index(input_df['time'],inplace=True)
-        input_df.drop(columns=['time'],inplace=True)
+        input_df.set_index(input_df['timestamp'],inplace=True)
+        input_df.drop(columns=['timestamp'],inplace=True)
         input_df.drop(columns=['effect_label'],inplace=True)
 
     anomaly_labels = input_df.loc[:,'anomaly_label']
