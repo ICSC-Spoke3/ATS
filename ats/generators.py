@@ -18,25 +18,18 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         self.sampling_interval = sampling_interval
         self.observation_window = observation_window
         self._current_observation_window = observation_window
-
-    def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
-                                   effects=[],randomize_effects=False):
+    
+    def __generate_series__(self, howmany_series, 
+                            observation_window=None, 
+                            effects=None, 
+                            randomize_effects=False, 
+                            anomalies=None):
         """
-        Generate a synthetic reference dataset composed of multiple humidity-temperature 
-        time series, optionally with environmental effects applied.
-
-        Args:
-            howmany_series (int, opt): Number of series to generate (default = 3).
-            observation_window (int, opt): Length of each time window.
-            effects (list[str], opt): Effects to apply (['noise', 'seasons', 'clouds']).
-            randomize_effects (bool, opt): Randomly choose effects for each series.
-
-        Returns:
-            list: Generated synthetic time series.
-        """        
+        Generic dataset generator used by all public dataset methods.
+        """
         # It would be nice to have a function of synthetic data to achieve these:
         available_effects = ['noise', 'seasons', 'clouds']
-        reference_dataset = []
+        dataset = []
 
         self._current_observation_window = observation_window or self.observation_window
         
@@ -64,16 +57,39 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
                 if randomize_effects else effects
             )
             try:
-                reference_series = generator.generate(effects=chosen_effects,
-                                                    anomalies=[], 
+                series = generator.generate(effects=chosen_effects,
+                                                    anomalies=anomalies or [], 
                                                     plot=False, 
                                                     generate_csv=False)
             except Exception as e:
                 raise RuntimeError(f"Error generating synthetic series {i+1} with effects {chosen_effects}") from e
             
             logger.info(f"Generated dataset {i+1} with effects: {chosen_effects}")
-            reference_dataset.append(reference_series)
+            dataset.append(series)
 
+        return dataset
+
+    def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
+                                   effects=[],randomize_effects=False):
+        """
+        Generate a synthetic reference dataset composed of multiple humidity-temperature 
+        time series, optionally with environmental effects applied.
+
+        Args:
+            howmany_series (int, opt): Number of series to generate (default = 3).
+            observation_window (int, opt): Length of each time window.
+            effects (list[str], opt): Effects to apply (['noise', 'seasons', 'clouds']).
+            randomize_effects (bool, opt): Randomly choose effects for each series.
+
+        Returns:
+            list: Generated synthetic time series.
+        """        
+        reference_dataset = self.__generate_series__(
+            howmany_series=howmany_series,
+            observation_window=observation_window,
+            effects=effects,
+            randomize_effects=randomize_effects
+        )
         return reference_dataset
 
     # Implemented for testing purposes                               
@@ -82,8 +98,10 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
 
-    #def generate_test_data(self, dataset_test_size, effect_type=[]):
-       # generator = SyntheticHumiTempTimeseriesGenerator()
-        #test_data = generator.generate(dataset_test_size, effect_type)
-
-#        return test_data
+    def generate_test_dataset(self, dataset_test_size, effect_type=[]):
+        test_data = self.generate_reference_dataset(
+            howmany_series=dataset_test_size,
+            observation_window=self._current_observation_window,
+            effects=effect_type
+        )
+        return test_data
