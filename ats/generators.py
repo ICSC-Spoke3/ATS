@@ -19,8 +19,8 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         self.observation_window = observation_window
         self._current_observation_window = observation_window
 
-
-    def generate_reference_dataset(self, howmany_series=3, observation_window=None):
+    def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
+                                   effects=[],randomize_effects=False):
         # It would be nice to have a function of synthetic data to achieve these:
         available_effects = ['noise', 'seasons', 'clouds']
         reference_dataset = []
@@ -35,13 +35,16 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         )
 
         for i in range(howmany_series):
-            n_effects = rnd.randint(0, len(available_effects))
-            chosen_effects = rnd.sample(available_effects, n_effects)
+            if randomize_effects:
+                n_effects = rnd.randint(0, len(available_effects))
+                chosen_effects = rnd.sample(available_effects, n_effects)
+            else:
+                chosen_effects = effects
             reference_series = generator.generate(effects=chosen_effects,
                                                 anomalies=[], 
                                                 plot=False, 
                                                 generate_csv=False)
-            logger.info(f"Dataset {i+1} generato con effetti: {chosen_effects}")
+            logger.info(f"Generated dataset {i+1} with effects: {chosen_effects}")
             reference_dataset.append(reference_series)
 
         return reference_dataset
