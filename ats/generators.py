@@ -11,25 +11,27 @@ class EvaluationDataGenerator():
 
 class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
-    def __init__(self,# Series_lenght è ridodante
-                 temperature=True, humidity=True,
-                 sampling_interval= '15min',
-                 observation_window='30D'):
+    def __init__(self, temperature=True, humidity=True,
+                 sampling_interval='15min', observation_window='30D'):
         self.temperature = temperature
         self.humidity = humidity
         self.sampling_interval = sampling_interval
         self.observation_window = observation_window
+        self._current_observation_window = observation_window
 
-    def generate_reference_dataset(self, howmany_series=3):
+
+    def generate_reference_dataset(self, howmany_series=3, observation_window=None):
         # It would be nice to have a function of synthetic data to achieve these:
         available_effects = ['noise', 'seasons', 'clouds']
         reference_dataset = []
 
+        self._current_observation_window = observation_window or self.observation_window
+
         generator = SyntheticHumiTempTimeseriesGenerator(
-                sampling_interval=self.sampling_interval,
-                observation_window=self.observation_window,
                 temperature=self.temperature,
-                humidity=self.humidity
+                humidity=self.humidity,
+                sampling_interval=self.sampling_interval,
+                observation_window=self._current_observation_window
         )
 
         for i in range(howmany_series):
@@ -46,7 +48,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
     # Implemented for testing purposes                               
     def __expected_points__(self): 
-        obs_window = pd.Timedelta(self.observation_window)
+        obs_window = pd.Timedelta(self._current_observation_window)
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
 

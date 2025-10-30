@@ -11,7 +11,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_generate_reference_dataset(self):
         generator = HumiTempEvaluationDataGenerator()
-        reference_dataset = generator.generate_reference_dataset()
+        reference_dataset = generator.generate_reference_dataset(observation_window='5D')
         expected_points = generator.__expected_points__()
 
         self.assertEqual(len(reference_dataset), 3)
