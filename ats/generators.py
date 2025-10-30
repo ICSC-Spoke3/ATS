@@ -104,23 +104,26 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
     def generate_test_dataset(self, howmany_series=9, observations_window=None,
                               effects=[], randomize_effects=False):
-        howmany_series_clusters = howmany_series/3
+        if howmany_series % 3 != 0:
+            raise ValueError("`howmany_series` must be a multiple of 3 to form clusters.")
+        
+        howmany_series_for_cluster = howmany_series/3
         
         test_dataset = []
 
-        anomalies_per_series_cluster = [
+        anomalies_per_cluster = [
             [],  # 0 anomalies
             ['spike_uv'],  # 1 anomaly
             ['spike_uv', 'step_uv']  # 2 anomalies
         ]
 
-        for i in range(howmany_series_clusters):
+        for i in range(howmany_series_for_cluster):
             series_cluster = self.__generate_dataset__(
-                howmany_series=howmany_series_clusters,
+                howmany_series=howmany_series_for_cluster,
                 observation_window=observations_window,
                 effects=effects,
                 randomize_effects=randomize_effects,
-                anomalies=anomalies_per_series_cluster[i]
+                anomalies=anomalies_per_cluster[i]
                 ) 
             test_dataset.extend(series_cluster)
         return test_dataset
