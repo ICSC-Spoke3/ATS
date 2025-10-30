@@ -209,9 +209,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
 
     def generate_test_dataset(self, howmany_series=9, observation_window=None,
-                              effects=[], randomize_effects=False):
-           def generate_test_dataset(self, howmany_series=9, observation_window=None,
-                              effects=[], randomize_effects=False):
+                               effects=[], randomize_effects=False):
         """
         Generate a synthetic test dataset of humidity-temperature time series
         with different anomaly configurations.
