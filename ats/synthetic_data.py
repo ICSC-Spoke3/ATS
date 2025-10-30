@@ -586,7 +586,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
 
     def generate(self,plot=False,generate_csv=False,
                  csv_path='',anomalies=['spike_uv','step_uv'],
-                 effects=['noise','seasons','clouds']):
+                 effects=['noise','seasons','clouds'],index_by_timestamp=True):
 
         datetime_boundaries = generate_time_boundaries(self.observation_window,self.starting_year,
                                                        self.starting_month,self.starting_day,
@@ -668,6 +668,10 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
 
         if generate_csv:
             csv_file_maker(final_humitemp_timeseries_df,anomalies,effects,path=csv_path)
+
+        if index_by_timestamp:
+            final_humitemp_timeseries_df.set_index(final_humitemp_timeseries_df['timestamp'],inplace=True)
+            final_humitemp_timeseries_df.drop(columns=['timestamp'],inplace=True)
 
         return final_humitemp_timeseries_df
 
