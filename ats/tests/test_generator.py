@@ -20,3 +20,31 @@ class TestGenerator(unittest.TestCase):
                 self.assertIn('temperature', series.columns)
                 self.assertIn('humidity', series.columns)
                 self.assertEqual(len(series), expected_points)
+    
+    def test_generate_reference_dataset_invalid_howmany_series(self):
+        generator = HumiTempEvaluationDataGenerator()
+        with self.assertRaises(ValueError):
+            generator.generate_reference_dataset(howmany_series=-1)
+        with self.assertRaises(ValueError):
+            generator.generate_reference_dataset(howmany_series=0)
+        with self.assertRaises(ValueError):
+            generator.generate_reference_dataset(howmany_series='three')
+    
+    def test_generate_reference_dataset_invalid_effects(self):
+        generator = HumiTempEvaluationDataGenerator()
+        with self.assertRaises(TypeError):
+            generator.generate_reference_dataset(effects='noise')
+        with self.assertRaises(TypeError):
+            generator.generate_reference_dataset(effects=123)
+
+    def test_generate_reference_dataset_randomized_effects(self):
+        generator = HumiTempEvaluationDataGenerator()
+        reference_dataset = generator.generate_reference_dataset(
+            howmany_series=5,
+            observation_window='5D',
+            randomize_effects=True
+        )
+        self.assertEqual(len(reference_dataset), 5)
+        for i, series in enumerate(reference_dataset, start=1):
+            self.assertIsNotNone(series, f"Series {i} is None")
+            self.assertTrue(len(series) > 0, f"Series {i} is empty")
