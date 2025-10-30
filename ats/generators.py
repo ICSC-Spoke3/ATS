@@ -21,6 +21,19 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
     def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
                                    effects=[],randomize_effects=False):
+        """
+        Generate a synthetic reference dataset composed of multiple humidity-temperature 
+        time series, optionally with environmental effects applied.
+
+        Args:
+            howmany_series (int, opt): Number of series to generate (default = 3).
+            observation_window (int, opt): Length of each time window.
+            effects (list[str], opt): Effects to apply (['noise', 'seasons', 'clouds']).
+            randomize_effects (bool, opt): Randomly choose effects for each series.
+
+        Returns:
+            list: Generated synthetic time series.
+        """        
         # It would be nice to have a function of synthetic data to achieve these:
         available_effects = ['noise', 'seasons', 'clouds']
         reference_dataset = []
