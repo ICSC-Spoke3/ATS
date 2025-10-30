@@ -7,6 +7,15 @@ import math
 from copy import deepcopy
 
 
+def _quantities_in(timeseries):
+    quantities = list(timeseries.columns)
+    if 'timestamp' in quantities:
+        quantities.remove('timestamp')
+    quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
+    return quantities
+
+
 def generate_time_boundaries(time_interval='90D',starting_year=None,
                              starting_month= None,starting_day=None,
                              starting_hour=None,starting_minute=None):
