@@ -21,10 +21,10 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
     
 
     def __generate_dataset__(self, howmany_series, 
-                            observation_window=None, 
-                            effects=None, 
+                            observation_window, 
+                            effects=[], 
                             randomize_effects=False, 
-                            anomalies=None):
+                            anomalies=[]):
         """
         Generic dataset generator used by all public dataset methods.
         """
@@ -39,7 +39,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         
         if effects is None:
             effects = []
-        elif not isinstance(effects, list):
+        if not isinstance(effects, list):
             raise TypeError(f"`effects` must be a list of strings, got {type(effects).__name__}.")
 
         try:
