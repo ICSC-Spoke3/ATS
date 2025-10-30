@@ -116,11 +116,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
 def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     spike_intensities = {'low': 5,
     'medium':7,
@@ -157,11 +153,7 @@ def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
 def add_step_anomaly(timeseries,mode='uv',inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     ramp_height = 10
     ramp_length = 50
@@ -231,11 +223,7 @@ def add_step_anomaly(timeseries,mode='uv',inplace=False):
 def add_anomalous_noise(timeseries,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     def insert_anomalous_noise(quantity,mode):
         pattern = [3, -3]
@@ -271,11 +259,7 @@ def add_anomalous_noise(timeseries,inplace=False,mode='uv'):
 def add_pattern_anomaly(timeseries,sampling_interval,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     start = int(len(timeseries)/3)
     anomalous_pattern_length = int(len(timeseries)/5)#piece of series with anomalous periodicity
@@ -370,11 +354,7 @@ def change_effect_label(timeseries,index,new_effect):
 def add_noise_effect(timeseries,inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     for quantity in quantities:
         timeseries[quantity] += np.random.normal(0,2,size=len(timeseries))
@@ -407,11 +387,7 @@ def add_seasons_effect(timeseries,starting_year,inplace=False):
 
     if not inplace:
         timeseries=deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     winter_temp = 4.4
     summer_temp = 26
@@ -433,11 +409,7 @@ def add_seasons_effect(timeseries,starting_year,inplace=False):
 def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=False):
     if not inplace:
         timeseries=deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     number_of_points_in_a_day = int(86400/(sampling_interval.total_seconds()))
     # TODO: better handling of this
@@ -483,11 +455,7 @@ def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=Fals
 def add_spike_effect(timeseries,inplace=False,mode='uv'): 
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     spike_factor = { 'low': 5,
                     'medium': 7,
@@ -516,10 +484,7 @@ def add_spike_effect(timeseries,inplace=False,mode='uv'):
 
 
 def csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
     data_type = ''
 
     for quantity in quantities:
@@ -543,11 +508,7 @@ def csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
 
 def plot_func(timeseries,anomalies=[]):
     import matplotlib.pyplot as plt
-
-    quantities = list(timeseries.columns)
-    quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     colors = { 'temperature': 'crimson',
               'humidity': 'navy'
