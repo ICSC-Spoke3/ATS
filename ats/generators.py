@@ -46,6 +46,13 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
                 sampling_interval=self.sampling_interval,
                 observation_window=self._current_observation_window
         )
+        if not isinstance(howmany_series, int) or howmany_series <= 0:
+            raise ValueError(f"`howmany_series` must be a positive integer, got {howmany_series!r}.")
+        
+        if effects is None:
+            effects = []
+        elif not isinstance(effects, list):
+            raise TypeError(f"`effects` must be a list of strings, got {type(effects).__name__}.")
 
         for i in range(howmany_series):
             if randomize_effects:
