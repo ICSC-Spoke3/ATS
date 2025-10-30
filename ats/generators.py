@@ -19,7 +19,8 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         self.observation_window = observation_window
         self._current_observation_window = observation_window
     
-    def __generate_series__(self, howmany_series, 
+
+    def __generate_dataset__(self, howmany_series, 
                             observation_window=None, 
                             effects=None, 
                             randomize_effects=False, 
@@ -69,6 +70,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
         return dataset
 
+
     def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
                                    effects=[],randomize_effects=False):
         """
@@ -84,7 +86,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         Returns:
             list: Generated synthetic time series.
         """        
-        reference_dataset = self.__generate_series__(
+        reference_dataset = self.__generate_dataset__(
             howmany_series=howmany_series,
             observation_window=observation_window,
             effects=effects,
@@ -92,16 +94,33 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         )
         return reference_dataset
 
+
     # Implemented for testing purposes                               
     def __expected_points__(self): 
         obs_window = pd.Timedelta(self._current_observation_window)
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
 
-    def generate_test_dataset(self, dataset_test_size, effect_type=[]):
-        test_data = self.generate_reference_dataset(
-            howmany_series=dataset_test_size,
-            observation_window=self._current_observation_window,
-            effects=effect_type
-        )
-        return test_data
+
+    def generate_test_dataset(self, howmany_series=9, observations_window=None,
+                              effects=[], randomize_effects=False):
+        howmany_series_clusters = howmany_series/3
+        
+        test_dataset = []
+
+        anomalies_per_series_cluster = [
+            [],  # 0 anomalies
+            ['spike_uv'],  # 1 anomaly
+            ['spike_uv', 'step_uv']  # 2 anomalies
+        ]
+
+        for i in range(howmany_series_clusters):
+            series_cluster = self.__generate_dataset__(
+                howmany_series=howmany_series_clusters,
+                observation_window=observations_window,
+                effects=effects,
+                randomize_effects=randomize_effects,
+                anomalies=anomalies_per_series_cluster[i]
+                ) 
+            test_dataset.extend(series_cluster)
+        return test_dataset
