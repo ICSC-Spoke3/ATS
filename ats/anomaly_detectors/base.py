@@ -26,7 +26,7 @@ class AnomalyDetector():
         Apply the anomaly detector on some (time series) data.
 
         Args:
-            data (pd.DataFrame, set): A single time series (in pandas DataFrame format) or a set of time series (in pandas DataFrame format).
+            data (pd.DataFrame or set[pd.DataFrame]): A single time series (in pandas DataFrame format) or a set of time series (in pandas DataFrame format).
             The index of the data frame(s) must be named "timestamp", and each column is supposed to represents a variable.
 
         Returns:
