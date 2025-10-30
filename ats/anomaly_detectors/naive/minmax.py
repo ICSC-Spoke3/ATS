@@ -12,9 +12,14 @@ logger = logging.getLogger(__name__)
 
 class MinMaxAnomalyDetector(AnomalyDetector):
 
-    def apply(self, timeseries_df, inplace=False):
+    def apply(self, data, inplace=False):
 
         logger.info(f'Applying MinMaxAnomalyDetector with inplace={inplace}')
+
+        if not isinstance(data, pd.DataFrame):
+            raise NotImplementedError('This anomaly detector can work only on a single time series (as a Pandas DataFrames)')
+
+        timeseries_df = data
 
         if not inplace:
             timeseries_df = timeseries_df.copy()
