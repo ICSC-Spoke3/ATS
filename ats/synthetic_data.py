@@ -7,6 +7,15 @@ import math
 from copy import deepcopy
 
 
+def _quantities_in(timeseries):
+    quantities = list(timeseries.columns)
+    if 'timestamp' in quantities:
+        quantities.remove('timestamp')
+    quantities.remove('anomaly_label')
+    quantities.remove('effect_label')
+    return quantities
+
+
 def generate_time_boundaries(time_interval='90D',starting_year=None,
                              starting_month= None,starting_day=None,
                              starting_hour=None,starting_minute=None):
@@ -52,11 +61,11 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
         raise ValueError('Invalid argument: "time_boundaries" must be a non empty list')
 
     if time_boundaries[0] > time_boundaries[1]:
-        raise ValueError('Invalid argument: in "time_boundaries", "{}" occurs after "{}". Ensure the time values are in chronological order'.format(time_boundaries[0],time_boundaries[1]))
+        raise ValueError('Invalid argument: in "time_boundaries", "{}" occurs after "{}". Ensure the timestamp values are in chronological order'.format(time_boundaries[0],time_boundaries[1]))
 
     temp = []
     humi = []
-    time = []
+    timestamp = []
     anomaly_label = []
     effect_label = []
     data_points = {}
@@ -74,7 +83,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
     while time_value < time_boundaries[1]:
         anomaly_label.append(None)
         effect_label.append(None)
-        time.append(time_value)
+        timestamp.append(time_value)
 
         time_variable = time_value.hour + time_value.minute/60
         sin_value = math.sin((2*math.pi/periodicity)*(time_variable-6))
@@ -87,7 +96,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
         if time_value == time_boundaries[1]:
             break
 
-    data_points.update({'time': time})
+    data_points.update({'timestamp': timestamp})
     data_points.update({'anomaly_label': anomaly_label})
     data_points.update({'effect_label': effect_label})
 
@@ -107,11 +116,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
 def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     spike_intensities = {'low': 5,
     'medium':7,
@@ -148,11 +153,7 @@ def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
 def add_step_anomaly(timeseries,mode='uv',inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     ramp_height = 10
     ramp_length = 50
@@ -222,11 +223,7 @@ def add_step_anomaly(timeseries,mode='uv',inplace=False):
 def add_anomalous_noise(timeseries,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     def insert_anomalous_noise(quantity,mode):
         pattern = [3, -3]
@@ -262,11 +259,7 @@ def add_anomalous_noise(timeseries,inplace=False,mode='uv'):
 def add_pattern_anomaly(timeseries,sampling_interval,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     start = int(len(timeseries)/3)
     anomalous_pattern_length = int(len(timeseries)/5)#piece of series with anomalous periodicity
@@ -283,7 +276,7 @@ def add_pattern_anomaly(timeseries,sampling_interval,inplace=False,mode='uv'):
         quantity_amplitude = (max_quantity - min_quantity)/2
 
         delta_t = sampling_interval.total_seconds()/3600
-        t0 = timeseries.loc[0,'time']
+        t0 = timeseries.loc[0,'timestamp']
         time_variable = t0.hour + t0.minute/60
         cumulative_phase = (2*math.pi/normal_periodicity_in_hour)*(time_variable-6)
 
@@ -361,11 +354,7 @@ def change_effect_label(timeseries,index,new_effect):
 def add_noise_effect(timeseries,inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     for quantity in quantities:
         timeseries[quantity] += np.random.normal(0,2,size=len(timeseries))
@@ -385,7 +374,7 @@ def calculate_seasonal_sin_value(timeseries,starting_year):
         time_offset = dt.datetime(starting_year,2,20,0,0,tzinfo=pytz.UTC)
         seasonal_sin_values = []
         for i in range(len(timeseries)):
-            delta_t = timeseries.loc[i,'time'] - time_offset
+            delta_t = timeseries.loc[i,'timestamp'] - time_offset
             time_variable = delta_t.total_seconds()/3600
             sin_value = math.sin((2*math.pi/seasonal_periodicity)*time_variable)
             change_effect_label(timeseries,i,'seasons')
@@ -398,11 +387,7 @@ def add_seasons_effect(timeseries,starting_year,inplace=False):
 
     if not inplace:
         timeseries=deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     winter_temp = 4.4
     summer_temp = 26
@@ -424,11 +409,7 @@ def add_seasons_effect(timeseries,starting_year,inplace=False):
 def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=False):
     if not inplace:
         timeseries=deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     number_of_points_in_a_day = int(86400/(sampling_interval.total_seconds()))
     # TODO: better handling of this
@@ -474,11 +455,7 @@ def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=Fals
 def add_spike_effect(timeseries,inplace=False,mode='uv'): 
     if not inplace:
         timeseries = deepcopy(timeseries)
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     spike_factor = { 'low': 5,
                     'medium': 7,
@@ -507,10 +484,7 @@ def add_spike_effect(timeseries,inplace=False,mode='uv'):
 
 
 def csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
     data_type = ''
 
     for quantity in quantities:
@@ -534,11 +508,7 @@ def csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
 
 def plot_func(timeseries,anomalies=[]):
     import matplotlib.pyplot as plt
-
-    quantities = list(timeseries.columns)
-    quantities.remove('time')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    quantities = _quantities_in(timeseries)
 
     colors = { 'temperature': 'crimson',
               'humidity': 'navy'
@@ -557,11 +527,11 @@ def plot_func(timeseries,anomalies=[]):
     fig, ax = plt.subplots(figsize=(15, 4))
 
     for quantity in quantities:
-        ax.plot(timeseries['time'],timeseries[quantity],label=quantity,color=colors[quantity])
+        ax.plot(timeseries['timestamp'],timeseries[quantity],label=quantity,color=colors[quantity])
 
     ax.set_ylabel(', '.join(quantities))
-    start_band_position = timeseries.loc[0,'time']
-    stop_band_position = timeseries.loc[0,'time']
+    start_band_position = timeseries.loc[0,'timestamp']
+    stop_band_position = timeseries.loc[0,'timestamp']
 
     if anomalies:
 
@@ -572,21 +542,21 @@ def plot_func(timeseries,anomalies=[]):
                 anomaly_target = timeseries.loc[i,'anomaly_label']
 
                 if anomaly_target == anomaly and not inside_band:
-                    start_band_position =  timeseries.loc[i,'time']
+                    start_band_position =  timeseries.loc[i,'timestamp']
                     inside_band = True
 
                 elif anomaly_target is None and inside_band:
-                    stop_band_position = timeseries.loc[i,'time']
+                    stop_band_position = timeseries.loc[i,'timestamp']
                     break
 
                 elif anomaly_target == anomaly and inside_band:
-                    stop_band_position = timeseries.loc[(len(timeseries) - 1),'time']
+                    stop_band_position = timeseries.loc[(len(timeseries) - 1),'timestamp']
 
                 else:
                     continue
 
             ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
-    ax.set_xlabel("time")
+    ax.set_xlabel("timestamp")
     ax.legend()
     ax.grid(True)
     plt.tight_layout()
@@ -616,7 +586,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
 
     def generate(self,plot=False,generate_csv=False,
                  csv_path='',anomalies=['spike_uv','step_uv'],
-                 effects=['noise','seasons','clouds']):
+                 effects=['noise','seasons','clouds'],index_by_timestamp=True):
 
         datetime_boundaries = generate_time_boundaries(self.observation_window,self.starting_year,
                                                        self.starting_month,self.starting_day,
@@ -634,7 +604,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                     final_humitemp_timeseries_df = add_pattern_anomaly(final_humitemp_timeseries_df,
                                                                        self.sampling_interval,mode='uv')
                     if 'pattern_mv' in anomalies:
-                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same time')
+                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'pattern_mv' in anomalies:
                     final_humitemp_timeseries_df = add_pattern_anomaly(final_humitemp_timeseries_df,
@@ -644,7 +614,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                     final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='uv')
 
                     if 'spike_mv' in anomalies:
-                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same time')
+                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'spike_mv' in anomalies:
                     final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='mv')
@@ -653,7 +623,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                     final_humitemp_timeseries_df = add_step_anomaly(final_humitemp_timeseries_df,mode='uv')
 
                     if 'step_mv' in anomalies:
-                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same time')
+                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'step_mv' in anomalies:
                     final_humitemp_timeseries_df = add_step_anomaly(final_humitemp_timeseries_df,mode='mv')
@@ -662,7 +632,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                     final_humitemp_timeseries_df = add_anomalous_noise(final_humitemp_timeseries_df,mode='uv')
 
                     if 'noise_mv' in anomalies:
-                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same time')
+                        raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'noise_mv' in anomalies:
                     final_humitemp_timeseries_df = add_anomalous_noise(final_humitemp_timeseries_df,mode='mv')
@@ -698,6 +668,10 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
 
         if generate_csv:
             csv_file_maker(final_humitemp_timeseries_df,anomalies,effects,path=csv_path)
+
+        if index_by_timestamp:
+            final_humitemp_timeseries_df.set_index(final_humitemp_timeseries_df['timestamp'],inplace=True)
+            final_humitemp_timeseries_df.drop(columns=['timestamp'],inplace=True)
 
         return final_humitemp_timeseries_df
 
