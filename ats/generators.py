@@ -20,7 +20,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         self._current_observation_window = observation_window
     
 
-    def _generate_dataset(self, howmany_series, 
+    def _generate_dataset(self, n, 
                             observation_window, 
                             effects=[], 
                             randomize_effects=False, 
@@ -34,8 +34,8 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
         self._current_observation_window = observation_window or self.observation_window
         
-        if not isinstance(howmany_series, int) or howmany_series <= 0:
-            raise ValueError(f"`howmany_series` must be a positive integer, got {howmany_series!r}.")
+        if not isinstance(n, int) or n <= 0:
+            raise ValueError(f"`n` must be a positive integer, got {n!r}.")
         
         if effects is None:
             effects = []
@@ -52,7 +52,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         except Exception as e:
             raise RuntimeError(f"Error initializing SyntheticHumiTempTimeseriesGenerator") from e
         
-        for i in range(howmany_series):
+        for i in range(n):
             chosen_effects = (
                 rnd.sample(available_effects, rnd.randint(0, len(available_effects)))
                 if randomize_effects else effects
@@ -71,14 +71,14 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         return dataset
 
 
-    def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
+    def generate_reference_dataset(self, n=3, observation_window=None, 
                                    effects='default',randomize_effects=False):
         """
         Generate a synthetic reference dataset composed of multiple humidity-temperature 
         time series, optionally with environmental effects applied.
 
         Args:
-            howmany_series (int, opt): Number of series to generate (default = 3).
+            n (int, opt): Number of series to generate (default = 3).
             observation_window (int, opt): Length of each time window.
             effects (list[str], opt): Effects to apply (['noise', 'seasons', 'clouds']).
             randomize_effects (bool, opt): Randomly choose effects for each series.
@@ -90,7 +90,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
             raise NotImplementedError('You must explicitilty provides the effects____AAAAA')
         
         reference_dataset = self._generate_dataset(
-            howmany_series=howmany_series,
+            n=n,
             observation_window=observation_window,
             effects=effects,
             randomize_effects=randomize_effects
@@ -103,7 +103,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
 
-    def generate_test_dataset(self, howmany_series=9, observation_window=None,
+    def generate_test_dataset(self, n=9, observation_window=None,
                                effects=[], randomize_effects=False):
         """
         Generate a synthetic test dataset of humidity-temperature time series
@@ -115,7 +115,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
           - group 3: spike + step anomalies
 
         Args:
-            howmany_series (int, optional): Total number of series (must be multiple of 3).
+            n (int, optional): Total number of series (must be multiple of 3).
             observation_window (str, optional): Time window length (e.g. '30D', '60D').
             effects (list[str], optional): Environmental effects (['noise', 'seasons', 'clouds']).
             randomize_effects (bool, optional): Randomize effects across series.
@@ -123,11 +123,11 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         Returns:
             list: Generated synthetic time series.
         """
-        if howmany_series <= 0 or howmany_series % 3 != 0:
-            raise ValueError("`howmany_series` must be a positive multiple of 3 to form groups.")
+        if n <= 0 or n % 3 != 0:
+            raise ValueError("`n` must be a positive multiple of 3 to form groups.")
 
         num_group = 3
-        howmany_series_for_group = howmany_series // num_group
+        n_for_group = n // num_group
 
         test_dataset = []
 
@@ -139,7 +139,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
         for i in range(num_group):
             series_group = self._generate_dataset(
-                howmany_series=howmany_series_for_group,
+                n=n_for_group,
                 observation_window=observation_window,
                 effects=effects,
                 randomize_effects=randomize_effects,
