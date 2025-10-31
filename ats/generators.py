@@ -23,7 +23,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
     def _generate_dataset(self, n, 
                             time_span, 
                             effects=[], 
-                            randomize_effects=False, 
+                            random_effects=[], 
                             anomalies=[]):
         """
         Generic dataset generator used by all public dataset methods.
@@ -41,7 +41,12 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
             effects = []
         if not isinstance(effects, list):
             raise TypeError(f"`effects` must be a list of strings, got {type(effects).__name__}.")
-
+        
+        if random_effects is None:
+            random_effects = []
+        if not isinstance(random_effects, list):
+            raise TypeError(f"`random_effects` must be a list of strings, got {type(random_effects).__name__}.")    
+        
         try:
             generator = SyntheticHumiTempTimeseriesGenerator(
                     temperature=self.temperature,
@@ -53,26 +58,24 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
             raise RuntimeError(f"Error initializing SyntheticHumiTempTimeseriesGenerator") from e
         
         for i in range(n):
-            chosen_effects = (
-                rnd.sample(available_effects, rnd.randint(0, len(available_effects)))
-                if randomize_effects else effects
-            )
+            random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
+            # Eliminate duplicates and combine effects
+            applied_effects = list(set(effects + random_applied_effects))
             try:
-                series = generator.generate(effects=chosen_effects,
-                                                    anomalies=anomalies or [], 
-                                                    plot=False, 
-                                                    generate_csv=False)
+                series = generator.generate(effects=applied_effects or [],
+                                            anomalies=anomalies or [], 
+                                            plot=False, generate_csv=False)
             except Exception as e:
-                raise RuntimeError(f"Error generating synthetic series {i+1} with effects {chosen_effects}") from e
-            
-            logger.info(f"Generated dataset {i+1} with effects: {chosen_effects}")
+                raise RuntimeError(f"Error generating synthetic series {i+1} with effects {applied_effects}") from e
+
+            logger.info(f"Generated dataset {i+1} with effects: {applied_effects}")
             dataset.append(series)
 
         return dataset
 
 
     def generate_reference_dataset(self, n=3, time_span=None, 
-                                   effects='default',randomize_effects=False):
+                                   effects='default', random_effects=[]):
         """
         Generate a synthetic reference dataset composed of multiple humidity-temperature 
         time series, optionally with environmental effects applied.
@@ -80,20 +83,20 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         Args:
             n (int, opt): Number of series to generate (default = 3).
             time_span (int, opt): Length of each time window.
-            effects (list[str], opt): Effects to apply (['noise', 'seasons', 'clouds']).
-            randomize_effects (bool, opt): Randomly choose effects for each series.
+            effects (list[str], opt): Effects to apply in each series (['noise', 'seasons', 'clouds']).
+            random_effects (list[str], opt): Random effects to apply across series.
 
         Returns:
             list: Generated synthetic time series.
         """
         if effects=='default':
-            raise NotImplementedError('You must explicitilty provides the effects____AAAAA')
+            raise NotImplementedError('You must explicitilty provides the effects to apply. Also None or Empty is accepted.')
         
         reference_dataset = self._generate_dataset(
             n=n,
             time_span=time_span,
             effects=effects,
-            randomize_effects=randomize_effects
+            random_effects=random_effects
         )
         return reference_dataset
 
@@ -104,7 +107,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         return int(obs_window / samp_interval)
 
     def generate_test_dataset(self, n=9, time_span=None,
-                               effects=[], randomize_effects=False):
+                               effects=[], random_effects=[]):
         """
         Generate a synthetic test dataset of humidity-temperature time series
         with different anomaly configurations.
@@ -142,7 +145,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
                 n=n_for_group,
                 time_span=time_span,
                 effects=effects,
-                randomize_effects=randomize_effects,
+                random_effects=random_effects,
                 anomalies=anomalies_per_group[i]
                 ) 
             test_dataset.extend(series_group)

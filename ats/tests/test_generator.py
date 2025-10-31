@@ -37,13 +37,13 @@ class TestGenerator(unittest.TestCase):
         with self.assertRaises(TypeError):
             generator.generate_reference_dataset(effects=123)
 
-    def test_generate_reference_dataset_randomized_effects(self):
+    def test_generate_reference_dataset_random_effects(self):
         generator = HumiTempEvaluationDataGenerator()
         reference_dataset = generator.generate_reference_dataset(
             n=5,
             time_span='5D',
-            randomize_effects=True,
-            effects=['seasons', 'clouds', 'noise']
+            random_effects=['clouds'],
+            effects=['seasons', 'noise']
         )
         self.assertEqual(len(reference_dataset), 5)
         for i, series in enumerate(reference_dataset, start=1):
@@ -82,13 +82,13 @@ class TestGenerator(unittest.TestCase):
             generator.generate_test_dataset(effects='seasons')
         with self.assertRaises(TypeError):
             generator.generate_test_dataset(effects=456)
-    
-    def test_generate_test_dataset_randomized_effects(self):
+
+    def test_generate_test_dataset_random_effects(self):
         generator = HumiTempEvaluationDataGenerator()
         test_dataset = generator.generate_test_dataset(
             n=9,
             time_span='4D',
-            randomize_effects=True,
+            random_effects=['clouds'],
             effects=['noise', 'seasons']
         )
         self.assertEqual(len(test_dataset), 9)
@@ -106,9 +106,7 @@ class TestGenerator(unittest.TestCase):
         test_dataset = generator.generate_test_dataset(
             n=n,
             time_span='2D',
-            effects=['seasons', 'clouds'],
-            randomize_effects=False
-        )
+            effects=['seasons', 'clouds'])
         self.assertEqual(len(test_dataset), n)
 
         expected_points = generator._expected_points()
