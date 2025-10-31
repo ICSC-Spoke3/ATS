@@ -32,7 +32,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertIsInstance(default_timeseries_df,pd.DataFrame)
         self.assertEqual(len(default_timeseries_df),2880)
         # Class attribute type control
-        self.assertIsInstance(default_generator.observation_window,dt.timedelta)
+        self.assertIsInstance(default_generator.time_span,dt.timedelta)
         self.assertIsInstance(default_generator.sampling_interval,dt.timedelta)
         self.assertIsNone(default_generator.starting_year)
         self.assertIsNone(default_generator.starting_month)
