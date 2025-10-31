@@ -20,7 +20,7 @@ def generate_time_boundaries(time_interval='90D',starting_year=None,
                              starting_month= None,starting_day=None,
                              starting_hour=None,starting_minute=None):
 
-    observation_window = pd.Timedelta(time_interval).to_pytimedelta()
+    time_span = pd.Timedelta(time_interval).to_pytimedelta()
     datetime_boundaries = []
 
     years = list(range(1970,2025))
@@ -35,7 +35,7 @@ def generate_time_boundaries(time_interval='90D',starting_year=None,
     starting_minute = starting_minute if starting_minute is not None else rnd.choice(minutes)
     starting_datetime = dt.datetime(starting_year,starting_month,starting_day,starting_hour,
                                         starting_minute,tzinfo=pytz.UTC)
-    final_datetime = starting_datetime + observation_window
+    final_datetime = starting_datetime + time_span
 
     datetime_boundaries.append(starting_datetime)
     datetime_boundaries.append(final_datetime)
@@ -570,12 +570,12 @@ class SynteticTimeseriesGenerator:
 class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
 
     def __init__(self, sampling_interval= '15min',
-                 observation_window='30D',starting_year=None, 
+                 time_span='30D',starting_year=None, 
                  starting_month=None, starting_day=None, starting_hour=None, 
                  starting_minute=None,temperature=True, humidity=True):
 
         self.sampling_interval = pd.Timedelta(sampling_interval).to_pytimedelta()
-        self.observation_window = pd.Timedelta(observation_window).to_pytimedelta()
+        self.time_span = pd.Timedelta(time_span).to_pytimedelta()
         self.starting_year = starting_year
         self.starting_month = starting_month
         self.starting_day = starting_day
@@ -588,7 +588,7 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                  csv_path='',anomalies=['spike_uv','step_uv'],
                  effects=['noise','seasons','clouds'],index_by_timestamp=True):
 
-        datetime_boundaries = generate_time_boundaries(self.observation_window,self.starting_year,
+        datetime_boundaries = generate_time_boundaries(self.time_span,self.starting_year,
                                                        self.starting_month,self.starting_day,
                                                        self.starting_hour,self.starting_minute)
 
