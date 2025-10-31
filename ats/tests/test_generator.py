@@ -12,7 +12,7 @@ class TestGenerator(unittest.TestCase):
     def test_generate_reference_dataset(self):
         generator = HumiTempEvaluationDataGenerator()
         reference_dataset = generator.generate_reference_dataset(observation_window='5D')
-        expected_points = generator.__expected_points__()
+        expected_points = generator._expected_points()
 
         self.assertEqual(len(reference_dataset), 3)
         for i, series in enumerate(reference_dataset):
@@ -56,7 +56,7 @@ class TestGenerator(unittest.TestCase):
             observation_window='3D',
             effects=['noise']
         )
-        expected_points = generator.__expected_points__()
+        expected_points = generator._expected_points()
 
         self.assertEqual(len(test_dataset), 12)
         for i, series in enumerate(test_dataset):
@@ -108,7 +108,7 @@ class TestGenerator(unittest.TestCase):
         )
         self.assertEqual(len(test_dataset), howmany_series)
 
-        expected_points = generator.__expected_points__()
+        expected_points = generator._expected_points()
 
         clusters = [
             test_dataset[0:series_per_cluster],

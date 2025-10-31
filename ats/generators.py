@@ -20,7 +20,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         self._current_observation_window = observation_window
     
 
-    def __generate_dataset__(self, howmany_series, 
+    def _generate_dataset(self, howmany_series, 
                             observation_window, 
                             effects=[], 
                             randomize_effects=False, 
@@ -86,7 +86,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         Returns:
             list: Generated synthetic time series.
         """        
-        reference_dataset = self.__generate_dataset__(
+        reference_dataset = self._generate_dataset(
             howmany_series=howmany_series,
             observation_window=observation_window,
             effects=effects,
@@ -94,43 +94,11 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         )
         return reference_dataset
 
-
     # Implemented for testing purposes                               
-    def __expected_points__(self): 
+    def _expected_points(self): 
         obs_window = pd.Timedelta(self._current_observation_window)
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
-
-    def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
-                                   effects=[],randomize_effects=False):
-        """
-        Generate a synthetic reference dataset composed of multiple humidity-temperature 
-        time series, optionally with environmental effects applied.
-
-        Args:
-            howmany_series (int, opt): Number of series to generate (default = 3).
-            observation_window (int, opt): Length of each time window.
-            effects (list[str], opt): Effects to apply (['noise', 'seasons', 'clouds']).
-            randomize_effects (bool, opt): Randomly choose effects for each series.
-
-        Returns:
-            list: Generated synthetic time series.
-        """        
-        reference_dataset = self.__generate_dataset__(
-            howmany_series=howmany_series,
-            observation_window=observation_window,
-            effects=effects,
-            randomize_effects=randomize_effects
-        )
-        return reference_dataset
-
-
-    # Implemented for testing purposes                               
-    def __expected_points__(self): 
-        obs_window = pd.Timedelta(self._current_observation_window)
-        samp_interval = pd.Timedelta(self.sampling_interval)
-        return int(obs_window / samp_interval)
-
 
     def generate_test_dataset(self, howmany_series=9, observation_window=None,
                                effects=[], randomize_effects=False):
@@ -167,7 +135,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         ]
 
         for i in range(num_cluster):
-            series_cluster = self.__generate_dataset__(
+            series_cluster = self._generate_dataset(
                 howmany_series=howmany_series_for_cluster,
                 observation_window=observation_window,
                 effects=effects,
