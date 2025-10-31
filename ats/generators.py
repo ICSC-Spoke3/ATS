@@ -24,16 +24,20 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
                             time_span, 
                             effects=[], 
                             random_effects=[], 
-                            anomalies=[]):
+                            anomalies=[],
+                            random_anomalies=[]
+                            ):
         """
         Generic dataset generator used by all public dataset methods.
         """
-        # It would be nice to have a function of synthetic data to achieve these:
-        available_effects = effects
         dataset = []
 
+        # The following line serves for calculating expected points in tests
         self._current_time_span = time_span or self.time_span
         
+        if effects=='default':
+            raise NotImplementedError('You must explicitilty provides the effects to apply. Also None or Empty is accepted.')
+
         if not isinstance(n, int) or n <= 0:
             raise ValueError(f"`n` must be a positive integer, got {n!r}.")
         
@@ -83,15 +87,12 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         Args:
             n (int, opt): Number of series to generate (default = 3).
             time_span (int, opt): Length of each time window.
-            effects (list[str], opt): Effects to apply in each series (['noise', 'seasons', 'clouds']).
+            effects (list[str], opt): Effects that you can apply in each series (None, 'noise', 'seasons', 'clouds').
             random_effects (list[str], opt): Random effects to apply across series.
 
         Returns:
             list: Generated synthetic time series.
-        """
-        if effects=='default':
-            raise NotImplementedError('You must explicitilty provides the effects to apply. Also None or Empty is accepted.')
-        
+        """        
         reference_dataset = self._generate_dataset(
             n=n,
             time_span=time_span,
@@ -107,21 +108,19 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         return int(obs_window / samp_interval)
 
     def generate_test_dataset(self, n=9, time_span=None,
-                               effects=[], random_effects=[]):
+                               effects='default', random_effects=[],
+                               anomalies='default', random_anomalies=None):
         """
         Generate a synthetic test dataset of humidity-temperature time series
         with different anomaly configurations.
-
-        The dataset is divided into three groups:
-          - group 1: no anomalies
-          - group 2: univariate spike anomalies
-          - group 3: spike + step anomalies
-
+        The dataset is divided into three groups, 0, 1, and 2 anomalies per series.
         Args:
             n (int, optional): Total number of series (must be multiple of 3).
             time_span (str, optional): Time window length (e.g. '30D', '60D').
-            effects (list[str], optional): Environmental effects (['noise', 'seasons', 'clouds']).
-            randomize_effects (bool, optional): Randomize effects across series.
+            effects (list[str], optional): Effects that you can apply in each series (None, 'noise', 'seasons', 'clouds').
+            random_effects (bool, optional): Random effects to apply across series.
+            anomalies (list[str], optional): Anomalies to apply in each series.
+            random_anomalies (list[str], optional): Random anomalies to apply across series.
 
         Returns:
             list: Generated synthetic time series.
@@ -129,24 +128,29 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         if n <= 0 or n % 3 != 0:
             raise ValueError("`n` must be a positive multiple of 3 to form groups.")
 
-        num_group = 3
-        n_for_group = n // num_group
-
         test_dataset = []
 
-        anomalies_per_group = [
-            [],  # 0 anomalies
-            ['spike_uv'],  # 1 anomaly
-            ['spike_uv', 'step_uv']  # 2 anomalies
-        ]
+        if len(anomalies)<2:
+            raise ValueError("Define at least two anomaliesfor generating test datasets with 1 and 2 anomalies per series.")
 
+        if random_anomalies is not None and random_anomalies != []:
+            raise NotImplementedError("Random anomalies not yet implemented.")
+        
+        num_group = 3
+        n_per_group = n // num_group
+        one_anomalies = rnd.sample(anomalies, 1)
+        two_anomalies = rnd.sample(anomalies, 2)
+        anomalies_per_group = [[], 
+                               [one_anomalies[0]], 
+                               [two_anomalies[0], two_anomalies[1]]]
         for i in range(num_group):
             series_group = self._generate_dataset(
-                n=n_for_group,
+                n=n_per_group,
                 time_span=time_span,
                 effects=effects,
                 random_effects=random_effects,
-                anomalies=anomalies_per_group[i]
+                anomalies=anomalies_per_group[i],
+                random_anomalies=random_anomalies,
                 ) 
             test_dataset.extend(series_group)
         return test_dataset

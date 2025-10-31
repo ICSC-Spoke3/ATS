@@ -56,10 +56,10 @@ class TestGenerator(unittest.TestCase):
         test_dataset = generator.generate_test_dataset(
             n=12,
             time_span='3D',
-            effects=['noise']
+            effects=['noise'],
+            anomalies=['spike_uv', 'step_uv']
         )
         expected_points = generator._expected_points()
-
         self.assertEqual(len(test_dataset), 12)
         for i, series in enumerate(test_dataset):
             with self.subTest(dataset=i):
@@ -67,17 +67,22 @@ class TestGenerator(unittest.TestCase):
                 self.assertIn('humidity', series.columns)
                 self.assertEqual(len(series), expected_points)
     
-    def test_generate_test_dataset_invalid_n(self):
+    def test_generate_test_dataset_invalid_anomalies(self):
         generator = HumiTempEvaluationDataGenerator()
+        with self.assertRaises(NotImplementedError):
+            generator.generate_test_dataset(anomalies='spike_uv')
+        with self.assertRaises(TypeError):
+            generator.generate_test_dataset(anomalies=789)
+        with self.assertRaises(NotImplementedError):
+            generator.generate_test_dataset(random_anomalies=['random_spike']) 
+        with self.assertRaises(ValueError):
+            generator.generate_test_dataset(anomalies=['spike_uv'])
         with self.assertRaises(ValueError):
             generator.generate_test_dataset(n=-3)
         with self.assertRaises(ValueError):
             generator.generate_test_dataset(n=0)
         with self.assertRaises(ValueError):
             generator.generate_test_dataset(n=7)  # Not a multiple of 3  
-
-    def test_generate_test_dataset_invalid_effects(self):
-        generator = HumiTempEvaluationDataGenerator()
         with self.assertRaises(TypeError):
             generator.generate_test_dataset(effects='seasons')
         with self.assertRaises(TypeError):
@@ -96,26 +101,32 @@ class TestGenerator(unittest.TestCase):
             self.assertIsNotNone(series, f"Series {i} is None")
             self.assertTrue(len(series) > 0, f"Series {i} is empty")
 
-    def test_generate_test_dataset_group(self):
-        generator = HumiTempEvaluationDataGenerator()
-        
-        n = 6
-        num_groups = 3
-        series_per_group = n // num_groups
-        
-        test_dataset = generator.generate_test_dataset(
-            n=n,
-            time_span='2D',
-            effects=['seasons', 'clouds'])
-        self.assertEqual(len(test_dataset), n)
+def test_generate_test_dataset_group(self):
+    generator = HumiTempEvaluationDataGenerator()
+    n = 6
+    num_groups = 3
+    series_per_group = n // num_groups
+    test_dataset = generator.generate_test_dataset(
+        n=n,
+        time_span='2D',
+        effects=['noise'],
+        anomalies=['spike_uv', 'step_uv']
+    )
+    self.assertEqual(len(test_dataset), n)
+    group_rules = {
+            0: lambda cols: 'spike_uv' not in cols and 'step_uv' not in cols,                  # Nessuna anomalia
+            1: lambda cols: ('spike_uv' in cols) ^ ('step_uv' in cols),                       # Solo una delle due
+            2: lambda cols: 'spike_uv' in cols and 'step_uv' in cols,                         # Entrambe presenti
+        }
+    for group in range(num_groups):
+        start_idx = group * series_per_group
+        end_idx = start_idx + series_per_group
+        for i in range(start_idx, end_idx):
+            with self.subTest(group=group, dataset=i):
+                series = test_dataset[i]
+                cols = series.columns
+                self.assertTrue(
+                    group_rules[group](cols),(
+                        f"Group {group}, dataset {i}: unexpected anomaly combination. "
+                        f"Columns: {list(cols)}"))
 
-        expected_points = generator._expected_points()
-
-        groups = [
-            test_dataset[0:series_per_group],
-            test_dataset[series_per_group:2*series_per_group],
-            test_dataset[2*series_per_group:3*series_per_group]
-        ]
-
-        for i, group in enumerate(groups):
-            self.assertEqual(len(group), series_per_group)
