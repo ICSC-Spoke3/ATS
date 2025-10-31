@@ -19,11 +19,20 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         self.time_span = time_span
         self._current_time_span = time_span
     
+    def __check_list(self, value, name):
+        """
+        Helper function to check and convert a value to a list.
+        """
+        if value is None:
+            value = []
+        if not isinstance(value, list):
+            raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
+        return value
 
-    def _generate_dataset(self, n, 
-                            time_span, 
-                            effects=[], 
-                            random_effects=[], 
+    def _generate_dataset(self, n,
+                            time_span,
+                            effects=[],
+                            random_effects=[],
                             anomalies=[],
                             random_anomalies=[]
                             ):
@@ -40,17 +49,12 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
         if not isinstance(n, int) or n <= 0:
             raise ValueError(f"`n` must be a positive integer, got {n!r}.")
-        
-        if effects is None:
-            effects = []
-        if not isinstance(effects, list):
-            raise TypeError(f"`effects` must be a list of strings, got {type(effects).__name__}.")
-        
-        if random_effects is None:
-            random_effects = []
-        if not isinstance(random_effects, list):
-            raise TypeError(f"`random_effects` must be a list of strings, got {type(random_effects).__name__}.")    
-        
+
+        effects = self.__check_list(effects, "effects")
+        random_effects = self.__check_list(random_effects, "random_effects")
+        anomalies = self.__check_list(anomalies, "anomalies")
+        random_anomalies = self.__check_list(random_anomalies, "random_anomalies")
+
         try:
             generator = SyntheticHumiTempTimeseriesGenerator(
                     temperature=self.temperature,
