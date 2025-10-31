@@ -12,16 +12,16 @@ class EvaluationDataGenerator():
 class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
     def __init__(self, temperature=True, humidity=True,
-                 sampling_interval='15min', observation_window='30D'):
+                 sampling_interval='15min', time_span='30D'):
         self.temperature = temperature
         self.humidity = humidity
         self.sampling_interval = sampling_interval
-        self.observation_window = observation_window
-        self._current_observation_window = observation_window
+        self.time_span = time_span
+        self._current_time_span = time_span
     
 
     def _generate_dataset(self, n, 
-                            observation_window, 
+                            time_span, 
                             effects=[], 
                             randomize_effects=False, 
                             anomalies=[]):
@@ -32,7 +32,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         available_effects = effects
         dataset = []
 
-        self._current_observation_window = observation_window or self.observation_window
+        self._current_time_span = time_span or self.time_span
         
         if not isinstance(n, int) or n <= 0:
             raise ValueError(f"`n` must be a positive integer, got {n!r}.")
@@ -47,7 +47,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
                     temperature=self.temperature,
                     humidity=self.humidity,
                     sampling_interval=self.sampling_interval,
-                    observation_window=self._current_observation_window
+                    time_span=self._current_time_span
             )
         except Exception as e:
             raise RuntimeError(f"Error initializing SyntheticHumiTempTimeseriesGenerator") from e
@@ -71,7 +71,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         return dataset
 
 
-    def generate_reference_dataset(self, n=3, observation_window=None, 
+    def generate_reference_dataset(self, n=3, time_span=None, 
                                    effects='default',randomize_effects=False):
         """
         Generate a synthetic reference dataset composed of multiple humidity-temperature 
@@ -79,7 +79,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
         Args:
             n (int, opt): Number of series to generate (default = 3).
-            observation_window (int, opt): Length of each time window.
+            time_span (int, opt): Length of each time window.
             effects (list[str], opt): Effects to apply (['noise', 'seasons', 'clouds']).
             randomize_effects (bool, opt): Randomly choose effects for each series.
 
@@ -91,7 +91,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         
         reference_dataset = self._generate_dataset(
             n=n,
-            observation_window=observation_window,
+            time_span=time_span,
             effects=effects,
             randomize_effects=randomize_effects
         )
@@ -99,11 +99,11 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
     # Implemented for testing purposes                               
     def _expected_points(self): 
-        obs_window = pd.Timedelta(self._current_observation_window)
+        obs_window = pd.Timedelta(self._current_time_span)
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
 
-    def generate_test_dataset(self, n=9, observation_window=None,
+    def generate_test_dataset(self, n=9, time_span=None,
                                effects=[], randomize_effects=False):
         """
         Generate a synthetic test dataset of humidity-temperature time series
@@ -116,7 +116,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
         Args:
             n (int, optional): Total number of series (must be multiple of 3).
-            observation_window (str, optional): Time window length (e.g. '30D', '60D').
+            time_span (str, optional): Time window length (e.g. '30D', '60D').
             effects (list[str], optional): Environmental effects (['noise', 'seasons', 'clouds']).
             randomize_effects (bool, optional): Randomize effects across series.
 
@@ -140,7 +140,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         for i in range(num_group):
             series_group = self._generate_dataset(
                 n=n_for_group,
-                observation_window=observation_window,
+                time_span=time_span,
                 effects=effects,
                 randomize_effects=randomize_effects,
                 anomalies=anomalies_per_group[i]

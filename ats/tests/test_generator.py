@@ -11,7 +11,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_generate_reference_dataset(self):
         generator = HumiTempEvaluationDataGenerator()
-        reference_dataset = generator.generate_reference_dataset(observation_window='5D', effects=None)
+        reference_dataset = generator.generate_reference_dataset(time_span='5D', effects=None)
         expected_points = generator._expected_points()
 
         self.assertEqual(len(reference_dataset), 3)
@@ -41,7 +41,7 @@ class TestGenerator(unittest.TestCase):
         generator = HumiTempEvaluationDataGenerator()
         reference_dataset = generator.generate_reference_dataset(
             n=5,
-            observation_window='5D',
+            time_span='5D',
             randomize_effects=True,
             effects=['seasons', 'clouds', 'noise']
         )
@@ -55,7 +55,7 @@ class TestGenerator(unittest.TestCase):
         generator = HumiTempEvaluationDataGenerator()
         test_dataset = generator.generate_test_dataset(
             n=12,
-            observation_window='3D',
+            time_span='3D',
             effects=['noise']
         )
         expected_points = generator._expected_points()
@@ -87,7 +87,7 @@ class TestGenerator(unittest.TestCase):
         generator = HumiTempEvaluationDataGenerator()
         test_dataset = generator.generate_test_dataset(
             n=9,
-            observation_window='4D',
+            time_span='4D',
             randomize_effects=True,
             effects=['noise', 'seasons']
         )
@@ -105,7 +105,7 @@ class TestGenerator(unittest.TestCase):
         
         test_dataset = generator.generate_test_dataset(
             n=n,
-            observation_window='2D',
+            time_span='2D',
             effects=['seasons', 'clouds'],
             randomize_effects=False
         )
