@@ -11,7 +11,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_generate_reference_dataset(self):
         generator = HumiTempEvaluationDataGenerator()
-        reference_dataset = generator.generate_reference_dataset(observation_window='5D')
+        reference_dataset = generator.generate_reference_dataset(observation_window='5D', effects=None)
         expected_points = generator._expected_points()
 
         self.assertEqual(len(reference_dataset), 3)
@@ -24,11 +24,11 @@ class TestGenerator(unittest.TestCase):
     def test_generate_reference_dataset_invalid_n(self):
         generator = HumiTempEvaluationDataGenerator()
         with self.assertRaises(ValueError):
-            generator.generate_reference_dataset(n=-1)
+            generator.generate_reference_dataset(n=-1,effects=None)
         with self.assertRaises(ValueError):
-            generator.generate_reference_dataset(n=0)
+            generator.generate_reference_dataset(n=0,effects=[])
         with self.assertRaises(ValueError):
-            generator.generate_reference_dataset(n='three')
+            generator.generate_reference_dataset(n='three',effects=[])
     
     def test_generate_reference_dataset_invalid_effects(self):
         generator = HumiTempEvaluationDataGenerator()
@@ -42,13 +42,15 @@ class TestGenerator(unittest.TestCase):
         reference_dataset = generator.generate_reference_dataset(
             n=5,
             observation_window='5D',
-            randomize_effects=True
+            randomize_effects=True,
+            effects=['seasons', 'clouds', 'noise']
         )
         self.assertEqual(len(reference_dataset), 5)
         for i, series in enumerate(reference_dataset, start=1):
             self.assertIsNotNone(series, f"Series {i} is None")
             self.assertTrue(len(series) > 0, f"Series {i} is empty")
-        
+
+    # Beginning of test for generate_test_dataset
     def test_generate_test_dataset(self):
         generator = HumiTempEvaluationDataGenerator()
         test_dataset = generator.generate_test_dataset(
@@ -72,7 +74,7 @@ class TestGenerator(unittest.TestCase):
         with self.assertRaises(ValueError):
             generator.generate_test_dataset(n=0)
         with self.assertRaises(ValueError):
-            generator.generate_test_dataset(n=7)  # Not a multiple of 3    ù
+            generator.generate_test_dataset(n=7)  # Not a multiple of 3  
 
     def test_generate_test_dataset_invalid_effects(self):
         generator = HumiTempEvaluationDataGenerator()
@@ -86,7 +88,8 @@ class TestGenerator(unittest.TestCase):
         test_dataset = generator.generate_test_dataset(
             n=9,
             observation_window='4D',
-            randomize_effects=True
+            randomize_effects=True,
+            effects=['noise', 'seasons']
         )
         self.assertEqual(len(test_dataset), 9)
         for i, series in enumerate(test_dataset, start=1):
