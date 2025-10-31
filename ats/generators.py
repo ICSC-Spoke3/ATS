@@ -29,7 +29,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         Generic dataset generator used by all public dataset methods.
         """
         # It would be nice to have a function of synthetic data to achieve these:
-        available_effects = ['noise', 'seasons', 'clouds']
+        available_effects = effects
         dataset = []
 
         self._current_observation_window = observation_window or self.observation_window
@@ -72,7 +72,7 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
 
     def generate_reference_dataset(self, howmany_series=3, observation_window=None, 
-                                   effects=[],randomize_effects=False):
+                                   effects='default',randomize_effects=False):
         """
         Generate a synthetic reference dataset composed of multiple humidity-temperature 
         time series, optionally with environmental effects applied.
@@ -85,7 +85,10 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
 
         Returns:
             list: Generated synthetic time series.
-        """        
+        """
+        if effects=='default':
+            raise NotImplementedError('You must explicitilty provides the effects____AAAAA')
+        
         reference_dataset = self._generate_dataset(
             howmany_series=howmany_series,
             observation_window=observation_window,
@@ -106,10 +109,10 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         Generate a synthetic test dataset of humidity-temperature time series
         with different anomaly configurations.
 
-        The dataset is divided into three clusters:
-          - Cluster 1: no anomalies
-          - Cluster 2: univariate spike anomalies
-          - Cluster 3: spike + step anomalies
+        The dataset is divided into three groups:
+          - group 1: no anomalies
+          - group 2: univariate spike anomalies
+          - group 3: spike + step anomalies
 
         Args:
             howmany_series (int, optional): Total number of series (must be multiple of 3).
@@ -121,26 +124,26 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
             list: Generated synthetic time series.
         """
         if howmany_series <= 0 or howmany_series % 3 != 0:
-            raise ValueError("`howmany_series` must be a positive multiple of 3 to form clusters.")
+            raise ValueError("`howmany_series` must be a positive multiple of 3 to form groups.")
 
-        num_cluster = 3
-        howmany_series_for_cluster = howmany_series // num_cluster
+        num_group = 3
+        howmany_series_for_group = howmany_series // num_group
 
         test_dataset = []
 
-        anomalies_per_cluster = [
+        anomalies_per_group = [
             [],  # 0 anomalies
             ['spike_uv'],  # 1 anomaly
             ['spike_uv', 'step_uv']  # 2 anomalies
         ]
 
-        for i in range(num_cluster):
-            series_cluster = self._generate_dataset(
-                howmany_series=howmany_series_for_cluster,
+        for i in range(num_group):
+            series_group = self._generate_dataset(
+                howmany_series=howmany_series_for_group,
                 observation_window=observation_window,
                 effects=effects,
                 randomize_effects=randomize_effects,
-                anomalies=anomalies_per_cluster[i]
+                anomalies=anomalies_per_group[i]
                 ) 
-            test_dataset.extend(series_cluster)
+            test_dataset.extend(series_group)
         return test_dataset

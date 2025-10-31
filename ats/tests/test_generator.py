@@ -93,12 +93,12 @@ class TestGenerator(unittest.TestCase):
             self.assertIsNotNone(series, f"Series {i} is None")
             self.assertTrue(len(series) > 0, f"Series {i} is empty")
 
-    def test_generate_test_dataset_cluster(self):
+    def test_generate_test_dataset_group(self):
         generator = HumiTempEvaluationDataGenerator()
         
         howmany_series = 6
-        num_clusters = 3
-        series_per_cluster = howmany_series // num_clusters
+        num_groups = 3
+        series_per_group = howmany_series // num_groups
         
         test_dataset = generator.generate_test_dataset(
             howmany_series=howmany_series,
@@ -110,11 +110,11 @@ class TestGenerator(unittest.TestCase):
 
         expected_points = generator._expected_points()
 
-        clusters = [
-            test_dataset[0:series_per_cluster],
-            test_dataset[series_per_cluster:2*series_per_cluster],
-            test_dataset[2*series_per_cluster:3*series_per_cluster]
+        groups = [
+            test_dataset[0:series_per_group],
+            test_dataset[series_per_group:2*series_per_group],
+            test_dataset[2*series_per_group:3*series_per_group]
         ]
 
-        for i, cluster in enumerate(clusters):
-            self.assertEqual(len(cluster), series_per_cluster)
+        for i, group in enumerate(groups):
+            self.assertEqual(len(group), series_per_group)
