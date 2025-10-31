@@ -25,6 +25,8 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         """
         if value is None:
             value = []
+        if value=='default':
+            raise NotImplementedError(f'You must explicitly provide the {value} to apply. Also None or Empty is accepted.')
         if not isinstance(value, list):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
@@ -44,9 +46,6 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         # The following line serves for calculating expected points in tests
         self._current_time_span = time_span or self.time_span
         
-        if effects=='default':
-            raise NotImplementedError('You must explicitilty provides the effects to apply. Also None or Empty is accepted.')
-
         if not isinstance(n, int) or n <= 0:
             raise ValueError(f"`n` must be a positive integer, got {n!r}.")
 
