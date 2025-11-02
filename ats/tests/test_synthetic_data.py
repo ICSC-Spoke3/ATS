@@ -14,6 +14,7 @@ from ..synthetic_data import add_spike_anomaly
 from ..synthetic_data import add_spike_effect
 from ..synthetic_data import change_effect_label
 from ..synthetic_data import calculate_seasonal_sin_value
+from ..synthetic_data import plot_func
 
 # Setup logging
 from .. import logger
@@ -417,3 +418,10 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             timeseries_df = generator.generate(effects=[],anomalies=['clud'],index_by_timestamp=False)
         except Exception as e:
             self.assertIsInstance(e, ValueError)
+
+    def test_external_use_plot_func(self):
+        anomalies = ['step_uv']
+        generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_df = generator.generate(effects=[],anomalies=anomalies)
+        plot_func(timeseries_df,anomalies=anomalies)
+
