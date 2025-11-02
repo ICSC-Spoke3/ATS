@@ -407,3 +407,13 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         spike_effect_timeseries_df = timeseries_generator.generate(effects=['spike'],anomalies=[],index_by_timestamp=False)
         self.assertEqual(spike_effect_timeseries_df.loc[54,'effect_label'],'spike')
 
+    def test_invalid_labels(self):
+        generator = SyntheticHumiTempTimeseriesGenerator()
+        try:
+            timeseries_df = generator.generate(effects=['spke'],anomalies=[],index_by_timestamp=False)
+        except Exception as e:
+            self.assertIsInstance(e, ValueError)
+        try:
+            timeseries_df = generator.generate(effects=[],anomalies=['clud'],index_by_timestamp=False)
+        except Exception as e:
+            self.assertIsInstance(e, ValueError)

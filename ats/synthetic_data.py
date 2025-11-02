@@ -588,6 +588,15 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                  csv_path='',anomalies=['spike_uv','step_uv'],
                  effects=['noise','seasons','clouds'],index_by_timestamp=True):
 
+        avaliable_anomalies = ['spike_uv','step_uv','noise_uv','pattern_uv','spike_mv','step_mv','noise_mv','pattern_mv','clouds']
+        avaliable_effects = ['spike','noise','seasons','clouds']
+        for anomaly in anomalies:
+            if anomaly not in avaliable_anomalies:
+                raise ValueError(f'Anomaly "{anomaly}" is not supported.')
+        for effect in effects:
+            if effect not in avaliable_effects:
+                raise ValueError(f'Effect "{effect}" is not supported.')
+
         datetime_boundaries = generate_time_boundaries(self.time_span,self.starting_year,
                                                        self.starting_month,self.starting_day,
                                                        self.starting_hour,self.starting_minute)
