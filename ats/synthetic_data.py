@@ -672,15 +672,15 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                 if 'spike' in effects:
                     final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df)
 
+        if index_by_timestamp:
+            final_humitemp_timeseries_df.set_index(final_humitemp_timeseries_df['timestamp'],inplace=True)
+            final_humitemp_timeseries_df.drop(columns=['timestamp'],inplace=True)
+
         if plot:
             plot_func(final_humitemp_timeseries_df,anomalies)
 
         if generate_csv:
             csv_file_maker(final_humitemp_timeseries_df,anomalies,effects,path=csv_path)
-
-        if index_by_timestamp:
-            final_humitemp_timeseries_df.set_index(final_humitemp_timeseries_df['timestamp'],inplace=True)
-            final_humitemp_timeseries_df.drop(columns=['timestamp'],inplace=True)
 
         return final_humitemp_timeseries_df
 
