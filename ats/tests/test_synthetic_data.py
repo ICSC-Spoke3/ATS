@@ -425,3 +425,8 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         timeseries_df = generator.generate(effects=[],anomalies=anomalies)
         plot_func(timeseries_df,anomalies=anomalies)
 
+    def test_internal_use_plot_func(self):
+        anomalies = ['step_uv']
+        generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_df = generator.generate(effects=[],anomalies=anomalies,plot=True)
+
