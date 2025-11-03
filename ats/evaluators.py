@@ -80,9 +80,11 @@ class Evaluator():
             raise ValueError('No input data set')
 
         formatted_dataset = []
+        anomaly_labels_list = []
         for series in self.test_data:
-            formatted_series = _format_for_anomaly_detector(series,synthetic=True)
+            formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
             formatted_dataset.append(formatted_series)
+            anomaly_labels_list.append(anomaly_labels)
 
         dataset_copies = self.copy_dataset(formatted_dataset)
         models_scores = {}
@@ -91,7 +93,7 @@ class Evaluator():
             single_model_evaluation = {}
             flagged_dataset = get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
-                single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(sample_df)
+                single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(sample_df,anomaly_labels_list[i])
             models_scores[model_name] = calculate_model_scores(single_model_evaluation)
             j+=1
 
