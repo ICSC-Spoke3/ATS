@@ -14,7 +14,6 @@ def _format_for_anomaly_detector(input_df,synthetic=False):
 
 def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, synthetic=False, details=False):
 
-    #evaluated_timeseries_df, anomaly_labels = _format_for_anomaly_detector(evaluated_timeseries_df,synthetic=synthetic)
     evaluated_anomaly_flags = evaluated_timeseries_df.filter(like='_anomaly')
     evaluation_results = {}
     evaluation_details = {}
