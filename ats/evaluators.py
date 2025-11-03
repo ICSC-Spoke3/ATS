@@ -95,3 +95,20 @@ class Evaluator():
             j+=1
 
         return pd.Dataframe(models_scores)
+
+def get_model_output(dataset,model):
+    if not isinstance(dataset,list):
+        raise ValueError('The input dataset has to be a list')
+    for series in dataset:
+        if not isinstance(series,pd.DataFrame):
+            raise ValueError('Dataset elements have to be a pandas DataFrame')
+
+    flagged_dataset = []
+    try:
+        flagged_dataset = model.apply(dataset)
+    except NotImplementedError:
+        for series in dataset:
+            flagged_series = model.apply(series)
+            flagged_dataset.append(flagged_series)
+
+    return flagged_dataset
