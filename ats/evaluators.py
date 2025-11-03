@@ -79,6 +79,11 @@ class Evaluator():
         if not self.test_data:
             raise ValueError('No input data set')
 
+        formatted_dataset = []
+        for series in self.test_data:
+            formatted_series = _format_for_anomaly_detector(series,synthetic=True)
+            formatted_dataset.append(formatted_series)
+        # TODO: change the function "copy_dataset()" to do the copies of the formatted dataset
         dataset_copies = self.copy_dataset()
         models_scores = {}
         j = 0
