@@ -12,7 +12,7 @@ def _format_for_anomaly_detector(input_df,synthetic=False):
     input_df.drop(columns=['anomaly_label'],inplace=True)
     return input_df,anomaly_labels
 
-def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, synthetic=False, details=False):
+def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=False):
 
     evaluated_anomaly_flags = evaluated_timeseries_df.filter(like='_anomaly')
     evaluation_results = {}
