@@ -66,10 +66,10 @@ class Evaluator():
         avg_detections_per_anomaly = {anomaly: counts/samples_n for anomaly, counts in detections_per_anomaly.items()}
         return avg_detections_per_anomaly
 
-    def copy_dataset(self):
+    def copy_dataset(self,dataset):
         dataset_copies = []
         for i in range(len(self.models)):
-            dataset_copy = deepcopy(self.test_data)
+            dataset_copy = deepcopy(dataset)
             dataset_copies.append(dataset_copy)
         return dataset_copies
 
@@ -83,8 +83,8 @@ class Evaluator():
         for series in self.test_data:
             formatted_series = _format_for_anomaly_detector(series,synthetic=True)
             formatted_dataset.append(formatted_series)
-        # TODO: change the function "copy_dataset()" to do the copies of the formatted dataset
-        dataset_copies = self.copy_dataset()
+
+        dataset_copies = self.copy_dataset(formatted_dataset)
         models_scores = {}
         j = 0
         for model_name,model in self.models.items():
