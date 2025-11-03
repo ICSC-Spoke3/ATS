@@ -89,8 +89,9 @@ class Evaluator():
         j = 0
         for model_name,model in self.models.items():
             single_model_evaluation = {}
-            for i,sample_df in enumerate(dataset_copies[j]):
-                single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(model,dataset_copies[j][i],synthetic=synthetic)
+            flagged_dataset = get_model_output(dataset_copies[j],model)
+            for i,sample_df in enumerate(flagged_dataset):
+                single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(sample_df)
             models_scores[model_name] = calculate_model_scores(single_model_evaluation)
             j+=1
 
