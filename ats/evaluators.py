@@ -10,15 +10,9 @@ def _format_for_anomaly_detector(input_df,synthetic=False):
     input_df.drop(columns=['anomaly_label'],inplace=True)
     return input_df,anomaly_labels
 
-def evaluate_anomaly_detector(anomaly_detector, evaluation_timeseries_df, synthetic=False,details=False):
+def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, synthetic=False, details=False):
 
-    if not isinstance(anomaly_detector,MinMaxAnomalyDetector):
-        raise ValueError('Only MinMaxAnomalyDetector is supported')
-    if 'anomaly_label' not in evaluation_timeseries_df.columns:
-        raise ValueError('The anomaly_label column is missing: it is necessary for evaluation')
-
-    evaluation_timeseries_df, anomaly_labels = _format_for_anomaly_detector(evaluation_timeseries_df,synthetic=synthetic)
-    evaluated_timeseries_df = anomaly_detector.apply(evaluation_timeseries_df)
+    #evaluated_timeseries_df, anomaly_labels = _format_for_anomaly_detector(evaluated_timeseries_df,synthetic=synthetic)
     evaluated_anomaly_flags = evaluated_timeseries_df.filter(like='_anomaly')
     evaluation_results = {}
     evaluation_details = {}
