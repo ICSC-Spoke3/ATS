@@ -5,6 +5,8 @@ from copy import deepcopy
 def _format_for_anomaly_detector(input_df,synthetic=False):
     if synthetic:
         input_df.drop(columns=['effect_label'],inplace=True)
+    if 'anomaly_label' not in input_df.columns:
+        raise ValueError('The input DataFrame has to contain an "anomaly_label" column for evaluation')
 
     anomaly_labels = input_df.loc[:,'anomaly_label']
     input_df.drop(columns=['anomaly_label'],inplace=True)
