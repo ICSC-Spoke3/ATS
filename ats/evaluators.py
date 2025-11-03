@@ -82,7 +82,8 @@ class Evaluator():
         formatted_dataset = []
         anomaly_labels_list = []
         for series in self.test_data:
-            formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
+            synthetic = 'effect_label' in series.columns
+            formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=synthetic)
             formatted_dataset.append(formatted_series)
             anomaly_labels_list.append(anomaly_labels)
 
