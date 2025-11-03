@@ -2,6 +2,8 @@ from ..evaluators import evaluate_anomaly_detector
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
 from ..timeseries_generators import HumiTempTimeseriesGenerator
 from ..utils import generate_timeseries_df
+from ..evaluators import get_model_output
+from ..evaluators import _format_for_anomaly_detector
 import unittest
 import pandas as pd
 import random as rnd
@@ -195,3 +197,18 @@ class TestEvaluators(unittest.TestCase):
         # Evaluation_details
         #false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}, Timestamp('1973-05-03 12:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
 
+    def test_get_model_output(self):
+        humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        humitemp_series1 = humi_temp_generator.generate(anomalies=[],effects=[])
+        humitemp_series2 = humi_temp_generator.generate(anomalies=[],effects=['noise'])
+        format_humitemp_series1,anomalies1 = _format_for_anomaly_detector(humitemp_series1,synthetic=True)
+        format_humitemp_series2,anomalies2 = _format_for_anomaly_detector(humitemp_series2,synthetic=True)
+        min_max = MinMaxAnomalyDetector()
+        dataset = [format_humitemp_series1,format_humitemp_series2]
+        flagged_dataset = get_model_output(dataset,min_max)
+        self.assertIsInstance(flagged_dataset,list)
+        self.assertEqual(len(flagged_dataset),2)
+        self.assertIn('temperature_anomaly',list(flagged_dataset[0].columns))
+        self.assertIn('humidity_anomaly',list(flagged_dataset[0].columns))
+        self.assertIn('temperature_anomaly',list(flagged_dataset[1].columns))
+        self.assertIn('humidity_anomaly',list(flagged_dataset[1].columns))
