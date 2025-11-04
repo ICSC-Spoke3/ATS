@@ -94,7 +94,8 @@ class TestGenerator(unittest.TestCase):
             n=9,
             time_span='4D',
             random_effects=['clouds'],
-            effects=['noise', 'seasons']
+            effects=['noise', 'seasons'],
+            anomalies=['spike_uv','step_uv']
         )
         self.assertEqual(len(test_dataset), 9)
         for i, series in enumerate(test_dataset, start=1):
