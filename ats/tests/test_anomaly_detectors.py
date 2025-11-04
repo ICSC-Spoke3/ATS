@@ -1,16 +1,19 @@
 import unittest
+import numpy as np
 import pandas as pd
 
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
+from ..anomaly_detectors.stat.robust import _COMNHARAnomalyDetector
 from ..utils import generate_timeseries_df
+from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe, fSimContaminatedSeries
 
 # Setup logging
 from .. import logger
 logger.setup()
 
-class TestMinMaxAnomalyDetector(unittest.TestCase):
+class TestNaiveAnomalyDetectors(unittest.TestCase):
 
-    def test_univariate(self):
+    def test_minmax(self):
 
         anomaly_detector = MinMaxAnomalyDetector()
         timeseries_df = generate_timeseries_df(entries=10, variables=2)
@@ -39,3 +42,29 @@ class TestMinMaxAnomalyDetector(unittest.TestCase):
 
         self.assertEqual(timeseries_df_scored.loc['2025-06-10 18:00:00+00:00', 'value_2_anomaly'], 1)
         self.assertEqual(timeseries_df_scored.loc['2025-06-10 21:00:00+00:00', 'value_2_anomaly'], 1)
+
+
+class TestStatAnomalyDetectors(unittest.TestCase):
+
+    def setUp(self):
+        np.random.seed(0)
+
+    def test_robust(self):
+
+        # Generate data with anomalies
+        timeseries_df, _ = generate_contaminated_dataframe(cn=150, cd=10, prct=0.4, cnj=80, tim=-4, repr=True)
+
+        # Instantiate the anomaly detector
+        anomaly_detector = _COMNHARAnomalyDetector()
+        results_timeseries_df = anomaly_detector.apply(timeseries_df)
+
+        # Uncomment to inspect results
+        #with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        #    print(results_timeseries_df)
+
+        self.assertFalse(results_timeseries_df.iloc[0]['anomaly'])
+        self.assertFalse(results_timeseries_df.iloc[79]['anomaly'])
+        self.assertTrue(results_timeseries_df.iloc[80]['anomaly'])
+        self.assertTrue(results_timeseries_df.iloc[81]['anomaly'])
+        self.assertFalse(results_timeseries_df.iloc[82]['anomaly'])
+
