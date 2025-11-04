@@ -141,18 +141,19 @@ class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
         
         num_group = 3
         n_per_group = n // num_group
-        one_anomalies = rnd.sample(anomalies, 1)
-        two_anomalies = rnd.sample(anomalies, 2)
-        anomalies_per_group = [[], 
-                               [one_anomalies[0]], 
-                               [two_anomalies[0], two_anomalies[1]]]
         for i in range(num_group):
+            if i % 3 == 0:
+                anomalies_for_group = []
+            elif i % 3 == 1:
+                anomalies_for_group = rnd.sample(anomalies, 1)
+            else:
+                anomalies_for_group = rnd.sample(anomalies, 2)
             series_group = self._generate_dataset(
                 n=n_per_group,
                 time_span=time_span,
                 effects=effects,
                 random_effects=random_effects,
-                anomalies=anomalies_per_group[i],
+                anomalies=anomalies_for_group,
                 random_anomalies=random_anomalies,
                 ) 
             test_dataset.extend(series_group)
