@@ -527,11 +527,11 @@ def plot_func(timeseries,anomalies=[]):
     fig, ax = plt.subplots(figsize=(15, 4))
 
     for quantity in quantities:
-        ax.plot(timeseries['timestamp'],timeseries[quantity],label=quantity,color=colors[quantity])
+        ax.plot(timeseries[quantity],label=quantity,color=colors[quantity])
 
     ax.set_ylabel(', '.join(quantities))
-    start_band_position = timeseries.loc[0,'timestamp']
-    stop_band_position = timeseries.loc[0,'timestamp']
+    start_band_position = timeseries.index[0]
+    stop_band_position = timeseries.index[0]
 
     if anomalies:
 
@@ -539,18 +539,18 @@ def plot_func(timeseries,anomalies=[]):
             inside_band = False
 
             for i in range(len(timeseries)):
-                anomaly_target = timeseries.loc[i,'anomaly_label']
+                anomaly_target = timeseries.iloc[i]['anomaly_label']
 
                 if anomaly_target == anomaly and not inside_band:
-                    start_band_position =  timeseries.loc[i,'timestamp']
+                    start_band_position = timeseries.index[i]
                     inside_band = True
 
                 elif anomaly_target is None and inside_band:
-                    stop_band_position = timeseries.loc[i,'timestamp']
+                    stop_band_position = timeseries.index[i]
                     break
 
                 elif anomaly_target == anomaly and inside_band:
-                    stop_band_position = timeseries.loc[(len(timeseries) - 1),'timestamp']
+                    stop_band_position = timeseries.index[(len(timeseries) - 1)]
 
                 else:
                     continue
@@ -672,15 +672,15 @@ class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
                 if 'spike' in effects:
                     final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df)
 
+        if index_by_timestamp:
+            final_humitemp_timeseries_df.set_index(final_humitemp_timeseries_df['timestamp'],inplace=True)
+            final_humitemp_timeseries_df.drop(columns=['timestamp'],inplace=True)
+
         if plot:
             plot_func(final_humitemp_timeseries_df,anomalies)
 
         if generate_csv:
             csv_file_maker(final_humitemp_timeseries_df,anomalies,effects,path=csv_path)
-
-        if index_by_timestamp:
-            final_humitemp_timeseries_df.set_index(final_humitemp_timeseries_df['timestamp'],inplace=True)
-            final_humitemp_timeseries_df.drop(columns=['timestamp'],inplace=True)
 
         return final_humitemp_timeseries_df
 
