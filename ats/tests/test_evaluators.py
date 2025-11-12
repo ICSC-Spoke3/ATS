@@ -1,6 +1,6 @@
 from ..evaluators import evaluate_anomaly_detector
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
-from ..synthetic_data import SyntheticHumiTempTimeseriesGenerator
+from ..synthetic_data import HumiTempTimeseriesGenerator
 from ..utils import generate_timeseries_df
 import unittest
 import pandas as pd
@@ -53,7 +53,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_evaluate_anomaly_det_on_spiked_synth_timeseries(self):
 
-        spiked_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        spiked_humi_temp_generator = HumiTempTimeseriesGenerator()
         humi_temp_df = spiked_humi_temp_generator.generate(anomalies=['spike_uv'],effects=[])
         # Generated DataFrame:
         # Timestamp                    temperature           humidity             anomaly_label    effect_label
@@ -87,7 +87,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_evaluate_anomaly_det_on_step_synth_timeseries(self):
 
-        step_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        step_humi_temp_generator = HumiTempTimeseriesGenerator()
         step_humi_temp_df = step_humi_temp_generator.generate(anomalies=['step_uv'],effects=[])
         # Generated DataFrame:
         # Timestamp                    temperature           humidity             anomaly_label    effect_label
@@ -110,7 +110,7 @@ class TestEvaluators(unittest.TestCase):
         # }
 
     def test_evaluate_anomaly_det_on_synth_not_anomalous_timeseries(self):
-        humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        humi_temp_generator = HumiTempTimeseriesGenerator()
         humi_temp_df = humi_temp_generator.generate(anomalies=[],effects=[])
         # Generated DataFrame:
         # Timestamp                    temperature           humidity             anomaly_label    effect_label
@@ -149,7 +149,7 @@ class TestEvaluators(unittest.TestCase):
         # anomaly_2: {Timestamp('2025-06-10 16:00:00+0000', tz='UTC'): {'value_anomaly': True}}
 
     def test_evaluation_details_on_synth_spiked_timeseries(self):
-        spiked_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        spiked_humi_temp_generator = HumiTempTimeseriesGenerator()
         humi_temp_df = spiked_humi_temp_generator.generate(anomalies=['spike_uv'],effects=[])
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         details,details = evaluate_anomaly_detector(min_max_anomaly_detector,humi_temp_df,synthetic=True,details=True)
@@ -164,7 +164,7 @@ class TestEvaluators(unittest.TestCase):
         # false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}, Timestamp('1973-05-03 12:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
 
     def test_evaluation_details_on_synth_step_timeseries(self):
-        step_humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        step_humi_temp_generator = HumiTempTimeseriesGenerator()
         step_humi_temp_df = step_humi_temp_generator.generate(anomalies=['step_uv'],effects=[])
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         evaluation,details = evaluate_anomaly_detector(min_max_anomaly_detector,step_humi_temp_df,synthetic=True,details=True)
@@ -182,7 +182,7 @@ class TestEvaluators(unittest.TestCase):
         # false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
 
     def test_evaluation_details_on_synth_not_anomalous_timeseries(self):
-        humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        humi_temp_generator = HumiTempTimeseriesGenerator()
         humi_temp_df = humi_temp_generator.generate(anomalies=[],effects=[])
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         results,details = evaluate_anomaly_detector(min_max_anomaly_detector,humi_temp_df,synthetic=True,details=True)

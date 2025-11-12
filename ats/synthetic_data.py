@@ -563,11 +563,11 @@ def plot_func(timeseries,anomalies=[]):
     plt.show()
 
 
-class SynteticTimeseriesGenerator:
+class TimeseriesGenerator:
     pass
 
 
-class SyntheticHumiTempTimeseriesGenerator(SynteticTimeseriesGenerator):
+class HumiTempTimeseriesGenerator(TimeseriesGenerator):
 
     def __init__(self, sampling_interval= '15min',
                  time_span='30D',starting_year=None, 
