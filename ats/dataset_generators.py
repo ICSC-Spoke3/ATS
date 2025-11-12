@@ -32,7 +32,7 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
-    def generate(self, n=9, time_span=None,
+    def generate(self, n=9, time_span=None, plot=False,
                                effects='default', random_effects=[],
                                anomalies='default'):
         """
@@ -106,7 +106,7 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
                 try:
                     series = generator.generate(effects=applied_effects or [],
                                                 anomalies=anomalies_for_group or [], 
-                                                plot=False, generate_csv=False)
+                                                plot=plot, generate_csv=False)
                 except Exception as Error:
                     logger.warning(f"Error generating dataset with anomalies {anomalies_for_group}: Retrying.")
                     # Try other combinations of anomalies
