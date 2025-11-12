@@ -31,15 +31,13 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
-    def _generate_dataset(self, n,
-                            time_span,
-                            effects=[],
-                            random_effects=[],
-                            anomalies=[],
-                            random_anomalies=[]
-                            ):
+    def _generate(self, n, time_span,
+                    effects=[], random_effects=[],
+                    anomalies=[], random_anomalies=[]):
         """
-        Generic dataset generator used by all public dataset methods.
+        Simplest dataset generator used by all public dataset methods.
+        Here all parameters are already validated and converted to lists.
+        Here is implemented the logic to randomize effects per series.
         """
         dataset = []
 
@@ -80,37 +78,13 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
 
         return dataset
 
-
-    def generate_reference_dataset(self, n=3, time_span=None, 
-                                   effects='default', random_effects=[]):
-        """
-        Generate a synthetic reference dataset composed of multiple humidity-temperature 
-        time series, optionally with environmental effects applied.
-
-        Args:
-            n (int, opt): Number of series to generate (default = 3).
-            time_span (int, opt): Length of each time window.
-            effects (list[str], opt): Effects that you can apply in each series (None, 'noise', 'seasons', 'clouds').
-            random_effects (list[str], opt): Random effects to apply across series.
-
-        Returns:
-            list: Generated synthetic time series.
-        """        
-        reference_dataset = self._generate_dataset(
-            n=n,
-            time_span=time_span,
-            effects=effects,
-            random_effects=random_effects
-        )
-        return reference_dataset
-
     # Implemented for testing purposes                               
     def _expected_points(self): 
         obs_window = pd.Timedelta(self._current_time_span)
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
 
-    def generate_test_dataset(self, n=9, time_span=None,
+    def generate(self, n=9, time_span=None,
                                effects='default', random_effects=[],
                                anomalies='default', random_anomalies=None):
         """
@@ -128,6 +102,8 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
         Returns:
             list: Generated synthetic time series.
         """
+        if not isinstance(n, int):
+            raise TypeError(f"`n` must be an integer, got {type(n).__name__}.")
         if n <= 0 or n % 3 != 0:
             raise ValueError("`n` must be a positive multiple of 3 to form groups.")
 
@@ -148,7 +124,7 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
                 anomalies_for_group = rnd.sample(anomalies, 1)
             else:
                 anomalies_for_group = rnd.sample(anomalies, 2)
-            series_group = self._generate_dataset(
+            series_group = self._generate(
                 n=n_per_group,
                 time_span=time_span,
                 effects=effects,
