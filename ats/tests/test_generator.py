@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from ..generators import HumiTempEvaluationDataGenerator
+from ..generators import SynteticHumiTempDatasetGenerator
 
 # Setup logging
 from .. import logger
@@ -10,7 +10,7 @@ logger.setup()
 class TestGenerator(unittest.TestCase):
 
     def test_generate_reference_dataset(self):
-        generator = HumiTempEvaluationDataGenerator()
+        generator = SynteticHumiTempDatasetGenerator()
         reference_dataset = generator.generate_reference_dataset(time_span='5D', effects=None)
         expected_points = generator._expected_points()
 
@@ -22,7 +22,7 @@ class TestGenerator(unittest.TestCase):
                 self.assertEqual(len(series), expected_points)
     
     def test_generate_reference_dataset_invalid_n(self):
-        generator = HumiTempEvaluationDataGenerator()
+        generator = SynteticHumiTempDatasetGenerator()
         with self.assertRaises(ValueError):
             generator.generate_reference_dataset(n=-1,effects=None)
         with self.assertRaises(ValueError):
@@ -31,14 +31,14 @@ class TestGenerator(unittest.TestCase):
             generator.generate_reference_dataset(n='three',effects=[])
     
     def test_generate_reference_dataset_invalid_effects(self):
-        generator = HumiTempEvaluationDataGenerator()
+        generator = SynteticHumiTempDatasetGenerator()
         with self.assertRaises(TypeError):
             generator.generate_reference_dataset(effects='noise')
         with self.assertRaises(TypeError):
             generator.generate_reference_dataset(effects=123)
 
     def test_generate_reference_dataset_random_effects(self):
-        generator = HumiTempEvaluationDataGenerator()
+        generator = SynteticHumiTempDatasetGenerator()
         reference_dataset = generator.generate_reference_dataset(
             n=5,
             time_span='5D',
@@ -52,7 +52,7 @@ class TestGenerator(unittest.TestCase):
 
     # Beginning of test for generate_test_dataset
     def test_generate_test_dataset(self):
-        generator = HumiTempEvaluationDataGenerator()
+        generator = SynteticHumiTempDatasetGenerator()
         test_dataset = generator.generate_test_dataset(
             n=12,
             time_span='3D',
@@ -68,7 +68,7 @@ class TestGenerator(unittest.TestCase):
                 self.assertEqual(len(series), expected_points)
     
     def test_generate_test_dataset_invalid_anomalies(self):
-        generator = HumiTempEvaluationDataGenerator()
+        generator = SynteticHumiTempDatasetGenerator()
         with self.assertRaises(NotImplementedError):
             generator.generate_test_dataset(anomalies='spike_uv')
         with self.assertRaises(TypeError):
@@ -89,7 +89,7 @@ class TestGenerator(unittest.TestCase):
             generator.generate_test_dataset(effects=456)
 
     def test_generate_test_dataset_random_effects(self):
-        generator = HumiTempEvaluationDataGenerator()
+        generator = SynteticHumiTempDatasetGenerator()
         test_dataset = generator.generate_test_dataset(
             n=9,
             time_span='4D',
@@ -103,7 +103,7 @@ class TestGenerator(unittest.TestCase):
             self.assertTrue(len(series) > 0, f"Series {i} is empty")
 
 def test_generate_test_dataset_group(self):
-    generator = HumiTempEvaluationDataGenerator()
+    generator = SynteticHumiTempDatasetGenerator()
     n = 6
     num_groups = 3
     series_per_group = n // num_groups

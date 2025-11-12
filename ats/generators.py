@@ -6,10 +6,10 @@ import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
-class EvaluationDataGenerator():
+class SynteticDatasetGenerator():
     pass
 
-class HumiTempEvaluationDataGenerator(EvaluationDataGenerator):
+class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
 
     def __init__(self, temperature=True, humidity=True,
                  sampling_interval='15min', time_span='30D'):
