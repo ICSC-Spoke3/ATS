@@ -88,7 +88,7 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
                                effects='default', random_effects=[],
                                anomalies='default', random_anomalies=None):
         """
-        Generate a synthetic test dataset of humidity-temperature time series
+        Generate a synthetic dataset of humidity-temperature time series
         with different anomaly configurations.
         The dataset is divided into three groups, 0, 1, and 2 anomalies per series.
         Args:
@@ -107,10 +107,10 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
         if n <= 0 or n % 3 != 0:
             raise ValueError("`n` must be a positive multiple of 3 to form groups.")
 
-        test_dataset = []
+        dataset = []
 
         if len(anomalies)<2:
-            raise ValueError("Define at least two anomaliesfor generating test datasets with 1 and 2 anomalies per series.")
+            raise ValueError("Define at least two anomalies for generating datasets with 1 and 2 anomalies per series.")
 
         if random_anomalies is not None and random_anomalies != []:
             raise NotImplementedError("Random anomalies not yet implemented.")
@@ -132,5 +132,5 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
                 anomalies=anomalies_for_group,
                 random_anomalies=random_anomalies,
                 ) 
-            test_dataset.extend(series_group)
-        return test_dataset
+            dataset.extend(series_group)
+        return dataset
