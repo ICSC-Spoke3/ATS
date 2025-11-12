@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from ..generators import SynteticHumiTempDatasetGenerator
+from ..dataset_generators import SynteticHumiTempDatasetGenerator
 
 # Setup logging
 from .. import logger
