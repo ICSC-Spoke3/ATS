@@ -1,7 +1,7 @@
-import itertools
 from .synthetic_data import SyntheticHumiTempTimeseriesGenerator
 import random as rnd
 import pandas as pd
+import itertools
 
 # Setup logging
 import logging
