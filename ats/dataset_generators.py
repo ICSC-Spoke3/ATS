@@ -65,11 +65,14 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
             anomaly1, anomaly2 = anomalies[0], anomalies[1]
             base1 = anomaly1.replace('_uv', '').replace('_mv', '')
             base2 = anomaly2.replace('_uv', '').replace('_mv', '')
-            
             if (base1 == base2 and 
                 ((anomaly1.endswith('_uv') and anomaly2.endswith('_mv')) or 
                  (anomaly1.endswith('_mv') and anomaly2.endswith('_uv')))):
                 raise ValueError(f"Incompatible anomaly pair: {anomalies}. '{anomaly1}' and '{anomaly2}' cannot be used together.")
+            
+        if "clouds" in anomalies:
+            if "clouds" not in effects:
+                raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.") 
 
         dataset = []
         self._current_time_span = time_span or self.time_span
@@ -103,9 +106,8 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
                     series = generator.generate(effects=applied_effects or [],
                                                 anomalies=anomalies_for_group or [], 
                                                 plot=False, generate_csv=False)
-                except Exception as e:
-                    raise RuntimeError(f"Error generating synthetic series {len(dataset)+1} with effects {applied_effects}") from e
-
+                except Exception as Error:
+                    raise Error from Error
                 logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
                 dataset.append(series)
         

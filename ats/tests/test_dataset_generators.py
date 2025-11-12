@@ -53,7 +53,10 @@ class TestDatasetGenerator(unittest.TestCase):
             generator.generate(effects=456,anomalies=[])
         with self.assertRaises(ValueError):
             generator.generate(effects=[],anomalies=['spike_uv', 'spike_mv'])
-        
+        with self.assertRaises(ValueError):
+            generator.generate(effects=[],anomalies=['clouds'])
+        generator.generate(effects=['clouds'],anomalies=['clouds','spike_mv'])  # Should not raise
+
     def test_generate_random_effects(self):
         generator = SynteticHumiTempDatasetGenerator()
         test_dataset = generator.generate(
