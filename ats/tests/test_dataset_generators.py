@@ -28,29 +28,31 @@ class TestDatasetGenerator(unittest.TestCase):
     def test_generate_errors(self):
         generator = SynteticHumiTempDatasetGenerator()
         with self.assertRaises(ValueError):
-            generator.generate(n=-1,effects=None)
+            generator.generate(n=-1,effects=None,anomalies=[])
         with self.assertRaises(ValueError):
-            generator.generate(n=0,effects=[])
+            generator.generate(n=0,effects=[],anomalies=[])
         with self.assertRaises(TypeError):
-            generator.generate(n='three',effects=[])
-        with self.assertRaises(NotImplementedError):
-            generator.generate(anomalies='spike_uv')
+            generator.generate(n='three',effects=[],anomalies=[])
         with self.assertRaises(TypeError):
-            generator.generate(anomalies=789)
-        with self.assertRaises(NotImplementedError):
-            generator.generate(random_anomalies=['random_spike']) 
-        with self.assertRaises(ValueError):
-            generator.generate(anomalies=['spike_uv'])
-        with self.assertRaises(ValueError):
-            generator.generate(n=-3)
-        with self.assertRaises(ValueError):
-            generator.generate(n=0)
-        with self.assertRaises(ValueError):
-            generator.generate(n=7)  # Not a multiple of 3  
+            generator.generate(effects=[],anomalies='spike_uv')
         with self.assertRaises(TypeError):
-            generator.generate(effects='noise')
+            generator.generate(effects=[],anomalies=789)
+        with self.assertRaises(ValueError):
+            generator.generate(effects=[],random_effects=['random_spike'],anomalies=[]) 
+        with self.assertRaises(ValueError):
+            generator.generate(effects=[],anomalies=['spike_uv'])
+        with self.assertRaises(ValueError):
+            generator.generate(effects=[],n=-3,anomalies=[])
+        with self.assertRaises(ValueError):
+            generator.generate(effects=[],n=0,anomalies=[])
+        with self.assertRaises(ValueError):
+            generator.generate(effects=[],n=7,anomalies=[] )  # Not a multiple of 3  
         with self.assertRaises(TypeError):
-            generator.generate(effects=456)
+            generator.generate(effects='noise',anomalies=[])
+        with self.assertRaises(TypeError):
+            generator.generate(effects=456,anomalies=[])
+        with self.assertRaises(ValueError):
+            generator.generate(effects=[],anomalies=['spike_uv', 'spike_mv'])
         
     def test_generate_random_effects(self):
         generator = SynteticHumiTempDatasetGenerator()

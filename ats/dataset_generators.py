@@ -60,6 +60,16 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
 
         if len(anomalies) < 2:
             raise ValueError("Define at least two anomalies for generating datasets with 1 and 2 anomalies per series.")
+        
+        if len(anomalies) == 2:
+            anomaly1, anomaly2 = anomalies[0], anomalies[1]
+            base1 = anomaly1.replace('_uv', '').replace('_mv', '')
+            base2 = anomaly2.replace('_uv', '').replace('_mv', '')
+            
+            if (base1 == base2 and 
+                ((anomaly1.endswith('_uv') and anomaly2.endswith('_mv')) or 
+                 (anomaly1.endswith('_mv') and anomaly2.endswith('_uv')))):
+                raise ValueError(f"Incompatible anomaly pair: {anomalies}. '{anomaly1}' and '{anomaly2}' cannot be used together.")
 
         dataset = []
         self._current_time_span = time_span or self.time_span
@@ -88,7 +98,7 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
             for j in range(n_per_group):
                 random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
                 applied_effects = list(set(effects + random_applied_effects))
-                
+
                 try:
                     series = generator.generate(effects=applied_effects or [],
                                                 anomalies=anomalies_for_group or [], 
