@@ -1,3 +1,4 @@
+import itertools
 from .synthetic_data import SyntheticHumiTempTimeseriesGenerator
 import random as rnd
 import pandas as pd
@@ -93,12 +94,12 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
         for i in range(num_group):
             if i % 3 == 0:
                 anomalies_for_group = []
-            elif i % 3 == 1:
-                anomalies_for_group = rnd.sample(anomalies, 1)
-            else:
-                anomalies_for_group = rnd.sample(anomalies, 2)
-            
             for j in range(n_per_group):
+                if i % 3 == 1:
+                    anomalies_for_group = rnd.sample(anomalies, 1)
+                elif i % 3 == 2:
+                    anomalies_for_group = rnd.sample(anomalies, 2)
+
                 random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
                 applied_effects = list(set(effects + random_applied_effects))
 
@@ -107,7 +108,19 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
                                                 anomalies=anomalies_for_group or [], 
                                                 plot=False, generate_csv=False)
                 except Exception as Error:
-                    raise Error from Error
+                    logger.warning(f"Error generating dataset with anomalies {anomalies_for_group}: Retrying.")
+                    # Try other combinations of anomalies
+                    for combo in rnd.sample(list(itertools.combinations(anomalies, 2)), len(anomalies)):
+                        try:
+                            series = generator.generate(effects=applied_effects or [],
+                                                        anomalies=list(combo), 
+                                                        plot=True, generate_csv=False)
+                            break  # Exit loop if successful
+                        except Exception as e:
+                            logger.warning(f"Failed with combination {combo}: {e}")
+                    else:
+                        raise RuntimeError("All anomaly combinations failed.")
+                
                 logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
                 dataset.append(series)
         
