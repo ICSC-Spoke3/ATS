@@ -1,6 +1,6 @@
 from ..evaluators import evaluate_anomaly_detector
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
-from ..synthetic_data import HumiTempTimeseriesGenerator
+from ..timeseries_generators import HumiTempTimeseriesGenerator
 from ..utils import generate_timeseries_df
 import unittest
 import pandas as pd

@@ -3,18 +3,18 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import random as rnd
-from ..synthetic_data import HumiTempTimeseriesGenerator
-from ..synthetic_data import generate_time_boundaries
-from ..synthetic_data import add_step_anomaly
-from ..synthetic_data import add_anomalous_noise
-from ..synthetic_data import add_pattern_anomaly
-from ..synthetic_data import generate_synthetic_humitemp_timeseries
-from ..synthetic_data import add_clouds_effect
-from ..synthetic_data import add_spike_anomaly
-from ..synthetic_data import add_spike_effect
-from ..synthetic_data import change_effect_label
-from ..synthetic_data import calculate_seasonal_sin_value
-from ..synthetic_data import plot_func
+from ..timeseries_generators import HumiTempTimeseriesGenerator
+from ..timeseries_generators import generate_time_boundaries
+from ..timeseries_generators import add_step_anomaly
+from ..timeseries_generators import add_anomalous_noise
+from ..timeseries_generators import add_pattern_anomaly
+from ..timeseries_generators import generate_synthetic_humitemp_timeseries
+from ..timeseries_generators import add_clouds_effect
+from ..timeseries_generators import add_spike_anomaly
+from ..timeseries_generators import add_spike_effect
+from ..timeseries_generators import change_effect_label
+from ..timeseries_generators import calculate_seasonal_sin_value
+from ..timeseries_generators import plot_func
 
 # Setup logging
 from .. import logger
