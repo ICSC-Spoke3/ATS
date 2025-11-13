@@ -215,7 +215,7 @@ class TestEvaluators(unittest.TestCase):
         #false_positives: {Timestamp('1973-05-03 00:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}, Timestamp('1973-05-03 12:02:00+0000', tz='UTC'): {'temperature_anomaly': True, 'humidity_anomaly': True}}
 
     def test_get_model_output(self):
-        humi_temp_generator = SyntheticHumiTempTimeseriesGenerator()
+        humi_temp_generator = HumiTempTimeseriesGenerator()
         humitemp_series1 = humi_temp_generator.generate(anomalies=[],effects=[])
         humitemp_series2 = humi_temp_generator.generate(anomalies=[],effects=['noise'])
         format_humitemp_series1,anomalies1 = _format_for_anomaly_detector(humitemp_series1,synthetic=True)
