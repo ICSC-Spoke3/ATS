@@ -14,7 +14,9 @@ def _format_for_anomaly_detector(input_df,synthetic=False):
 
 def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=False):
 
-    evaluated_anomaly_flags = evaluated_timeseries_df.filter(like='_anomaly')
+    evaluated_anomaly_flags = evaluated_timeseries_df.filter(like='anomaly')
+    if len(evaluated_anomaly_flags.columns) == 1 and len(evaluated_timeseries_df.columns)>2:
+        raise NotImplementedError('The detector needs to flag anomalies for each quantity of the timeseries')
     evaluation_results = {}
     evaluation_details = {}
     for anomaly_label,frequency in anomaly_labels.value_counts(dropna=False).items():
