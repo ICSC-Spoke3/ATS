@@ -46,9 +46,8 @@ def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=F
         return evaluation_results
 
 class Evaluator():
-    def __init__(self,test_data,models):
+    def __init__(self,test_data):
         self.test_data = test_data
-        self.models = models
 
     @staticmethod
     def calculate_model_scores(single_model_evaluation={}):
@@ -75,8 +74,8 @@ class Evaluator():
             dataset_copies.append(dataset_copy)
         return dataset_copies
 
-    def evaluate(self):
-        if not self.models:
+    def evaluate(self,models={}):
+        if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
             raise ValueError('No input data set')
@@ -92,7 +91,7 @@ class Evaluator():
         dataset_copies = self.copy_dataset(formatted_dataset)
         models_scores = {}
         j = 0
-        for model_name,model in self.models.items():
+        for model_name,model in models.items():
             single_model_evaluation = {}
             flagged_dataset = get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
