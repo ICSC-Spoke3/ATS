@@ -3,18 +3,18 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import random as rnd
-from ..synthetic_data import SyntheticHumiTempTimeseriesGenerator
-from ..synthetic_data import generate_time_boundaries
-from ..synthetic_data import add_step_anomaly
-from ..synthetic_data import add_anomalous_noise
-from ..synthetic_data import add_pattern_anomaly
-from ..synthetic_data import generate_synthetic_humitemp_timeseries
-from ..synthetic_data import add_clouds_effect
-from ..synthetic_data import add_spike_anomaly
-from ..synthetic_data import add_spike_effect
-from ..synthetic_data import change_effect_label
-from ..synthetic_data import calculate_seasonal_sin_value
-from ..synthetic_data import plot_func
+from ..timeseries_generators import HumiTempTimeseriesGenerator
+from ..timeseries_generators import generate_time_boundaries
+from ..timeseries_generators import add_step_anomaly
+from ..timeseries_generators import add_anomalous_noise
+from ..timeseries_generators import add_pattern_anomaly
+from ..timeseries_generators import generate_synthetic_humitemp_timeseries
+from ..timeseries_generators import add_clouds_effect
+from ..timeseries_generators import add_spike_anomaly
+from ..timeseries_generators import add_spike_effect
+from ..timeseries_generators import change_effect_label
+from ..timeseries_generators import calculate_seasonal_sin_value
+from ..timeseries_generators import plot_func
 
 # Setup logging
 from .. import logger
@@ -27,7 +27,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         np.random.seed(123)
 
     def test_defaults(self):
-        default_generator = SyntheticHumiTempTimeseriesGenerator()
+        default_generator = HumiTempTimeseriesGenerator()
         default_timeseries_df = default_generator.generate(index_by_timestamp=False)
 
         self.assertIsInstance(default_timeseries_df,pd.DataFrame)
@@ -55,7 +55,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertEqual(default_timeseries_df.loc[i,'anomaly_label'],'step_uv')
 
     def test_pattern_uv_timeseries_generator(self):
-        pattern_uv_anomaly_generator = SyntheticHumiTempTimeseriesGenerator()
+        pattern_uv_anomaly_generator = HumiTempTimeseriesGenerator()
         pattern_uv_timeseries_df = pattern_uv_anomaly_generator.generate(anomalies=['pattern_uv'],index_by_timestamp=False)
 
         self.assertEqual(len(pattern_uv_timeseries_df),2880)
@@ -71,7 +71,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertEqual(pattern_uv_timeseries_df.loc[i,'anomaly_label'],'pattern_uv')
 
     def test_noise_uv_timeseries_generator(self):
-        noise_uv_anomaly_generator = SyntheticHumiTempTimeseriesGenerator()
+        noise_uv_anomaly_generator = HumiTempTimeseriesGenerator()
         noise_uv_timeseries_df = noise_uv_anomaly_generator.generate(anomalies=['noise_uv'],index_by_timestamp=False)
 
         self.assertEqual(len(noise_uv_timeseries_df),2880)
@@ -88,7 +88,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertEqual(noise_uv_timeseries_df.loc[i,'anomaly_label'],'noise_uv')
 
     def test_spike_mv_timeseries_generator(self):
-        spike_mv_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        spike_mv_timeseries_generator = HumiTempTimeseriesGenerator()
         spike_mv_timeseries_df = spike_mv_timeseries_generator.generate(anomalies=['spike_mv'],index_by_timestamp=False)
 
         self.assertEqual(len(spike_mv_timeseries_df),2880)
@@ -103,7 +103,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertEqual(spike_mv_timeseries_df.loc[10,'anomaly_label'],'spike_mv')
 
     def test_step_mv_timeseries_generator(self):       
-        step_mv_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        step_mv_timeseries_generator = HumiTempTimeseriesGenerator()
         step_mv_timeseries_df = step_mv_timeseries_generator.generate(anomalies=['step_mv'],index_by_timestamp=False)
 
         self.assertEqual(len(step_mv_timeseries_df),2880)             
@@ -120,7 +120,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         	self.assertEqual(step_mv_timeseries_df.loc[i,'anomaly_label'],'step_mv')
 
     def test_pattern_mv_timeseries_generator(self):
-        pattern_mv_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        pattern_mv_timeseries_generator = HumiTempTimeseriesGenerator()
         pattern_mv_timeseries_df = pattern_mv_timeseries_generator.generate(anomalies=['pattern_mv'],index_by_timestamp=False)
 
         self.assertEqual(len(pattern_mv_timeseries_df),2880)             
@@ -137,7 +137,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         	self.assertEqual(pattern_mv_timeseries_df.loc[i,'anomaly_label'],'pattern_mv')
 
     def test_noise_mv_timeseries_generator(self):
-        noise_mv_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        noise_mv_timeseries_generator = HumiTempTimeseriesGenerator()
         noise_mv_timeseries_df = noise_mv_timeseries_generator.generate(anomalies=['noise_mv'],index_by_timestamp=False)
 
         self.assertEqual(len(noise_mv_timeseries_df),2880)
@@ -154,7 +154,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         	self.assertEqual(noise_mv_timeseries_df.loc[i,'anomaly_label'],'noise_mv')
 
     def test_clouds_mv_timeseries_generator(self):		       
-        clouds_mv_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        clouds_mv_timeseries_generator = HumiTempTimeseriesGenerator()
         clouds_mv_timeseries_df = clouds_mv_timeseries_generator.generate(anomalies=['clouds'],effects=['clouds'],index_by_timestamp=False)
 
         self.assertEqual(len(clouds_mv_timeseries_df),2880)             
@@ -171,7 +171,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         	self.assertEqual(clouds_mv_timeseries_df.loc[i,'anomaly_label'],'clouds')
 
     def test_all_uv_anomalies_timeseries_generator(self):
-        all_uv_anomalies_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        all_uv_anomalies_timeseries_generator = HumiTempTimeseriesGenerator()
         all_uv_anomalies_timeseries_df = all_uv_anomalies_timeseries_generator.generate(anomalies=['spike_uv','step_uv','pattern_uv','noise_uv'],index_by_timestamp=False)
 
         self.assertEqual(len(all_uv_anomalies_timeseries_df),2880)             
@@ -195,7 +195,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertEqual(all_uv_anomalies_timeseries_df.loc[i,'anomaly_label'],'noise_uv')
 
     def test_all_mv_anomalies_timeseries_generator(self):
-        all_mv_anomalies_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        all_mv_anomalies_timeseries_generator = HumiTempTimeseriesGenerator()
         all_mv_anomalies_timeseries_df = all_mv_anomalies_timeseries_generator.generate(anomalies=['spike_mv','step_mv','pattern_mv','noise_mv','clouds'], effects=['clouds'],index_by_timestamp=False)
 
         self.assertEqual(len(all_mv_anomalies_timeseries_df),2880)             
@@ -229,7 +229,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertIsNotNone(time_boundaries[1])
 
     def test_add_step_anomaly(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         step_uv_anomaly_timeseries_df = add_step_anomaly(bare_timeseries_df,mode='uv',inplace=False)
         step_mv_anomaly_timeseries_df = add_step_anomaly(bare_timeseries_df,mode='mv',inplace=False)
@@ -246,7 +246,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertAlmostEqual(mv_humi_diff,10)
 
     def test_add_anomalous_noise(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         uv_noise_anomaly_timeseries_df = add_anomalous_noise(bare_timeseries_df,inplace=False,mode='uv')
         mv_noise_anomaly_timeseries_df = add_anomalous_noise(bare_timeseries_df,inplace=False,mode='mv')
@@ -270,7 +270,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
                 self.assertAlmostEqual(mv_humi_diff,0)
 
     def test_add_pattern_anomaly(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         sampling_interval = dt.timedelta(minutes=15)
         uv_pattern_anomaly_timeseries_df = add_pattern_anomaly(bare_timeseries_df,sampling_interval,inplace=False,mode='uv')
@@ -312,7 +312,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertAlmostEqual(humi,humi_after_24h)
 
     def test_add_clouds_effects(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         sampling_interval = dt.timedelta(minutes=15)
         clouds_effect_timeseries_df = add_clouds_effect(bare_timeseries_df,sampling_interval,inplace=False,mv_anomaly=True)
@@ -328,7 +328,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertAlmostEqual(delta_temp_second_half_of_the_day,espected_temp_difference2)
 
     def test_add_spike_anomaly(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         uv_spiked_timeseries_df = add_spike_anomaly(bare_timeseries_df,inplace=False,mode='uv')
         mv_spiked_timeseries_df = add_spike_anomaly(bare_timeseries_df,inplace=False,mode='mv')
@@ -350,17 +350,17 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         # TODO: a way for knowing the intensity of the espected spike
 
     def test_default_effect_label(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         self.assertIsNone(bare_timeseries_df.loc[10,'effect_label'])
 
     def test_normal_timeseries_label(self):
-        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_generator = HumiTempTimeseriesGenerator()
         timeseries_df = timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         self.assertIsNone(timeseries_df.loc[10,'anomaly_label'])
 
     def test_add_spike_effect(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         spike_effect_timeseries_df = add_spike_effect(bare_timeseries_df,inplace=False)
 
@@ -370,7 +370,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
             self.assertTrue((spiked_temp - temp) >= 0)
 
     def test_change_effect_label(self):
-        bare_timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        bare_timeseries_generator = HumiTempTimeseriesGenerator()
         bare_timeseries_df = bare_timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
 
         change_effect_label(bare_timeseries_df,4,'effect_1')
@@ -380,36 +380,36 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
         self.assertEqual(bare_timeseries_df.loc[4,'effect_label'],'effect_1_effect_2')
 
     def test_clouds_effect_label(self):
-        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_generator = HumiTempTimeseriesGenerator()
         clouds_effect_timeseries_df = timeseries_generator.generate(effects=['clouds'],anomalies=[],index_by_timestamp=False)
         self.assertEqual(clouds_effect_timeseries_df.loc[1248,'effect_label'],'clouds')
         self.assertEqual(clouds_effect_timeseries_df.loc[1248+95,'effect_label'],'clouds')
 
     def test_noise_effect_label(self):
-        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_generator = HumiTempTimeseriesGenerator()
         noise_effect_timeseries_df = timeseries_generator.generate(effects=['noise'],anomalies=[],index_by_timestamp=False)
         for i in range(len(noise_effect_timeseries_df)):
             self.assertEqual(noise_effect_timeseries_df.loc[i,'effect_label'],'noise')
 
     def test_calculate_seasonal_sin_value(self):
-        timeseries_generator = SyntheticHumiTempTimeseriesGenerator(starting_year=1999)
+        timeseries_generator = HumiTempTimeseriesGenerator(starting_year=1999)
         timeseries_df = timeseries_generator.generate(effects=[],anomalies=[],index_by_timestamp=False)
         returned_timeseries = calculate_seasonal_sin_value(timeseries_df,starting_year=timeseries_generator.starting_year)
         self.assertEqual(len(returned_timeseries),len(timeseries_df))
 
     def test_seasons_effect_label(self):
-        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_generator = HumiTempTimeseriesGenerator()
         season_effect_timeseries_df = timeseries_generator.generate(effects=['seasons'],anomalies=[],index_by_timestamp=False)
         for i in range(len(season_effect_timeseries_df)):
             self.assertEqual(season_effect_timeseries_df.loc[i,'effect_label'],'seasons')
 
     def test_spike_effect_label(self):
-        timeseries_generator = SyntheticHumiTempTimeseriesGenerator()
+        timeseries_generator = HumiTempTimeseriesGenerator()
         spike_effect_timeseries_df = timeseries_generator.generate(effects=['spike'],anomalies=[],index_by_timestamp=False)
         self.assertEqual(spike_effect_timeseries_df.loc[54,'effect_label'],'spike')
 
     def test_invalid_labels(self):
-        generator = SyntheticHumiTempTimeseriesGenerator()
+        generator = HumiTempTimeseriesGenerator()
         try:
             timeseries_df = generator.generate(effects=['spke'],anomalies=[],index_by_timestamp=False)
         except Exception as e:
@@ -421,12 +421,12 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
 
     def test_external_use_plot_func(self):
         anomalies = ['step_uv']
-        generator = SyntheticHumiTempTimeseriesGenerator()
+        generator = HumiTempTimeseriesGenerator()
         timeseries_df = generator.generate(effects=[],anomalies=anomalies)
         plot_func(timeseries_df,anomalies=anomalies)
 
     def test_internal_use_plot_func(self):
         anomalies = ['step_uv']
-        generator = SyntheticHumiTempTimeseriesGenerator()
+        generator = HumiTempTimeseriesGenerator()
         timeseries_df = generator.generate(effects=[],anomalies=anomalies,plot=True)
 
