@@ -41,7 +41,6 @@ class TestEvaluators(unittest.TestCase):
         #  'anomaly_1':       True,
         #  'anomaly_2':       True
         #}
-
         self.assertIsInstance(ev_details,dict)
         self.assertEqual(len(ev_details),3)
         self.assertIn('anomaly_1',ev_details.keys())
@@ -89,6 +88,11 @@ class TestEvaluators(unittest.TestCase):
         # { 'false_positives': 4
         #   'spike_uv':        False  
         # }
+        try:
+            evaluated_ts_df.drop(columns=['temperature_anomaly'],inplace=True)
+            ev_results = evaluate_anomaly_detector(evaluated_ts_df,anomaly_labels)
+        except NotImplementedError as error:
+            self.assertIsInstance(error,NotImplementedError)
 
     def test_evaluate_anomaly_det_on_step_synth_timeseries(self):
 
