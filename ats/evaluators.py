@@ -49,8 +49,7 @@ class Evaluator():
     def __init__(self,test_data):
         self.test_data = test_data
 
-    @staticmethod
-    def calculate_model_scores(single_model_evaluation={}):
+    def _calculate_model_scores(single_model_evaluation={}):
         anomalies = list(single_model_evaluation['sample_1'].keys())
         samples_n = len(single_model_evaluation)
         detections_per_anomaly = {}
@@ -70,7 +69,7 @@ class Evaluator():
 
         return avg_detections_per_anomaly
 
-    def copy_dataset(self,dataset):
+    def _copy_dataset(self,dataset):
         dataset_copies = []
         for i in range(len(self.models)):
             dataset_copy = deepcopy(dataset)
@@ -104,7 +103,7 @@ class Evaluator():
 
         return models_scores
 
-def get_model_output(dataset,model):
+def _get_model_output(dataset,model):
     if not isinstance(dataset,list):
         raise ValueError('The input dataset has to be a list')
     for series in dataset:

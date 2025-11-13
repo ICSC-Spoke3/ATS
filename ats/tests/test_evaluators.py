@@ -2,7 +2,7 @@ from ..evaluators import evaluate_anomaly_detector
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
 from ..timeseries_generators import HumiTempTimeseriesGenerator
 from ..utils import generate_timeseries_df
-from ..evaluators import get_model_output
+from ..evaluators import _get_model_output
 from ..evaluators import _format_for_anomaly_detector
 import unittest
 import pandas as pd
@@ -226,7 +226,7 @@ class TestEvaluators(unittest.TestCase):
         format_humitemp_series2,anomalies2 = _format_for_anomaly_detector(humitemp_series2,synthetic=True)
         min_max = MinMaxAnomalyDetector()
         dataset = [format_humitemp_series1,format_humitemp_series2]
-        flagged_dataset = get_model_output(dataset,min_max)
+        flagged_dataset = _get_model_output(dataset,min_max)
         self.assertIsInstance(flagged_dataset,list)
         self.assertEqual(len(flagged_dataset),2)
         self.assertIn('temperature_anomaly',list(flagged_dataset[0].columns))
