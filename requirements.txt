@@ -1,4 +1,4 @@
-timeseria==2.2.0
-plotly==6.3.0
-tensorflow==2.20.0
-git+https://github.com/andreaadelfio/TSLies
+timeseria==2.2.0, < 3.0.0
+plotly>=6.3.0, <7.0.0
+tensorflow>=2.18.0, <3.0.0
+git+https://github.com/andreaadelfio/TSLies.git@49b07eb2ad07dc596ece673602ca67493667ef1a
