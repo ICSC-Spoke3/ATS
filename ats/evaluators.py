@@ -59,12 +59,15 @@ class Evaluator():
 
         for sample in single_model_evaluation.keys():
             for anomaly in single_model_evaluation[sample].keys():
+                # TODO: evaluate_anomaly_detector and calculate_model_scores are redundant
                 if single_model_evaluation[sample][anomaly] and anomaly != 'false_positives':
                     detections_per_anomaly[anomaly] +=1
                 elif anomaly == 'false_positives':
                     detections_per_anomaly[anomaly] +=single_model_evaluation[sample][anomaly]
 
-        avg_detections_per_anomaly = {anomaly: counts/samples_n for anomaly, counts in detections_per_anomaly.items()}
+        for anomaly,counts in detections_per_anomaly.items():
+            avg_detections_per_anomaly[anomaly] = counts/samples_n if anomaly != 'false_positives' else counts
+
         return avg_detections_per_anomaly
 
     def copy_dataset(self,dataset):
