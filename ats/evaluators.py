@@ -99,7 +99,7 @@ class Evaluator():
             models_scores[model_name] = calculate_model_scores(single_model_evaluation)
             j+=1
 
-        return pd.Dataframe(models_scores)
+        return models_scores
 
 def get_model_output(dataset,model):
     if not isinstance(dataset,list):
