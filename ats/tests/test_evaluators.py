@@ -285,3 +285,18 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(evaluation_results['detector_2']),3)
         self.assertEqual(len(evaluation_results['detector_3']),3)
 
+    def test_copy_dataset(self):
+        series_generator = HumiTempTimeseriesGenerator()
+        series1 = series_generator.generate(effects=['noise'])
+        series2 = series_generator.generate(effects=['noise'])
+        dataset = [series1,series2]
+        evaluator = Evaluator(test_data=dataset)
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        dataset_copies = evaluator._copy_dataset(dataset,models=[minmax1,minmax2])
+        self.assertIsInstance(dataset_copies,list)
+        self.assertEqual(len(dataset_copies),2)
+        self.assertIsInstance(dataset_copies[0],list)
+        self.assertEqual(len(dataset_copies[0]),2)
+        self.assertIsInstance(dataset_copies[1],list)
+        self.assertEqual(len(dataset_copies[1]),2)
