@@ -73,9 +73,9 @@ class Evaluator():
     def __init__(self,test_data):
         self.test_data = test_data
 
-    def _copy_dataset(self,dataset):
+    def _copy_dataset(self,dataset,models):
         dataset_copies = []
-        for i in range(len(self.models)):
+        for i in range(len(models)):
             dataset_copy = deepcopy(dataset)
             dataset_copies.append(dataset_copy)
         return dataset_copies
@@ -94,15 +94,15 @@ class Evaluator():
             formatted_dataset.append(formatted_series)
             anomaly_labels_list.append(anomaly_labels)
 
-        dataset_copies = self.copy_dataset(formatted_dataset)
+        dataset_copies = self._copy_dataset(formatted_dataset,models)
         models_scores = {}
         j = 0
         for model_name,model in models.items():
             single_model_evaluation = {}
-            flagged_dataset = get_model_output(dataset_copies[j],model)
+            flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
                 single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(sample_df,anomaly_labels_list[i])
-            models_scores[model_name] = calculate_model_scores(single_model_evaluation)
+            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
             j+=1
 
         return models_scores
