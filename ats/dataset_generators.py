@@ -13,12 +13,10 @@ class DatasetGenerator():
 class HumiTempDatasetGenerator(DatasetGenerator):
 
     def __init__(self, temperature=True, humidity=True,
-                 sampling_interval='15min', time_span='30D'):
+                 sampling_interval='15min'):
         self.temperature = temperature
         self.humidity = humidity
         self.sampling_interval = sampling_interval
-        self.time_span = time_span
-        self._current_time_span = time_span
     
     def __check_list(self, value, name):
         """
@@ -27,32 +25,40 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         if value is None:
             value = []
         if value=='default':
-            raise NotImplementedError(f'You must explicitly provide the {value} to apply. Also None or Empty is accepted.')
+            raise ValueError(f'Default are not defined. You must explicitly provide the {value} to apply. Also None or empty list is accepted.')
         if not isinstance(value, list):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
-    def generate(self, n=9, time_span=None, plot=False,
-                               effects='default', random_effects=[],
-                               anomalies='default'):
+    def generate(self, n_series=9, time_span='30D', plot=False, 
+                 effects='default', anomalies='default', 
+                 max_anomalies_per_series = 2, anomalies_ratio = 0.5):
         """
         Generate a synthetic dataset of humidity-temperature time series
         with different anomaly configurations.
-        The dataset is divided into three groups, 0, 1, and 2 anomalies per series.
+        The dataset is divided alternates series with anomalies and series without it, based on `anomalies_ratio`.
         Args:
-            n (int, optional): Total number of series (must be multiple of 3).
-            time_span (str, optional): Time window length (e.g. '30D', '60D').
-            effects (list[str], optional): Effects that you can apply in each series (None, 'noise', 'seasons', 'clouds').
-            random_effects (bool, optional): Random effects to apply across series.
-            anomalies (list[str], optional): Anomalies to apply in each series.
-
+            n_series (int): Total number of series.
+            time_span (str): Time window length (e.g. '30D', '60D').
+            effects (list[str]): Effects that you can apply in each series (None, 'noise', 'seasons', 'clouds').
+            anomalies (list[str]): Anomalies to apply in each series.
+            max_anomalies_per_series (int): Max anomalies per series.
+            anomalies_ratio (float): ratio of series with anomalies w.r.t. series without it in the dataset (0-1 range).
         Returns:
             list: Generated synthetic time series.
         """
+        random_effects = [] # random_effects (bool, optional): Random effects to apply across series.
+        n = n_series
+
         if not isinstance(n, int):
-            raise TypeError(f"`n` must be an integer, got {type(n).__name__}.")
+            raise TypeError(f"'n' must be an integer, got {type(n).__name__}.")
         if n <= 0:
-            raise ValueError("`n` must be a positive integer.")
+            raise ValueError("'n' must be a positive integer.")
+        
+        if max_anomalies_per_series != 2:
+            raise NotImplementedError("Not yet.")
+        if anomalies_ratio != 0.5:
+            raise NotImplementedError("Not yet.")
 
         # Validate and convert parameters to lists
         effects = self.__check_list(effects, "effects")

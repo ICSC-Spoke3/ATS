@@ -12,7 +12,7 @@ class TestDatasetGenerator(unittest.TestCase):
     def test_generate(self):
         generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate(
-            n=12,
+            n_series=12,
             time_span='3D',
             effects=['noise'],
             anomalies=['spike_uv', 'step_uv']
@@ -28,19 +28,19 @@ class TestDatasetGenerator(unittest.TestCase):
     def test_generate_errors(self):
         generator = HumiTempDatasetGenerator()
         with self.assertRaises(ValueError):
-            generator.generate(n=-1,effects=None,anomalies=[])
+            generator.generate(n_series=-1,effects=None,anomalies=[])
         with self.assertRaises(ValueError):
-            generator.generate(n=0,effects=[],anomalies=[])
+            generator.generate(n_series=0,effects=[],anomalies=[])
         with self.assertRaises(TypeError):
-            generator.generate(n='three',effects=[],anomalies=[])
+            generator.generate(n_series='three',effects=[],anomalies=[])
         with self.assertRaises(TypeError):
             generator.generate(effects=[],anomalies='spike_uv')
         with self.assertRaises(TypeError):
             generator.generate(effects=[],anomalies=789)
         with self.assertRaises(ValueError):
-            generator.generate(effects=[],n=-3,anomalies=[])
+            generator.generate(effects=[],n_series=-3,anomalies=[])
         with self.assertRaises(ValueError):
-            generator.generate(effects=[],n=0,anomalies=[])
+            generator.generate(effects=[],n_series=0,anomalies=[])
         with self.assertRaises(TypeError):
             generator.generate(effects='noise',anomalies=[])
         with self.assertRaises(TypeError):
@@ -54,9 +54,9 @@ class TestDatasetGenerator(unittest.TestCase):
     def test_generate_random_effects(self):
         generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate(
-            n=9,
+            n_series=9,
             time_span='4D',
-            random_effects=['clouds'],
+            #random_effects=['clouds'],
             effects=['noise', 'seasons'],
             anomalies=['spike_uv','step_uv']
         )
@@ -68,7 +68,7 @@ class TestDatasetGenerator(unittest.TestCase):
     def test_no_anomalies(self):
         generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate(
-            n=6,
+            n_series=6,
             time_span='2D',
             effects=['noise'],
             anomalies=[]
@@ -86,7 +86,7 @@ class TestDatasetGenerator(unittest.TestCase):
     def test_single_anomaly(self):
         generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate(
-            n=6,
+            n_series=6,
             time_span='2D',
             effects=['noise'],
             anomalies=['spike_uv']
@@ -104,7 +104,7 @@ class TestDatasetGenerator(unittest.TestCase):
     def test_multiple_anomalies(self):
         generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate(
-            n=8,
+            n_series=8,
             time_span='2D',
             effects=['noise'],
             anomalies=['spike_uv', 'step_mv']
