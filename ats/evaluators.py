@@ -45,29 +45,31 @@ def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=F
     else:
         return evaluation_results
 
+
+def _calculate_model_scores(single_model_evaluation={}):
+    anomalies = list(single_model_evaluation['sample_1'].keys())
+    samples_n = len(single_model_evaluation)
+    detections_per_anomaly = {}
+    for anomaly in anomalies:
+        detections_per_anomaly[anomaly] = 0
+
+    for sample in single_model_evaluation.keys():
+        for anomaly in single_model_evaluation[sample].keys():
+            # TODO: evaluate_anomaly_detector and calculate_model_scores are redundant
+            if single_model_evaluation[sample][anomaly] and anomaly != 'false_positives':
+                detections_per_anomaly[anomaly] +=1
+            elif anomaly == 'false_positives':
+                detections_per_anomaly[anomaly] +=single_model_evaluation[sample][anomaly]
+
+    for anomaly,counts in detections_per_anomaly.items():
+        avg_detections_per_anomaly[anomaly] = counts/samples_n if anomaly != 'false_positives' else counts
+
+    return avg_detections_per_anomaly
+
+
 class Evaluator():
     def __init__(self,test_data):
         self.test_data = test_data
-
-    def _calculate_model_scores(single_model_evaluation={}):
-        anomalies = list(single_model_evaluation['sample_1'].keys())
-        samples_n = len(single_model_evaluation)
-        detections_per_anomaly = {}
-        for anomaly in anomalies:
-            detections_per_anomaly[anomaly] = 0
-
-        for sample in single_model_evaluation.keys():
-            for anomaly in single_model_evaluation[sample].keys():
-                # TODO: evaluate_anomaly_detector and calculate_model_scores are redundant
-                if single_model_evaluation[sample][anomaly] and anomaly != 'false_positives':
-                    detections_per_anomaly[anomaly] +=1
-                elif anomaly == 'false_positives':
-                    detections_per_anomaly[anomaly] +=single_model_evaluation[sample][anomaly]
-
-        for anomaly,counts in detections_per_anomaly.items():
-            avg_detections_per_anomaly[anomaly] = counts/samples_n if anomaly != 'false_positives' else counts
-
-        return avg_detections_per_anomaly
 
     def _copy_dataset(self,dataset):
         dataset_copies = []
