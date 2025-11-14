@@ -126,7 +126,6 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         
         return dataset
 
-    # Implemented for testing purposes                               
     def _expected_points(self): 
         obs_window = pd.Timedelta(self._current_time_span)
         samp_interval = pd.Timedelta(self.sampling_interval)
