@@ -50,6 +50,8 @@ def _calculate_model_scores(single_model_evaluation={}):
     anomalies = list(single_model_evaluation['sample_1'].keys())
     samples_n = len(single_model_evaluation)
     detections_per_anomaly = {}
+    avg_detections_per_anomaly = {}
+
     for anomaly in anomalies:
         detections_per_anomaly[anomaly] = 0
 
