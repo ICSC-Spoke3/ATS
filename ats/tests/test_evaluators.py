@@ -4,6 +4,7 @@ from ..timeseries_generators import HumiTempTimeseriesGenerator
 from ..utils import generate_timeseries_df
 from ..evaluators import _get_model_output
 from ..evaluators import _format_for_anomaly_detector
+from ..evaluators import _calculate_model_scores
 import unittest
 import pandas as pd
 import random as rnd
@@ -233,3 +234,26 @@ class TestEvaluators(unittest.TestCase):
         self.assertIn('humidity_anomaly',list(flagged_dataset[0].columns))
         self.assertIn('temperature_anomaly',list(flagged_dataset[1].columns))
         self.assertIn('humidity_anomaly',list(flagged_dataset[1].columns))
+
+    def test_calculate_model_scores(self):
+        single_model_evaluation = {
+            'sample_1': {
+                'anomaly_1': True,
+                'anomaly_2': False,
+                'false_positives': 2
+            },
+            'sample_2': {
+                'anomaly_1': True,
+                'anomaly_2': True,
+                'false_positives': 1
+            },
+            }
+        model_scores = _calculate_model_scores(single_model_evaluation)
+        self.assertEqual(len(model_scores),3)
+        self.assertIsInstance(model_scores,dict)
+        self.assertIn('anomaly_1',model_scores.keys())
+        self.assertIn('anomaly_2',model_scores.keys())
+        self.assertIn('false_positives',model_scores.keys())
+        self.assertAlmostEqual(model_scores['anomaly_1'],1.0)
+        self.assertAlmostEqual(model_scores['anomaly_2'],0.5)
+        self.assertAlmostEqual(model_scores['false_positives'],3)
