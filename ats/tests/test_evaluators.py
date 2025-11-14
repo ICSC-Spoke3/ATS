@@ -5,6 +5,7 @@ from ..utils import generate_timeseries_df
 from ..evaluators import _get_model_output
 from ..evaluators import _format_for_anomaly_detector
 from ..evaluators import _calculate_model_scores
+from ..evaluators import Evaluator
 import unittest
 import pandas as pd
 import random as rnd
@@ -257,3 +258,27 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(model_scores['anomaly_1'],1.0)
         self.assertAlmostEqual(model_scores['anomaly_2'],0.5)
         self.assertAlmostEqual(model_scores['false_positives'],3)
+
+    def test_evaluate(self):
+        anomalies = ['spike_uv','step_uv']
+        series_generator = HumiTempTimeseriesGenerator()
+        series1 = series_generator.generate(anomalies=anomalies)
+        series2 = series_generator.generate(anomalies=anomalies)
+        dataset = [series1,series2]
+        evaluator = Evaluator(test_data=dataset)
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluation_results = evaluator.evaluate(models=models)
+
+        self.assertIsInstance(evaluation_results,dict)
+        self.assertEqual(len(evaluation_results),3)
+        self.assertEqual(len(evaluation_results['detector_1']),3)
+        self.assertEqual(len(evaluation_results['detector_2']),3)
+        self.assertEqual(len(evaluation_results['detector_3']),3)
+        for model,performance in evaluation_results.items():
+            print(f'{model}: {performance}')
