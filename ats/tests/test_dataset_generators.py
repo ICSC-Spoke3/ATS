@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 
-from ..dataset_generators import SynteticHumiTempDatasetGenerator
+from ..dataset_generators import HumiTempDatasetGenerator
 
 # Setup logging
 from .. import logger
@@ -10,7 +10,7 @@ logger.setup()
 class TestDatasetGenerator(unittest.TestCase):
     
     def test_generate(self):
-        generator = SynteticHumiTempDatasetGenerator()
+        generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate(
             n=12,
             time_span='3D',
@@ -26,7 +26,7 @@ class TestDatasetGenerator(unittest.TestCase):
                 self.assertEqual(len(series), expected_points)
     
     def test_generate_errors(self):
-        generator = SynteticHumiTempDatasetGenerator()
+        generator = HumiTempDatasetGenerator()
         with self.assertRaises(ValueError):
             generator.generate(n=-1,effects=None,anomalies=[])
         with self.assertRaises(ValueError):
@@ -58,7 +58,7 @@ class TestDatasetGenerator(unittest.TestCase):
         generator.generate(effects=['clouds'],anomalies=['clouds','spike_mv'])  # Should not raise
 
     def test_generate_random_effects(self):
-        generator = SynteticHumiTempDatasetGenerator()
+        generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate(
             n=9,
             time_span='4D',
@@ -72,7 +72,7 @@ class TestDatasetGenerator(unittest.TestCase):
             self.assertTrue(len(series) > 0, f"Series {i} is empty")
 
     def test_generate_group(self):
-        generator = SynteticHumiTempDatasetGenerator()
+        generator = HumiTempDatasetGenerator()
         n = 6
         num_groups = 3
         series_per_group = n // num_groups

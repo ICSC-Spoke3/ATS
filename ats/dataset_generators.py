@@ -1,4 +1,4 @@
-from .synthetic_data import SyntheticHumiTempTimeseriesGenerator
+from .timeseries_generators import HumiTempTimeseriesGenerator
 import random as rnd
 import pandas as pd
 import itertools
@@ -7,10 +7,10 @@ import itertools
 import logging
 logger = logging.getLogger(__name__)
 
-class SynteticDatasetGenerator():
+class DatasetGenerator():
     pass
 
-class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
+class HumiTempDatasetGenerator(DatasetGenerator):
 
     def __init__(self, temperature=True, humidity=True,
                  sampling_interval='15min', time_span='30D'):
@@ -79,14 +79,14 @@ class SynteticHumiTempDatasetGenerator(SynteticDatasetGenerator):
         self._current_time_span = time_span or self.time_span
         
         try:
-            generator = SyntheticHumiTempTimeseriesGenerator(
+            generator = HumiTempTimeseriesGenerator(
                     temperature=self.temperature,
                     humidity=self.humidity,
                     sampling_interval=self.sampling_interval,
                     time_span=self._current_time_span
             )
         except Exception as e:
-            raise RuntimeError(f"Error initializing SyntheticHumiTempTimeseriesGenerator") from e
+            raise RuntimeError(f"Error initializing HumiTempTimeseriesGenerator") from e
         
         num_group = 3
         n_per_group = n // num_group
