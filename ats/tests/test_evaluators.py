@@ -274,11 +274,14 @@ class TestEvaluators(unittest.TestCase):
                 'detector_3': minmax3
                 }
         evaluation_results = evaluator.evaluate(models=models)
+        # Evaluation_results:
+        # detector_1: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
+        # detector_2: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
+        # detector_3: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
 
         self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),3)
         self.assertEqual(len(evaluation_results['detector_1']),3)
         self.assertEqual(len(evaluation_results['detector_2']),3)
         self.assertEqual(len(evaluation_results['detector_3']),3)
-        for model,performance in evaluation_results.items():
-            print(f'{model}: {performance}')
+
