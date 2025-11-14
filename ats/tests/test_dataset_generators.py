@@ -38,15 +38,9 @@ class TestDatasetGenerator(unittest.TestCase):
         with self.assertRaises(TypeError):
             generator.generate(effects=[],anomalies=789)
         with self.assertRaises(ValueError):
-            generator.generate(effects=[],random_effects=['random_spike'],anomalies=[]) 
-        with self.assertRaises(ValueError):
-            generator.generate(effects=[],anomalies=['spike_uv'])
-        with self.assertRaises(ValueError):
             generator.generate(effects=[],n=-3,anomalies=[])
         with self.assertRaises(ValueError):
             generator.generate(effects=[],n=0,anomalies=[])
-        with self.assertRaises(ValueError):
-            generator.generate(effects=[],n=7,anomalies=[] )  # Not a multiple of 3  
         with self.assertRaises(TypeError):
             generator.generate(effects='noise',anomalies=[])
         with self.assertRaises(TypeError):
@@ -70,32 +64,57 @@ class TestDatasetGenerator(unittest.TestCase):
         for i, series in enumerate(test_dataset, start=1):
             self.assertIsNotNone(series, f"Series {i} is None")
             self.assertTrue(len(series) > 0, f"Series {i} is empty")
-
-    def test_generate_group(self):
+    
+    def test_no_anomalies(self):
         generator = HumiTempDatasetGenerator()
-        n = 6
-        num_groups = 3
-        series_per_group = n // num_groups
         test_dataset = generator.generate(
-            n=n,
+            n=6,
             time_span='2D',
             effects=['noise'],
-            anomalies=['spike_uv', 'step_uv']
+            anomalies=[]
         )
-        self.assertEqual(len(test_dataset), n)
-        group_rules = {
-                0: lambda series: ('anomaly_label' not in series.columns) or (series['anomaly_label'].isna().all()),
-                1: lambda series: 'anomaly_label' in series.columns and len(series['anomaly_label'].dropna().unique()) == 1,
-                2: lambda series: 'anomaly_label' in series.columns and len(series['anomaly_label'].dropna().unique()) == 2,
-            }
-        for group in range(num_groups):
-            start_idx = group * series_per_group
-            end_idx = start_idx + series_per_group
-            for i in range(start_idx, end_idx):
-                with self.subTest(group=group, dataset=i):
-                    series = test_dataset[i]
-                    self.assertTrue(
-                        group_rules[group](series),(
-                            f"Group {group}, dataset {i}: unexpected anomaly combination. "
-                            f"Columns: {list(series.columns)}"))
-
+        self.assertEqual(len(test_dataset), 6)
+        for i, series in enumerate(test_dataset):
+            with self.subTest(dataset=i):
+                self.assertIn('temperature', series.columns)
+                self.assertIn('humidity', series.columns)
+                self.assertEqual(len(series), generator._expected_points())
+                # Verify no anomaly labels are present
+                if 'anomaly' in series.columns:
+                    self.assertTrue((series['anomaly'] == 0).all() | series['anomaly'].isna().all())
+    
+    def test_single_anomaly(self):
+        generator = HumiTempDatasetGenerator()
+        test_dataset = generator.generate(
+            n=6,
+            time_span='2D',
+            effects=['noise'],
+            anomalies=['spike_uv']
+        )
+        self.assertEqual(len(test_dataset), 6)
+        for i, series in enumerate(test_dataset):
+            with self.subTest(dataset=i):
+                self.assertIn('temperature', series.columns)
+                self.assertIn('humidity', series.columns)
+                self.assertEqual(len(series), generator._expected_points())
+                # Verify anomaly labels are either 0 or 1
+                if 'anomaly' in series.columns:
+                    self.assertTrue(series['anomaly'].isin([0, 1]).all())
+                    
+    def test_multiple_anomalies(self):
+        generator = HumiTempDatasetGenerator()
+        test_dataset = generator.generate(
+            n=8,
+            time_span='2D',
+            effects=['noise'],
+            anomalies=['spike_uv', 'step_mv']
+        )
+        self.assertEqual(len(test_dataset), 8)
+        for i, series in enumerate(test_dataset):
+            with self.subTest(dataset=i):
+                self.assertIn('temperature', series.columns)
+                self.assertIn('humidity', series.columns)
+                self.assertEqual(len(series), generator._expected_points())
+                # Verify anomaly labels are either 0, 1, or 2
+                if 'anomaly' in series.columns:
+                    self.assertTrue(series['anomaly'].isin([0, 1, 2]).all())

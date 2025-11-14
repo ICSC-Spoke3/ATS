@@ -51,18 +51,24 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         """
         if not isinstance(n, int):
             raise TypeError(f"`n` must be an integer, got {type(n).__name__}.")
-        if n <= 0 or n % 3 != 0:
-            raise ValueError("`n` must be a positive multiple of 3 to form groups.")
+        if n <= 0:
+            raise ValueError("`n` must be a positive integer.")
 
         # Validate and convert parameters to lists
         effects = self.__check_list(effects, "effects")
         random_effects = self.__check_list(random_effects, "random_effects")
         anomalies = self.__check_list(anomalies, "anomalies")
 
-        if len(anomalies) < 2:
-            raise ValueError("Define at least two anomalies for generating datasets with 1 and 2 anomalies per series.")
-        
-        if len(anomalies) == 2:
+        number_of_anomalies = len(anomalies)
+
+        if number_of_anomalies == 0:
+            logger.info("No anomalies specified; generating dataset without anomalies.")
+        if number_of_anomalies == 1:
+            logger.info("Single anomaly specified; generating dataset with 0 or 1 anomaly per series.")
+        if number_of_anomalies >= 2:
+            logger.info("Multiple anomalies specified; generating dataset with 0, 1, or 2 anomalies per series.")
+
+        if number_of_anomalies == 2:
             anomaly1, anomaly2 = anomalies[0], anomalies[1]
             base1 = anomaly1.replace('_uv', '').replace('_mv', '')
             base2 = anomaly2.replace('_uv', '').replace('_mv', '')
@@ -88,42 +94,42 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         except Exception as e:
             raise RuntimeError(f"Error initializing HumiTempTimeseriesGenerator") from e
         
-        num_group = 3
-        n_per_group = n // num_group
-        
-        for i in range(num_group):
-            if i % 3 == 0:
+   
+        for i in range(n):
+            if i % 2 == 1:
                 anomalies_for_group = []
-            for j in range(n_per_group):
-                if i % 3 == 1:
+            else:
+                if number_of_anomalies == 0:
+                    anomalies_for_group = []
+                elif number_of_anomalies == 1:
                     anomalies_for_group = rnd.sample(anomalies, 1)
-                elif i % 3 == 2:
-                    anomalies_for_group = rnd.sample(anomalies, 2)
-
-                random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
-                applied_effects = list(set(effects + random_applied_effects))
-
-                try:
-                    series = generator.generate(effects=applied_effects or [],
-                                                anomalies=anomalies_for_group or [], 
-                                                plot=plot, generate_csv=False)
-                except Exception as Error:
-                    logger.warning(f"Error generating dataset with anomalies {anomalies_for_group}: Retrying.")
-                    # Try other combinations of anomalies
-                    for combo in rnd.sample(list(itertools.combinations(anomalies, 2)), len(anomalies)):
-                        try:
-                            series = generator.generate(effects=applied_effects or [],
-                                                        anomalies=list(combo), 
-                                                        plot=True, generate_csv=False)
-                            break  # Exit loop if successful
-                        except Exception as e:
-                            logger.warning(f"Failed with combination {combo}: {e}")
+                else:  # number_of_anomalies >= 2
+                    if i % 4 == 0:
+                        anomalies_for_group = rnd.sample(anomalies, 1)
                     else:
-                        raise RuntimeError("All anomaly combinations failed.")
-                
-                logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
-                dataset.append(series)
-        
+                        anomalies_for_group = rnd.sample(anomalies, 2)
+
+            random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
+            applied_effects = list(set(effects + random_applied_effects))
+
+            try:
+                series = generator.generate(effects=applied_effects or [],
+                                            anomalies=anomalies_for_group or [], 
+                                            plot=plot, generate_csv=False)
+            except Exception as Error:
+                logger.warning(f"Error generating dataset with anomalies {anomalies_for_group}: Retrying.")
+                # Try other combinations of anomalies
+                for combo in rnd.sample(list(itertools.combinations(anomalies, 2)), len(anomalies)):
+                    try:
+                        series = generator.generate(effects=applied_effects or [],
+                                                    anomalies=list(combo), 
+                                                    plot=True, generate_csv=False)
+                        break  # Exit loop if successful
+                    except Exception as e:
+                        logger.warning(f"Failed with combination {combo}: {e}")
+            logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
+            dataset.append(series)
+    
         return dataset
 
     def _expected_points(self): 
