@@ -1,15 +1,19 @@
+import os
 import unittest
 import numpy as np
 import pandas as pd
 
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
+from ..anomaly_detectors.ml.ifsom import IFSOMAnomalyDetector
 from ..anomaly_detectors.stat.robust import _COMNHARAnomalyDetector
-from ..utils import generate_timeseries_df
-from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe, fSimContaminatedSeries
+from ..utils import generate_timeseries_df, load_isp_format_wide_df
+from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe
 
 # Setup logging
 from .. import logger
 logger.setup()
+
+TEST_DATASETS_PATH = os.path.join(os.path.dirname(__file__), 'test_data', '')
 
 class TestNaiveAnomalyDetectors(unittest.TestCase):
 
@@ -67,4 +71,41 @@ class TestStatAnomalyDetectors(unittest.TestCase):
         self.assertTrue(results_timeseries_df.iloc[80]['anomaly'])
         self.assertTrue(results_timeseries_df.iloc[81]['anomaly'])
         self.assertFalse(results_timeseries_df.iloc[82]['anomaly'])
+
+
+class TestMLAnomalyDetectors(unittest.TestCase):
+
+    def setUp(self):
+        np.random.seed(0)
+
+    def test_ifsom(self):
+
+        wide_df = load_isp_format_wide_df(TEST_DATASETS_PATH + 'ISP_TS_2021-23_minisample_test_small.csv')
+
+        list_of_timeseries_df = IFSOMAnomalyDetector.wide_df_to_list_of_timeseries_df(wide_df)
+
+        anomaly_detector = IFSOMAnomalyDetector()
+        anomaly_detector.fit(list_of_timeseries_df)
+
+        list_of_results_timeseries_df = anomaly_detector.apply(list_of_timeseries_df)
+
+        self.assertEqual(len(list_of_results_timeseries_df), 4)
+        self.assertEqual(list_of_results_timeseries_df[0].shape, (1095,2))
+
+        self.assertEqual(list_of_results_timeseries_df[0].columns.to_list(), ['374107', 'anomaly'])
+        self.assertEqual(list_of_results_timeseries_df[1].columns.to_list(), ['1311700', 'anomaly'])
+        self.assertEqual(list_of_results_timeseries_df[2].columns.to_list(), ['508010', 'anomaly'])
+        self.assertEqual(list_of_results_timeseries_df[3].columns.to_list(), ['602264', 'anomaly'])
+
+        self.assertTrue(list_of_results_timeseries_df[0]['anomaly'][0])
+        self.assertTrue(list_of_results_timeseries_df[0]['anomaly'][-1])
+
+        self.assertFalse(list_of_results_timeseries_df[1]['anomaly'][0])
+        self.assertFalse(list_of_results_timeseries_df[1]['anomaly'][-1])
+
+        self.assertFalse(list_of_results_timeseries_df[2]['anomaly'][0])
+        self.assertFalse(list_of_results_timeseries_df[2]['anomaly'][-1])
+
+        self.assertFalse(list_of_results_timeseries_df[3]['anomaly'][0])
+        self.assertFalse(list_of_results_timeseries_df[3]['anomaly'][-1])
 

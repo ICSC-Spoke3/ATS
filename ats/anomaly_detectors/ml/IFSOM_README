@@ -1,0 +1,75 @@
+La pipeline run_TS2SOM.py esegue tre fasi principali:
+
+1.	Estrazione feature tramite run_TS2FATS.py
+	Internamente esegue:
+
+		FindFlatID.py
+		findShortSeries.py
+		FatsFeatures.py
+
+	Genera file di log per ciascun sotto-step.
+
+2.	Training e salvataggio SOM tramite training_and_save_som.py
+	Utilizza i file generati dallo step 1.
+	Produce modelli .pkl e file CSV con i risultati del training.
+
+3.	Test da feature a flag (opzionale) tramite test_from_feat_to_flag.py
+	Esegue il test solo se presente il file di configurazione config_from_feat_to_flag.ini oppure se l'utente non usa il flag --skip-test .
+	Utilizza i modelli .pkl generati dallo step 2 per produrre i risultati.
+
+Tutti gli script sono già configurati per leggere i rispettivi file .ini e generare log .txt .
+In caso di errore in qualsiasi step, la pipeline si interrompe automaticamente con messaggio di errore.
+
+ts2som_pipeline/
+│
+├── __init__.py
+├── run_TS2SOM.py                 # Script orchestratore principale
+├── run_TS2FATS.py                # Pipeline interna (FindFlatID + findShortSeries + FatsFeatures)
+├── training_and_save_som.py
+├── test_from_feat_to_flag.py
+└── config/
+    ├── config_flat.ini
+    ├── config_shortTS.ini
+    ├── config_fats.ini
+    ├── config_training_som.ini
+    └── config_from_feat_to_flag.ini
+
+
+
+Eseguire tutta la pipeline (3 step)
+	python run_TS2SOM.py
+
+Saltare il test finale
+	python run_TS2SOM.py --skip-test
+
+Usare una directory diversa per i file di configurazione
+	python run_TS2SOM.py --config-dir /path/to/configs
+    
+
+N.B. Per eseguire la parte di test finale, è necessario avere un file di TS di test da cui estrarre le features FATS. Nella cartella ./data/ sono presenti due file: 
+- ISP_TS_2021-23_minisample.csv --> file per il training
+- ISP_TS_2021-23_minisample_test.csv --> file per il test
+
+Si consiglia di procedere così:
+    1. Eseguire la pipeline ad eccezione della fase di test:
+    python run_TS2SOM.py --skip-test
+    
+    2. Trasformare le TS di test in feature FATS:
+    python run_TS2FATS_testsample.py
+    
+    3. Eseguire la fase di test finale:
+    python test_from_feat_to_flag.py config/config_feat_to_flag.ini log_test_feat2flag.txt
+    
+oppure:
+    1. Trasformare preliminarmente le TS di test in feature FATS:
+    python run_TS2FATS_testsample.py
+    
+    2. Eseguire l'intera pipeline:
+    python run_TS2SOM.py
+    
+    
+    
+    
+    
+    
+    
