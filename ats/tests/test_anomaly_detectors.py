@@ -1,15 +1,19 @@
+import os
 import unittest
 import numpy as np
 import pandas as pd
 
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
+from ..anomaly_detectors.ml.ifsom import IFSOMAnomalyDetector
 from ..anomaly_detectors.stat.robust import _COMNHARAnomalyDetector
 from ..utils import generate_timeseries_df
-from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe, fSimContaminatedSeries
+from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe
 
 # Setup logging
 from .. import logger
 logger.setup()
+
+TEST_DATASETS_PATH = os.path.join(os.path.dirname(__file__), 'test_data', '')
 
 class TestNaiveAnomalyDetectors(unittest.TestCase):
 
@@ -67,4 +71,74 @@ class TestStatAnomalyDetectors(unittest.TestCase):
         self.assertTrue(results_timeseries_df.iloc[80]['anomaly'])
         self.assertTrue(results_timeseries_df.iloc[81]['anomaly'])
         self.assertFalse(results_timeseries_df.iloc[82]['anomaly'])
+
+
+
+
+import pandas as pd
+
+def fix_wide_df_isp_format(wide_df, id_col='ID', prefix="IMP_SALDO_CTB_"):
+    """
+    Convert string date columns of format PREFIX_dd_mm_YYYY
+    into proper datetime columns and set ID as index.
+    """
+    fixed_wide_df = wide_df.copy()
+
+    # Convert date columns
+    new_columns = []
+    for col in wide_df.columns:
+        if col.startswith(prefix):
+            date_str = col.replace(prefix, "")
+            new_columns.append(pd.to_datetime(date_str, format="%d_%m_%Y"))
+        else:
+            new_columns.append(col)
+
+    # Assemble
+    fixed_wide_df.columns = new_columns
+
+    # Set index but remove the index name
+    fixed_wide_df = fixed_wide_df.set_index(id_col)
+    fixed_wide_df.index.name = None
+
+    # Ok, return
+    return fixed_wide_df.sort_index(axis=1)
+
+
+
+
+
+class TestMLAnomalyDetectors(unittest.TestCase):
+
+    def setUp(self):
+        np.random.seed(0)
+
+    def test_ifsom(self):
+
+        wide_df_isp_format = pd.read_csv(TEST_DATASETS_PATH + 'ISP_TS_2021-23_minisample_test_small.csv')
+        wide_df = fix_wide_df_isp_format(wide_df_isp_format)
+        timeseries_df = IFSOMAnomalyDetector.wide_df_to_timeseries_df(wide_df)
+
+        anomaly_detector = IFSOMAnomalyDetector()
+        anomaly_detector.fit(timeseries_df)
+        results_timeseries_df = anomaly_detector.apply(timeseries_df)
+
+        self.assertEqual(results_timeseries_df.shape, (1095,8))
+
+        self.assertEqual(results_timeseries_df.columns.to_list(), [374107, 1311700, 508010, 602264, '374107_anomaly', '1311700_anomaly', '508010_anomaly', '602264_anomaly'])
+
+        self.assertTrue(results_timeseries_df['374107_anomaly'][0])
+        self.assertTrue(results_timeseries_df['374107_anomaly'][-1])
+
+        self.assertFalse(results_timeseries_df['1311700_anomaly'][0])
+        self.assertFalse(results_timeseries_df['1311700_anomaly'][-1])
+
+        self.assertFalse(results_timeseries_df['508010_anomaly'][0])
+        self.assertFalse(results_timeseries_df['508010_anomaly'][-1])
+
+        self.assertFalse(results_timeseries_df['602264_anomaly'][0])
+        self.assertFalse(results_timeseries_df['602264_anomaly'][-1])
+
+
+
+
 
