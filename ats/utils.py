@@ -40,7 +40,7 @@ def plot_timeseries_df(timeseries_df, *args, **kwargs):
     # Convert anomaly flags in data indexes
     for datapoint in timeseries:
         for data_label in datapoint.data_labels():
-            if data_label.endswith('_anomaly'):
+            if data_label.endswith('anomaly'):
                 datapoint.data_indexes[data_label] = datapoint.data.pop(data_label)
 
     return timeseries.plot(*args, **kwargs)
@@ -333,7 +333,7 @@ def load_isp_format_wide_df(csv_file, id_col='ID', prefix="IMP_SALDO_CTB_"):
     for col in wide_df.columns:
         if col.startswith(prefix):
             date_str = col.replace(prefix, "")
-            new_columns.append(pd.to_datetime(date_str, format="%d_%m_%Y"))
+            new_columns.append(pd.to_datetime(date_str, format="%d_%m_%Y", utc=True))
         else:
             new_columns.append(col)
 

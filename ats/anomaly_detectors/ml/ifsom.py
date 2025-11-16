@@ -64,24 +64,47 @@ class IFSOMAnomalyDetector(AnomalyDetector):
             DataFrame with index=timestamps, columns=IDs
         """
         timeseries_df = wide_df.T
+        timeseries_df.index = pd.to_datetime(timeseries_df.index) # Fix index after transposing
         timeseries_df.index.name = 'timestamp'
+
         return timeseries_df.sort_index()
 
     @staticmethod
-    def wide_df_to_timeseries_df_with_anomaly(wide_df, anomaly_col="outliers"):
+    def wide_df_to_list_of_timeseries_df(wide_df):
+        """
+        Input:
+            wide_df: index = ID, columns = timestamps
+        Output:
+            DataFrame with index=timestamps, columns=IDs
+        """
+        timeseries_df = wide_df.T
+        timeseries_df.index = pd.to_datetime(timeseries_df.index) # Fix index after transposing
+        timeseries_df.index.name = 'timestamp'
+
+        list_of_timeseries_df = []
+        for column in timeseries_df.columns:
+            list_of_timeseries_df.append(timeseries_df.filter([column]))
+
+        return list_of_timeseries_df
+
+    @staticmethod
+    def wide_df_to_timeseries_df_with_anomaly_labels(wide_df, anomaly_col="outliers"):
         """
         Input:
             wide_df: index = ID, columns = timestamps + anomaly column
         Output:
             DataFrame with index=timestamps, columns=IDs + anomaly indicator
         """
-        # Identify timestamp columns (keep only true timestamps)
+        # Create a mask for columns which are timestamps: conversion fails -> NA -> False, otherwise -> True
         timestamp_cols = pd.to_datetime(
             wide_df.columns, errors='coerce'
         ).notna()
 
-        # Time-series numeric values only
+        # Transpose with only timestamps as rows (drop other ex-cols as "outlier" etc.)
         timeseries_df = wide_df.loc[:, timestamp_cols].T
+        timeseries_df.index = pd.to_datetime(timeseries_df.index) # Fix index after transposing
+        timeseries_df.index.name = 'timestamp'
+        timeseries_df.index = pd.to_datetime(timeseries_df.index)
 
         # Map anomalies: -1 -> True, 1 -> False
         anomaly = wide_df[anomaly_col].map({-1: True, 1: False})
@@ -94,9 +117,28 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         anomaly_df.columns = [f"{c}_anomaly" for c in anomaly_df.columns]
 
         timeseries_df = pd.concat([timeseries_df, anomaly_df], axis=1)
-        timeseries_df.index.name = "timestamp"
 
         return timeseries_df.sort_index()
+
+    @staticmethod
+    def wide_df_to_list_of_timeseries_df_with_anomaly_labels(wide_df, anomaly_col="outliers"):
+        """
+        Input:
+            wide_df: index = ID, columns = timestamps + anomaly column
+        Output:
+            list[DataFrame] with index=timestamps, columns=IDs + anomaly indicator
+        """
+
+        timeseries_df_with_anomaly_labels = IFSOMAnomalyDetector.wide_df_to_timeseries_df_with_anomaly_labels(wide_df, anomaly_col)
+
+        # Split the global timeseries_df in a list of single timeseries_df
+        list_of_timeseries_df = []
+        for column in timeseries_df_with_anomaly_labels.columns:
+            if not column.endswith('_anomaly'):
+                this_timeseries_df_with_anomaly_label = timeseries_df_with_anomaly_labels[[column, column + '_anomaly']]
+                this_timeseries_df_with_anomaly_label = this_timeseries_df_with_anomaly_label.rename(columns={column + '_anomaly': 'anomaly'}, inplace=False)
+                list_of_timeseries_df.append(this_timeseries_df_with_anomaly_label)
+        return list_of_timeseries_df
 
     @staticmethod
     def timeseries_df_to_wide_df(timeseries_df):
@@ -164,9 +206,21 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         # 0) Prepare data
         #==============================
 
-        if not isinstance(data, pd.DataFrame):
-            raise TypeError('Only single Pandas DataFrame are supported')
-        df = self.timeseries_df_to_wide_df(data)
+        if not isinstance(data, list):
+            raise TypeError('Only lists of Pandas DataFrames are supported')
+        for item in data:
+            if not isinstance(item, pd.DataFrame):
+                raise TypeError('Only Pandas DataFrame are supported as data items')
+
+        # Merge separate timeseries into a single one
+        df = pd.concat(data, axis=1)
+
+        if not df.columns.is_unique:
+            duplicates = df.columns[df.columns.duplicated()].unique()
+            raise ValueError(f"Duplicate column names detected: {list(duplicates)}")
+
+        # Ok, now convert to wide format
+        df = self.timeseries_df_to_wide_df(df)
 
         #==============================
         # 1) Compute features (FATS)
@@ -231,7 +285,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         #==============================
 
         self.data = {}
-        self.data['data_columns'] = data.columns.tolist()
+        self.data['df_columns'] = df.columns.tolist()
         self.data['som_model'] = som_model
         self.data['if_model'] = if_model
         self.data['df_features'] = df_features # For inspection purposes
@@ -243,9 +297,21 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         # 0) Prepare data
         #==============================
 
-        if not isinstance(data, pd.DataFrame):
-            raise TypeError('Only single Pandas DataFrame are supported')
-        df = self.timeseries_df_to_wide_df(data)
+        if not isinstance(data, list):
+            raise TypeError('Only lists of Pandas DataFrames are supported')
+        for item in data:
+            if not isinstance(item, pd.DataFrame):
+                raise TypeError('Only Pandas DataFrame are supported as data items')
+
+        # Merge separate timeseries into a single one
+        df = pd.concat(data, axis=1)
+
+        if not df.columns.is_unique:
+            duplicates = df.columns[df.columns.duplicated()].unique()
+            raise ValueError(f"Duplicate column names detected: {list(duplicates)}")
+
+        # Ok, now convert to wide format
+        df = self.timeseries_df_to_wide_df(df)
 
         #==============================
         # 1) Compute features (FATS)
@@ -314,7 +380,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
 
         self.data['results_df'] = results_df # For inspection purposes
 
-        # Exmaple
+        # Example
         #          2021-01-01 00:00:00  2021-01-02 00:00:00  2021-01-03 00:00:00  2021-01-04 00:00:00  2021-01-05 00:00:00  ...  winner    scores  outliers  prob_outlier  prob_inlier
         # ID                                                                                                                ...
         # 374107                   0.0                  0.0                  0.0                  0.0                  0.0  ...  (8, 2) -0.005672        -1      1.000000     0.000000
@@ -324,7 +390,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         #
         # [4 rows x 1100 columns]
 
-        return self.wide_df_to_timeseries_df_with_anomaly(results_df)
+        return self.wide_df_to_list_of_timeseries_df_with_anomaly_labels(results_df)
 
     def inspect(self, path=None):
         """

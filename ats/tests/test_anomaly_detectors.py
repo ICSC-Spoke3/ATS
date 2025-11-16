@@ -82,29 +82,30 @@ class TestMLAnomalyDetectors(unittest.TestCase):
 
         wide_df = load_isp_format_wide_df(TEST_DATASETS_PATH + 'ISP_TS_2021-23_minisample_test_small.csv')
 
-        timeseries_df = IFSOMAnomalyDetector.wide_df_to_timeseries_df(wide_df)
+        list_of_timeseries_df = IFSOMAnomalyDetector.wide_df_to_list_of_timeseries_df(wide_df)
 
         anomaly_detector = IFSOMAnomalyDetector()
-        anomaly_detector.fit(timeseries_df)
-        results_timeseries_df = anomaly_detector.apply(timeseries_df)
+        anomaly_detector.fit(list_of_timeseries_df)
 
-        self.assertEqual(results_timeseries_df.shape, (1095,8))
+        list_of_results_timeseries_df = anomaly_detector.apply(list_of_timeseries_df)
 
-        self.assertEqual(results_timeseries_df.columns.to_list(), ['374107', '1311700', '508010', '602264', '374107_anomaly', '1311700_anomaly', '508010_anomaly', '602264_anomaly'])
+        self.assertEqual(len(list_of_results_timeseries_df), 4)
+        self.assertEqual(list_of_results_timeseries_df[0].shape, (1095,2))
 
-        self.assertTrue(results_timeseries_df['374107_anomaly'][0])
-        self.assertTrue(results_timeseries_df['374107_anomaly'][-1])
+        self.assertEqual(list_of_results_timeseries_df[0].columns.to_list(), ['374107', 'anomaly'])
+        self.assertEqual(list_of_results_timeseries_df[1].columns.to_list(), ['1311700', 'anomaly'])
+        self.assertEqual(list_of_results_timeseries_df[2].columns.to_list(), ['508010', 'anomaly'])
+        self.assertEqual(list_of_results_timeseries_df[3].columns.to_list(), ['602264', 'anomaly'])
 
-        self.assertFalse(results_timeseries_df['1311700_anomaly'][0])
-        self.assertFalse(results_timeseries_df['1311700_anomaly'][-1])
+        self.assertTrue(list_of_results_timeseries_df[0]['anomaly'][0])
+        self.assertTrue(list_of_results_timeseries_df[0]['anomaly'][-1])
 
-        self.assertFalse(results_timeseries_df['508010_anomaly'][0])
-        self.assertFalse(results_timeseries_df['508010_anomaly'][-1])
+        self.assertFalse(list_of_results_timeseries_df[1]['anomaly'][0])
+        self.assertFalse(list_of_results_timeseries_df[1]['anomaly'][-1])
 
-        self.assertFalse(results_timeseries_df['602264_anomaly'][0])
-        self.assertFalse(results_timeseries_df['602264_anomaly'][-1])
+        self.assertFalse(list_of_results_timeseries_df[2]['anomaly'][0])
+        self.assertFalse(list_of_results_timeseries_df[2]['anomaly'][-1])
 
-
-
-
+        self.assertFalse(list_of_results_timeseries_df[3]['anomaly'][0])
+        self.assertFalse(list_of_results_timeseries_df[3]['anomaly'][-1])
 
