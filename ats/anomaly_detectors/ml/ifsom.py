@@ -362,10 +362,10 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         # Finding Winners
         logger.info('Finding winners')
         w_x, w_y = zip(*[(int(x), int(y)) for x, y in [som_model.winner(d) for d in df_features_scaled]])
+        logger.info('Done')
 
         self.data['w_x'] = w_x # For inspection purposes
         self.data['w_y'] = w_y # For inspection purposes
-
 
         #==============================
         # 4) Prepare & return results
@@ -406,9 +406,6 @@ class IFSOMAnomalyDetector(AnomalyDetector):
          5. U-matrix with IF scores overlaid
 
         """
-
-        #matplotlib.use("Agg")
-        logger.info("Creating and saving plots...")
 
         #==============================
         # 1) U-matrix
@@ -620,6 +617,4 @@ class IFSOMAnomalyDetector(AnomalyDetector):
             else:
                 plt.show()
             plt.close()
-
-        logger.info("Done.")
 
