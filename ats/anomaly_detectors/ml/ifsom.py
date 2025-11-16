@@ -67,7 +67,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         timeseries_df.index.name = 'timestamp'
         return timeseries_df.sort_index()
 
-    @ staticmethod
+    @staticmethod
     def wide_df_to_timeseries_df_with_anomaly(wide_df, anomaly_col="outliers"):
         """
         Input:

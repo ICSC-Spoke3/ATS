@@ -300,3 +300,52 @@ def plot_from_df(df, x,y,fixed_parameters=None):
     except Exception as e:
         logger.error(f"Error while plotting {y} vs {x}: {e} ({type(e).__name__})")
         return None
+
+
+def load_isp_format_wide_df(csv_file, id_col='ID', prefix="IMP_SALDO_CTB_"):
+    """
+    Load a CSV file containing wide-format data in ISP format, converting prefixed date columns
+    from strings into proper datetime column labels, while setting `id_col` as the index.
+
+    The function expects columns whose names follow the format:
+        {prefix}DD_MM_YYYY
+    For example: "IMP_SALDO_CTB_31_12_2024"
+
+    Parameters
+    ----------
+    csv_file : str or file-like
+        Path to the CSV file to load.
+    id_col : str, optional
+        Name of the column to use as the DataFrame index. Default is 'ID'.
+    prefix : str, optional
+        String prefix identifying columns that contain encoded dates.
+        Default is "IMP_SALDO_CTB_".
+
+    Returns
+    -------
+    pandas.DataFrame
+        A wide-format DataFrame with datetime column labels sorted by date.
+    """
+    wide_df = pd.read_csv(csv_file)
+
+    # Convert date columns
+    new_columns = []
+    for col in wide_df.columns:
+        if col.startswith(prefix):
+            date_str = col.replace(prefix, "")
+            new_columns.append(pd.to_datetime(date_str, format="%d_%m_%Y"))
+        else:
+            new_columns.append(col)
+
+    # Assemble
+    wide_df.columns = new_columns
+
+    # Set index but remove the index name
+    wide_df = wide_df.set_index(id_col)
+    wide_df.index.name = None
+
+    # Convert index as string
+    wide_df.index = wide_df.index.astype(str)
+
+    # Ok, return
+    return wide_df.sort_index(axis=1)
