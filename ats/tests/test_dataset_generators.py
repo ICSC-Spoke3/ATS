@@ -125,5 +125,5 @@ class TestDatasetGenerator(unittest.TestCase):
         generator = HumiTempDatasetGenerator()
         test_dataset = generator.generate( n_series=3,time_span='1D',
             effects=['noise'], anomalies=['spike_uv'])
-        test_dataset.plot_dataset()  
+        generator.plot_dataset()  
         self.assertEqual(mock_show.call_count, 3)
