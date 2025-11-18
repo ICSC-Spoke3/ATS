@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+from unittest.mock import patch
 
 from ..dataset_generators import HumiTempDatasetGenerator
 
@@ -115,6 +116,14 @@ class TestDatasetGenerator(unittest.TestCase):
                 self.assertIn('temperature', series.columns)
                 self.assertIn('humidity', series.columns)
                 self.assertEqual(len(series), generator._expected_points())
-                # Verify anomaly labels are either 0, 1, or 2
-                if 'anomaly' in series.columns:
-                    self.assertTrue(series['anomaly'].isin([0, 1, 2]).all())
+            # Verify anomaly labels are either 0, 1, or 2
+            if 'anomaly' in series.columns:
+                self.assertTrue(series['anomaly'].isin([0, 1, 2]).all())
+
+    @patch("matplotlib.pyplot.show")
+    def test_plot_dataset(self, mock_show):
+        generator = HumiTempDatasetGenerator()
+        test_dataset = generator.generate( n_series=3,time_span='1D',
+            effects=['noise'], anomalies=['spike_uv'])
+        test_dataset.plot_dataset()  
+        self.assertEqual(mock_show.call_count, 3)
