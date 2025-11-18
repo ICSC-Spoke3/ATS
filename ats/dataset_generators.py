@@ -88,20 +88,20 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                 raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.") 
 
         dataset = []
-        self._anomalies_list_per_series = []
-        self._current_time_span = time_span or self.time_span
+        self.anomalies_list_per_series = []
+        self.time_span = time_span
+        self.dataset = dataset
         
         try:
             generator = HumiTempTimeseriesGenerator(
                     temperature=self.temperature,
                     humidity=self.humidity,
                     sampling_interval=self.sampling_interval,
-                    time_span=self._current_time_span
+                    time_span=self.time_span
             )
         except Exception as e:
             raise RuntimeError(f"Error initializing HumiTempTimeseriesGenerator") from e
         
-   
         for i in range(n):
             if i % 2 == 1:
                 anomalies_for_group = []
@@ -136,16 +136,16 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                     except Exception as e:
                         logger.warning(f"Failed with combination {combo}: {e}")
             logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
-            self._anomalies_list_per_series.append(anomalies_for_group)
+            self.anomalies_list_per_series.append(anomalies_for_group)
             dataset.append(series)
     
         return dataset
     
     def plot_dataset(self):
-        for df, anomalies in zip(self.dataset, self._anomalies_list_per_series):
+        for df, anomalies in zip(self.dataset, self.anomalies_list_per_series):
             plot_func(df, anomalies=anomalies) 
 
     def _expected_points(self): 
-        obs_window = pd.Timedelta(self._current_time_span)
+        obs_window = pd.Timedelta(self.time_span)
         samp_interval = pd.Timedelta(self.sampling_interval)
         return int(obs_window / samp_interval)
