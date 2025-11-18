@@ -1,4 +1,4 @@
-from .timeseries_generators import HumiTempTimeseriesGenerator
+from .timeseries_generators import HumiTempTimeseriesGenerator, plot_func
 import random as rnd
 import pandas as pd
 import itertools
@@ -88,6 +88,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                 raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.") 
 
         dataset = []
+        anomalies_list_per_series = []
         self._current_time_span = time_span or self.time_span
         
         try:
@@ -127,18 +128,23 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                 # Try other combinations of anomalies
                 for combo in rnd.sample(list(itertools.combinations(anomalies, 2)), len(anomalies)):
                     try:
+                        anomalies_for_group = list(combo)
                         series = generator.generate(effects=applied_effects or [],
-                                                    anomalies=list(combo), 
+                                                    anomalies= anomalies_for_group or [], 
                                                     plot=False, generate_csv=False)
                         break  # Exit loop if successful
                     except Exception as e:
                         logger.warning(f"Failed with combination {combo}: {e}")
             logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
+            anomalies_list_per_series.append(anomalies_for_group)
             dataset.append(series)
     
         return dataset
     
     def plot_dataset(self):
+        for i, df in enumerate(self.dataset):
+            plot_func(df) 
+
         pass
 
     def _expected_points(self): 
