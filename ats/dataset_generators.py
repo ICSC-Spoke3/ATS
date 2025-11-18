@@ -129,7 +129,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                     try:
                         series = generator.generate(effects=applied_effects or [],
                                                     anomalies=list(combo), 
-                                                    plot=True, generate_csv=False)
+                                                    plot=plot, generate_csv=False)
                         break  # Exit loop if successful
                     except Exception as e:
                         logger.warning(f"Failed with combination {combo}: {e}")
