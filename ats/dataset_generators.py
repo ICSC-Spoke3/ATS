@@ -30,7 +30,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
-    def generate(self, n_series=9, time_span='30D', plot=False, 
+    def generate(self, n_series=9, time_span='30D',
                  effects='default', anomalies='default', 
                  max_anomalies_per_series = 2, anomalies_ratio = 0.5):
         """
@@ -121,7 +121,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             try:
                 series = generator.generate(effects=applied_effects or [],
                                             anomalies=anomalies_for_group or [], 
-                                            plot=plot, generate_csv=False)
+                                            plot=False, generate_csv=False)
             except Exception as Error:
                 logger.warning(f"Error generating dataset with anomalies {anomalies_for_group}: Retrying.")
                 # Try other combinations of anomalies
@@ -129,7 +129,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                     try:
                         series = generator.generate(effects=applied_effects or [],
                                                     anomalies=list(combo), 
-                                                    plot=plot, generate_csv=False)
+                                                    plot=False, generate_csv=False)
                         break  # Exit loop if successful
                     except Exception as e:
                         logger.warning(f"Failed with combination {combo}: {e}")
@@ -137,6 +137,9 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             dataset.append(series)
     
         return dataset
+    
+    def plot_dataset(self):
+        pass
 
     def _expected_points(self): 
         obs_window = pd.Timedelta(self._current_time_span)
