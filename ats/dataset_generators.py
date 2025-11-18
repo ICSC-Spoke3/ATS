@@ -88,7 +88,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                 raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.") 
 
         dataset = []
-        anomalies_list_per_series = []
+        self._anomalies_list_per_series = []
         self._current_time_span = time_span or self.time_span
         
         try:
@@ -136,16 +136,14 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                     except Exception as e:
                         logger.warning(f"Failed with combination {combo}: {e}")
             logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
-            anomalies_list_per_series.append(anomalies_for_group)
+            self._anomalies_list_per_series.append(anomalies_for_group)
             dataset.append(series)
     
         return dataset
     
     def plot_dataset(self):
-        for i, df in enumerate(self.dataset):
-            plot_func(df) 
-
-        pass
+        for df, anomalies in zip(self.dataset, self._anomalies_list_per_series):
+            plot_func(df, anomalies=anomalies) 
 
     def _expected_points(self): 
         obs_window = pd.Timedelta(self._current_time_span)
