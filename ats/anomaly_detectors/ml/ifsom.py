@@ -2,6 +2,7 @@
 Based on the work of Ylenia Maruccia
 """
 
+import sys
 import os
 import FATS
 import h5py
@@ -9,6 +10,7 @@ import matplotlib
 import pandas as pd
 import numpy as np
 
+from contextlib import contextmanager
 from collections import defaultdict
 from sklearn.preprocessing import MinMaxScaler, QuantileTransformer, StandardScaler
 from sklearn.ensemble import IsolationForest
@@ -24,6 +26,16 @@ from ..base import AnomalyDetector
 # Setup logging
 import logging
 logger = logging.getLogger(__name__)
+
+@contextmanager
+def silence_stdout():
+    saved_stdout = sys.stdout
+    sys.stdout = open(os.devnull, 'w')
+    try:
+        yield
+    finally:
+        sys.stdout.close()
+        sys.stdout = saved_stdout
 
 
 class IFSOMAnomalyDetector(AnomalyDetector):
@@ -155,7 +167,8 @@ class IFSOMAnomalyDetector(AnomalyDetector):
 
     def fit(self, data, som_size_x=9, som_size_y=9, sigma_som=1.0, learning_rate_som=0.5, random_seed_som=29,
             n_iterations_som=1000, neighborhood_function_som='gaussian', n_estimators_if='100', max_samples_if='auto',
-            contamination_if=0.05, max_features_if=1, random_state_if=29, *args, **kwargs):
+            contamination_if=0.05, max_features_if=1, random_state_if=29, exclude_extra_features=None, caching=True,
+            *args, **kwargs):
         """
         Fit the model using a Self-Organizing Map (SOM) followed by an Isolation Forest (IF).
 
@@ -188,6 +201,10 @@ class IFSOMAnomalyDetector(AnomalyDetector):
             (Isolation Forest parameter) Number or proportion of features to draw per estimator.
         random_state_if : int, default=29
             (Isolation Forest parameter) Random seed used for reproducibility.
+        exclude_extra_features : list, default=None.
+            Exclude extra given features from FATS.
+        caching: bool, default=False
+            Caches the data provided in the fit() call and the features to speed up the apply() call and allow post-apply inspection.
         """
 
         # Debugging log
@@ -226,10 +243,19 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         # 1) Compute features (FATS)
         #==============================
         logger.info("Computing FATS features...")
-        feature_space = FATS.FeatureSpace(Data=['magnitude','time'], excludeList=['SlottedA_length','StetsonK_AC','StructureFunction_index_21','StructureFunction_index_31','StructureFunction_index_32'])
+        if not exclude_extra_features:
+            exclude_extra_features = []
+        exclude_features = ['SlottedA_length',
+                            'StetsonK_AC',
+                            'StructureFunction_index_21',
+                            'StructureFunction_index_31',
+                            'StructureFunction_index_32']
+        with silence_stdout():
+            feature_space = FATS.FeatureSpace(Data=['magnitude','time'], excludeList=exclude_features)
 
-        # Applico la funzione a ciascuna riga e memorizzo i risultati in una nuova colonna
-        df_features = df.apply(self._compute_features_fats_printid, axis=1, args=(feature_space,df.columns))
+            # Applico la funzione a ciascuna riga e memorizzo i risultati in una nuova colonna
+            df_features = df.apply(self._compute_features_fats_printid, axis=1, args=(feature_space,df.columns))
+
         logger.info('Done')
 
         logger.info("Cleaning data")
@@ -288,8 +314,13 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         self.data['df_columns'] = df.columns.tolist()
         self.data['som_model'] = som_model
         self.data['if_model'] = if_model
-        self.data['df_features'] = df_features # For inspection purposes
-        self.data['df_features_scaled'] = df_features_scaled # For inspection purposes
+        self.data['exclude_features'] = exclude_features
+        # For caching and inspection purposes 
+        if caching:
+            self.data['data'] = data
+            self.data['df_features'] = df_features
+            self.data['df_features_scaled'] = df_features_scaled
+
 
     def apply(self, data, *args, **kwargs):
 
@@ -316,12 +347,17 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         #==============================
         # 1) Compute features (FATS)
         #==============================
-        logger.info("Computing FATS features...")
-        feature_space = FATS.FeatureSpace(Data=['magnitude','time'], excludeList=['SlottedA_length','StetsonK_AC','StructureFunction_index_21','StructureFunction_index_31','StructureFunction_index_32'])
+        if data == self.data['data']:
+            df_features = self.data['df_features']
+            logger.info("Loaded cached FATS features")
+        else:
+            logger.info("Computing FATS features...")
+            with silence_stdout():
+                feature_space = FATS.FeatureSpace(Data=['magnitude','time'], excludeList=self.data['exclude_features'])
 
-        # Applico la funzione a ciascuna riga e memorizzo i risultati in una nuova colonna
-        df_features = df.apply(self._compute_features_fats_printid, axis=1, args=(feature_space,df.columns))
-        logger.info('Done')
+                # Applico la funzione a ciascuna riga e memorizzo i risultati in una nuova colonna
+                df_features = df.apply(self._compute_features_fats_printid, axis=1, args=(feature_space,df.columns))
+            logger.info('Done')
 
         logger.info("Cleaning data")
         # Replace inf with NaN
@@ -396,11 +432,11 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         """
         Generates plots for inspection (or save them in the provided path).
 
-        If only a "fit()" is exceuted:
+        If only a "fit()" is executed:
          1. U-matrix
          2. Activation Map
 
-        If also an "apply()" is called:
+        If also an "apply()" is called and caching enabled:
          3. Activation Map with Isolation Forest results (pie chart: outliers / non-outliers)
          4. Activation Map colored by IF score and counts of outliers / non-outliers
          5. U-matrix with IF scores overlaid
