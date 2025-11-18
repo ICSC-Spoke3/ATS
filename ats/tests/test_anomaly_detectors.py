@@ -6,7 +6,7 @@ import pandas as pd
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
 from ..anomaly_detectors.ml.ifsom import IFSOMAnomalyDetector
 from ..anomaly_detectors.stat.robust import _COMNHARAnomalyDetector
-from ..utils import generate_timeseries_df, load_isp_format_wide_df
+from ..utils import generate_timeseries_df, load_isp_format_wide_df, wide_df_to_list_of_timeseries_df
 from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe
 
 # Setup logging
@@ -82,7 +82,7 @@ class TestMLAnomalyDetectors(unittest.TestCase):
 
         wide_df = load_isp_format_wide_df(TEST_DATASETS_PATH + 'ISP_TS_2021-23_minisample_test_small.csv')
 
-        list_of_timeseries_df = IFSOMAnomalyDetector.wide_df_to_list_of_timeseries_df(wide_df)
+        list_of_timeseries_df = wide_df_to_list_of_timeseries_df(wide_df)
 
         anomaly_detector = IFSOMAnomalyDetector()
         anomaly_detector.fit(list_of_timeseries_df)
