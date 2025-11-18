@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge
 
 from ..base import AnomalyDetector
+from ...utils import timeseries_df_to_wide_df
 
 # Setup logging
 import logging
@@ -44,63 +45,8 @@ class IFSOMAnomalyDetector(AnomalyDetector):
     features computed using FATS in order to identify anomalous series within a data set.
     """
 
-    @ staticmethod
-    def _compute_features_fats_printid(row, a, sel_col):
-
-        logger.info('Processing for label: %s', row.name)
-
-        # Rimuovo zeri iniziali e finali e ID iniziale
-        ##row_trim = np.trim_zeros(row.iloc[1:])
-        row_trim = np.trim_zeros(row[sel_col])
-
-        # Costruisco il vettore "time" sulla base della lunghezza della riga_trim
-        time_tmp = [i for i in range(len(row_trim))]
-        lc_tmp = np.array([row_trim, time_tmp])
-
-        ## Available data as an input:
-        ## In case the user does not have all the input vectors mentioned above, 
-        ## it is necessary to specify the available data by specifying the list 
-        ## of vectors using the parameter Data. In the example below, we calculate
-        ## all the features that can be computed with the magnitude and time as an input.
-        #a = FATS.FeatureSpace(Data=['magnitude','time'], excludeList=['SlottedA_length','StetsonK_AC'])
-        a_calc = a.calculateFeature(lc_tmp)
-
-        return pd.Series(a_calc.result(method='array'), index=a_calc.result(method='features'))
-
     @staticmethod
-    def wide_df_to_timeseries_df(wide_df):
-        """
-        Input:
-            wide_df: index = ID, columns = timestamps
-        Output:
-            DataFrame with index=timestamps, columns=IDs
-        """
-        timeseries_df = wide_df.T
-        timeseries_df.index = pd.to_datetime(timeseries_df.index) # Fix index after transposing
-        timeseries_df.index.name = 'timestamp'
-
-        return timeseries_df.sort_index()
-
-    @staticmethod
-    def wide_df_to_list_of_timeseries_df(wide_df):
-        """
-        Input:
-            wide_df: index = ID, columns = timestamps
-        Output:
-            DataFrame with index=timestamps, columns=IDs
-        """
-        timeseries_df = wide_df.T
-        timeseries_df.index = pd.to_datetime(timeseries_df.index) # Fix index after transposing
-        timeseries_df.index.name = 'timestamp'
-
-        list_of_timeseries_df = []
-        for column in timeseries_df.columns:
-            list_of_timeseries_df.append(timeseries_df.filter([column]))
-
-        return list_of_timeseries_df
-
-    @staticmethod
-    def wide_df_to_timeseries_df_with_anomaly_labels(wide_df, anomaly_col="outliers"):
+    def _wide_df_to_timeseries_df_with_anomaly_labels(wide_df, anomaly_col="outliers"):
         """
         Input:
             wide_df: index = ID, columns = timestamps + anomaly column
@@ -133,7 +79,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         return timeseries_df.sort_index()
 
     @staticmethod
-    def wide_df_to_list_of_timeseries_df_with_anomaly_labels(wide_df, anomaly_col="outliers"):
+    def _wide_df_to_list_of_timeseries_df_with_anomaly_labels(wide_df, anomaly_col="outliers"):
         """
         Input:
             wide_df: index = ID, columns = timestamps + anomaly column
@@ -141,7 +87,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
             list[DataFrame] with index=timestamps, columns=IDs + anomaly indicator
         """
 
-        timeseries_df_with_anomaly_labels = IFSOMAnomalyDetector.wide_df_to_timeseries_df_with_anomaly_labels(wide_df, anomaly_col)
+        timeseries_df_with_anomaly_labels = IFSOMAnomalyDetector._wide_df_to_timeseries_df_with_anomaly_labels(wide_df, anomaly_col)
 
         # Split the global timeseries_df in a list of single timeseries_df
         list_of_timeseries_df = []
@@ -152,18 +98,28 @@ class IFSOMAnomalyDetector(AnomalyDetector):
                 list_of_timeseries_df.append(this_timeseries_df_with_anomaly_label)
         return list_of_timeseries_df
 
-    @staticmethod
-    def timeseries_df_to_wide_df(timeseries_df):
-        """
-        Input:
-            timeseries_df: DataFrame with index=timestamp, columns=IDs
-        Output:
-            DataFrame with index=ID, columns=timestamps
-        """
-        wide_df = timeseries_df.T
-        wide_df.index.name = 'ID'
-        wide_df.columns.name = None
-        return wide_df.sort_index(axis=1)
+    @ staticmethod
+    def _compute_features_fats_printid(row, a, sel_col):
+
+        logger.info('Processing for label: %s', row.name)
+
+        # Rimuovo zeri iniziali e finali e ID iniziale
+        ##row_trim = np.trim_zeros(row.iloc[1:])
+        row_trim = np.trim_zeros(row[sel_col])
+
+        # Costruisco il vettore "time" sulla base della lunghezza della riga_trim
+        time_tmp = [i for i in range(len(row_trim))]
+        lc_tmp = np.array([row_trim, time_tmp])
+
+        ## Available data as an input:
+        ## In case the user does not have all the input vectors mentioned above, 
+        ## it is necessary to specify the available data by specifying the list 
+        ## of vectors using the parameter Data. In the example below, we calculate
+        ## all the features that can be computed with the magnitude and time as an input.
+        #a = FATS.FeatureSpace(Data=['magnitude','time'], excludeList=['SlottedA_length','StetsonK_AC'])
+        a_calc = a.calculateFeature(lc_tmp)
+
+        return pd.Series(a_calc.result(method='array'), index=a_calc.result(method='features'))
 
     def fit(self, data, som_size_x=9, som_size_y=9, sigma_som=1.0, learning_rate_som=0.5, random_seed_som=29,
             n_iterations_som=1000, neighborhood_function_som='gaussian', n_estimators_if='100', max_samples_if='auto',
@@ -237,7 +193,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
             raise ValueError(f"Duplicate column names detected: {list(duplicates)}")
 
         # Ok, now convert to wide format
-        df = self.timeseries_df_to_wide_df(df)
+        df = timeseries_df_to_wide_df(df)
 
         #==============================
         # 1) Compute features (FATS)
@@ -342,7 +298,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
             raise ValueError(f"Duplicate column names detected: {list(duplicates)}")
 
         # Ok, now convert to wide format
-        df = self.timeseries_df_to_wide_df(df)
+        df = timeseries_df_to_wide_df(df)
 
         #==============================
         # 1) Compute features (FATS)
@@ -426,7 +382,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
         #
         # [4 rows x 1100 columns]
 
-        return self.wide_df_to_list_of_timeseries_df_with_anomaly_labels(results_df)
+        return self._wide_df_to_list_of_timeseries_df_with_anomaly_labels(results_df)
 
     def inspect(self, path=None):
         """

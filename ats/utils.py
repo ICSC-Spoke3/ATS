@@ -349,3 +349,48 @@ def load_isp_format_wide_df(csv_file, id_col='ID', prefix="IMP_SALDO_CTB_"):
 
     # Ok, return
     return wide_df.sort_index(axis=1)
+
+
+def wide_df_to_timeseries_df(wide_df):
+    """
+    Input:
+        wide_df: index = ID, columns = timestamps
+    Output:
+        DataFrame with index=timestamps, columns=IDs
+    """
+    timeseries_df = wide_df.T
+    timeseries_df.index = pd.to_datetime(timeseries_df.index) # Fix index after transposing
+    timeseries_df.index.name = 'timestamp'
+
+    return timeseries_df.sort_index()
+
+
+def wide_df_to_list_of_timeseries_df(wide_df):
+    """
+    Input:
+        wide_df: index = ID, columns = timestamps
+    Output:
+        DataFrame with index=timestamps, columns=IDs
+    """
+    timeseries_df = wide_df.T
+    timeseries_df.index = pd.to_datetime(timeseries_df.index) # Fix index after transposing
+    timeseries_df.index.name = 'timestamp'
+
+    list_of_timeseries_df = []
+    for column in timeseries_df.columns:
+        list_of_timeseries_df.append(timeseries_df.filter([column]))
+
+    return list_of_timeseries_df
+
+
+def timeseries_df_to_wide_df(timeseries_df):
+    """
+    Input:
+        timeseries_df: DataFrame with index=timestamp, columns=IDs
+    Output:
+        DataFrame with index=ID, columns=timestamps
+    """
+    wide_df = timeseries_df.T
+    wide_df.index.name = 'ID'
+    wide_df.columns.name = None
+    return wide_df.sort_index(axis=1)
