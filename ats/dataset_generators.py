@@ -30,6 +30,30 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
+    def _parse_and_divide(self,interval_str, divisor):
+        td = pd.Timedelta(interval_str)
+        result = td / divisor
+
+        total_seconds = int(result.total_seconds())
+
+        d = total_seconds // 86400
+        total_seconds %= 86400
+
+        h = total_seconds // 3600
+        total_seconds %= 3600
+
+        m = total_seconds // 60
+        s = total_seconds % 60
+
+        parts = []
+        if d: parts.append(f"{d}D")
+        if h: parts.append(f"{h}h")
+        if m: parts.append(f"{m}m")
+        if s: parts.append(f"{s}s")
+
+        return " ".join(parts) if parts else "0s"
+
+
     def generate(self, n_series=9, time_span='30D',
                  effects='default', anomalies='default', 
                  max_anomalies_per_series = 2, anomalies_ratio = 0.5):
@@ -55,8 +79,6 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         if n <= 0:
             raise ValueError("'n' must be a positive integer.")
         
-        if max_anomalies_per_series != 2:
-            raise NotImplementedError("Not yet.")
         if anomalies_ratio != 0.5:
             raise NotImplementedError("Not yet.")
 
@@ -69,20 +91,10 @@ class HumiTempDatasetGenerator(DatasetGenerator):
 
         if number_of_anomalies == 0:
             logger.info("No anomalies specified; generating dataset without anomalies.")
-        if number_of_anomalies == 1:
-            logger.info("Single anomaly specified; generating dataset with 0 or 1 anomaly per series.")
-        if number_of_anomalies >= 2:
-            logger.info("Multiple anomalies specified; generating dataset with 0, 1, or 2 anomalies per series.")
-
-        if number_of_anomalies == 2:
-            anomaly1, anomaly2 = anomalies[0], anomalies[1]
-            base1 = anomaly1.replace('_uv', '').replace('_mv', '')
-            base2 = anomaly2.replace('_uv', '').replace('_mv', '')
-            if (base1 == base2 and 
-                ((anomaly1.endswith('_uv') and anomaly2.endswith('_mv')) or 
-                 (anomaly1.endswith('_mv') and anomaly2.endswith('_uv')))):
-                raise ValueError(f"Incompatible anomaly pair: {anomalies}. '{anomaly1}' and '{anomaly2}' cannot be used together.")
-            
+        if number_of_anomalies > 0:
+            logger.info("Generating datest with max {} anomalies per series and " \
+            "with a {} % of series without anomalies.".format(max_anomalies_per_series, anomalies_ratio * 100))
+        
         if "clouds" in anomalies:
             if "clouds" not in effects:
                 raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.") 
@@ -92,12 +104,14 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         self.time_span = time_span
         self.dataset = dataset
         
+        #sub_time_span = self._parse_and_divide(time_span, max_anomalies_per_series)
+
         try:
             generator = HumiTempTimeseriesGenerator(
                     temperature=self.temperature,
                     humidity=self.humidity,
                     sampling_interval=self.sampling_interval,
-                    time_span=self.time_span
+                    time_span=time_span
             )
         except Exception as e:
             raise RuntimeError(f"Error initializing HumiTempTimeseriesGenerator") from e
