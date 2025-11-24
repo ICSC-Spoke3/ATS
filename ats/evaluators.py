@@ -142,3 +142,20 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
 
     one_series_evaluation_result['false_positives'] = one_series_evaluation_result.pop(None)
     return one_series_evaluation_result
+
+def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+    one_series_evaluation_result = {}
+    normalization_factor = len(flagged_timeseries_df)
+
+    for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
+        anomaly_count = 0
+        for timestamp in flagged_timeseries_df.index:
+            if anomaly_labels_df[timestamp] == anomaly:
+                for column in flagged_timeseries_df.filter(like='anomaly').columns:
+                    if flagged_timeseries_df.loc[timestamp,column]:
+                        anomaly_count += 1
+                        break
+        one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
+
+    one_series_evaluation_result['false_positives'] = one_series_evaluation_result.pop(None)
+    return one_series_evaluation_result
