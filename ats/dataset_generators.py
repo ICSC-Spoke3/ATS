@@ -1,7 +1,6 @@
 from .timeseries_generators import HumiTempTimeseriesGenerator, plot_func
 import random as rnd
 import pandas as pd
-import itertools
 
 # Setup logging
 import logging
@@ -30,33 +29,48 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
-    def _parse_and_divide(self,interval_str, divisor):
-        td = pd.Timedelta(interval_str)
-        result = td / divisor
+    def _divide_time_interval(self,interval_str, max_anomalies_per_series):
+        # TODO: Clarify UTC only
+        total_seconds = int(pd.Timedelta(interval_str).total_seconds())
+        segment_seconds = total_seconds / max_anomalies_per_series
 
-        total_seconds = int(result.total_seconds())
+        # to move on code
+        #if segment_seconds < 20*24*60*60:
+         #       raise NotImplementedError("AAAAAAAA")
 
-        d = total_seconds // 86400
-        total_seconds %= 86400
+        return "{}s".format(segment_seconds)
+    
+    def _generate_series(self,sampling_interval='15min',sub_time_span='30D', anomalies=[], effects=[],max_anomalies_per_series=2):
+        if len(anomalies) == 0:
+            n=0
+        else:
+            n=1
+        series_combined = HumiTempTimeseriesGenerator(sampling_interval=sampling_interval,time_span=sub_time_span).generate(
+            effects=effects,       
+            anomalies=rnd.sample(anomalies, n) 
+        )
+        last_time = series_combined.index[-1] + pd.Timedelta(sampling_interval)
 
-        h = total_seconds // 3600
-        total_seconds %= 3600
+        for i in range(1, max_anomalies_per_series):
+            last_time = series_combined.index[-1] + pd.Timedelta(sampling_interval)
+            series = HumiTempTimeseriesGenerator( sampling_interval=sampling_interval,time_span=sub_time_span,
+                                starting_year = last_time.year,
+                                starting_month = last_time.month,
+                                starting_day = last_time.day,
+                                starting_hour = last_time.hour,
+                                starting_minute = last_time.minute
+            ).generate(
+                effects=effects,       
+                anomalies=rnd.sample(anomalies, n)
+            )
+            series_combined = pd.concat([series_combined, series])
+        
+        return series_combined   
 
-        m = total_seconds // 60
-        s = total_seconds % 60
 
-        parts = []
-        if d: parts.append(f"{d}D")
-        if h: parts.append(f"{h}h")
-        if m: parts.append(f"{m}m")
-        if s: parts.append(f"{s}s")
-
-        return " ".join(parts) if parts else "0s"
-
-
-    def generate(self, n_series=9, time_span='30D',
+    def generate(self, n_series=9, time_span='60D',
                  effects='default', anomalies='default', 
-                 max_anomalies_per_series = 2, anomalies_ratio = 0.5):
+                 max_anomalies_per_series = 1, anomalies_ratio = 0.5):
         """
         Generate a synthetic dataset of humidity-temperature time series
         with different anomaly configurations.
@@ -74,81 +88,70 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         random_effects = [] # random_effects (bool, optional): Random effects to apply across series.
         n = n_series
 
+        # Validate input parameters
         if not isinstance(n, int):
             raise TypeError(f"'n' must be an integer, got {type(n).__name__}.")
         if n <= 0:
             raise ValueError("'n' must be a positive integer.")
+        if not isinstance(max_anomalies_per_series, int):
+            raise TypeError(f"'max_anomalies_per_series' must be an integer, got {type(max_anomalies_per_series).__name__}.")
+        if max_anomalies_per_series < 0:
+            raise ValueError("'max_anomalies_per_series' must be a non-negative integer.")
+        if not isinstance(anomalies_ratio, (int, float)):
+            raise TypeError(f"'anomalies_ratio' must be a float, got {type(anomalies_ratio).__name__}.")
+        if not (0 <= anomalies_ratio <= 1):
+            raise ValueError("'anomalies_ratio' must be between 0 and 1.")
         
-        if anomalies_ratio != 0.5:
-            raise NotImplementedError("Not yet.")
-
-        # Validate and convert parameters to lists
+        # Validate list parameters
         effects = self.__check_list(effects, "effects")
         random_effects = self.__check_list(random_effects, "random_effects")
         anomalies = self.__check_list(anomalies, "anomalies")
 
-        number_of_anomalies = len(anomalies)
+        if anomalies_ratio != 0.5:
+            raise NotImplementedError("Not yet.")
 
+        number_of_anomalies = len(anomalies)
         if number_of_anomalies == 0:
-            logger.info("No anomalies specified; generating dataset without anomalies.")
+            logger.info("No anomalies specified; generating dataset without anomalies. \n " \
+            "set max_anomalies_per_series to 0.")
+            max_anomalies_per_series = 0
+            sub_time_span = time_span
         if number_of_anomalies > 0:
             logger.info("Generating datest with max {} anomalies per series and " \
             "with a {} % of series without anomalies.".format(max_anomalies_per_series, anomalies_ratio * 100))
+            sub_time_span = self._divide_time_interval(time_span, max_anomalies_per_series)
         
         if "clouds" in anomalies:
             if "clouds" not in effects:
-                raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.") 
+                raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.")
 
         dataset = []
         self.anomalies_list_per_series = []
         self.time_span = time_span
-        self.dataset = dataset
-        
-        #sub_time_span = self._parse_and_divide(time_span, max_anomalies_per_series)
+        self.dataset = dataset      
 
-        try:
-            generator = HumiTempTimeseriesGenerator(
-                    temperature=self.temperature,
-                    humidity=self.humidity,
-                    sampling_interval=self.sampling_interval,
-                    time_span=time_span
-            )
-        except Exception as e:
-            raise RuntimeError(f"Error initializing HumiTempTimeseriesGenerator") from e
-        
         for i in range(n):
             if i % 2 == 1:
                 anomalies_for_group = []
             else:
                 if number_of_anomalies == 0:
                     anomalies_for_group = []
-                elif number_of_anomalies == 1:
-                    anomalies_for_group = rnd.sample(anomalies, 1)
-                else:  # number_of_anomalies >= 2
-                    if i % 4 == 0:
-                        anomalies_for_group = rnd.sample(anomalies, 1)
-                    else:
-                        anomalies_for_group = rnd.sample(anomalies, 2)
+                else:
+                    number_of_anomalies = rnd.randint(1, max_anomalies_per_series)
+                    anomalies_for_group = rnd.sample(anomalies, number_of_anomalies)
 
             random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
             applied_effects = list(set(effects + random_applied_effects))
-
+            
             try:
-                series = generator.generate(effects=applied_effects or [],
-                                            anomalies=anomalies_for_group or [], 
-                                            plot=False, generate_csv=False)
-            except Exception as Error:
-                logger.warning(f"Error generating dataset with anomalies {anomalies_for_group}: Retrying.")
-                # Try other combinations of anomalies
-                for combo in rnd.sample(list(itertools.combinations(anomalies, 2)), len(anomalies)):
-                    try:
-                        anomalies_for_group = list(combo)
-                        series = generator.generate(effects=applied_effects or [],
-                                                    anomalies= anomalies_for_group or [], 
-                                                    plot=False, generate_csv=False)
-                        break  # Exit loop if successful
-                    except Exception as e:
-                        logger.warning(f"Failed with combination {combo}: {e}")
+                series = self._generate_series(sampling_interval=self.sampling_interval,
+                                        sub_time_span=sub_time_span,
+                                        anomalies=anomalies_for_group,
+                                        effects=applied_effects,
+                                        max_anomalies_per_series=max_anomalies_per_series)
+            except Exception as e:
+                logger.error(f"Error generating series {i+1}: {e}")
+                continue
             logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
             self.anomalies_list_per_series.append(anomalies_for_group)
             dataset.append(series)
