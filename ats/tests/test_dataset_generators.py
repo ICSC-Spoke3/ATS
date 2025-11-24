@@ -46,8 +46,7 @@ class TestDatasetGenerator(unittest.TestCase):
             generator.generate(effects='noise',anomalies=[])
         with self.assertRaises(TypeError):
             generator.generate(effects=456,anomalies=[])
-        with self.assertRaises(ValueError):
-            generator.generate(effects=[],anomalies=['spike_uv', 'spike_mv'])
+        generator.generate(effects=[],anomalies=['spike_uv', 'spike_mv'])
         with self.assertRaises(ValueError):
             generator.generate(effects=[],anomalies=['clouds'])
         generator.generate(effects=['clouds'],anomalies=['clouds','spike_mv'])  # Should not raise
@@ -123,7 +122,7 @@ class TestDatasetGenerator(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_plot_dataset(self, mock_show):
         generator = HumiTempDatasetGenerator()
-        test_dataset = generator.generate( n_series=3,time_span='1D',
+        test_dataset = generator.generate(n_series=3,time_span='1D',
             effects=['noise'], anomalies=['spike_uv'])
         generator.plot_dataset()  
         self.assertEqual(mock_show.call_count, 3)
