@@ -159,3 +159,26 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
 
     one_series_evaluation_result['false_positives'] = one_series_evaluation_result.pop(None)
     return one_series_evaluation_result
+
+def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+    anomalies = []
+    for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
+        if anomaly is not None:
+            anomalies.append(anomaly)
+    anomalies_n = len(anomalies)
+    if anomalies_n > 1:
+        raise ValueError('Evaluation with series granularity supports series with only one anomaly')
+
+    one_series_evaluation_result = {}
+    is_series_anomalous = 0
+    for timestamp in flagged_timeseries_df.index:
+        for column in flagged_timeseries_df.filter(like='anomaly').columns:
+            if flagged_timeseries_df.loc[timestamp,column]:
+                is_series_anomalous = 1
+                break
+    if is_series_anomalous and not anomalies:
+        one_series_evaluation_result['false_positives'] = 1
+    elif is_series_anomalous and anomalies:
+        one_series_evaluation_result[anomalies[0]] = 1
+
+    return one_series_evaluation_result

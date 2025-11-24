@@ -8,6 +8,7 @@ from ..evaluators import _calculate_model_scores
 from ..evaluators import Evaluator
 from ..evaluators import _variable_granularity_evaluation
 from ..evaluators import _point_granularity_evaluation
+from ..evaluators import _series_granularity_evaluation
 import unittest
 import pandas as pd
 import random as rnd
@@ -332,3 +333,35 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(evaluation_result),2)
         self.assertAlmostEqual(evaluation_result['step_uv'],2/len(series))
         self.assertAlmostEqual(evaluation_result['false_positives'],2/len(series))
+
+    def test_series_granularity_evaluation(self):
+        series_generator = HumiTempTimeseriesGenerator()
+        series = series_generator.generate(anomalies=['step_uv'])
+        minmax = MinMaxAnomalyDetector()
+        formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
+        flagged_series = minmax.apply(formatted_series)
+        evaluation_result = _series_granularity_evaluation(flagged_series,anomaly_labels)
+        # evaluation_result:
+        # { 'step_uv': 1
+        # }
+        self.assertEqual(len(evaluation_result),1)
+        self.assertAlmostEqual(evaluation_result['step_uv'],1)
+
+        series1 = series_generator.generate(anomalies=[])
+        minmax1 = MinMaxAnomalyDetector()
+        formatted_series1,anomaly_labels1 = _format_for_anomaly_detector(series1,synthetic=True)
+        flagged_series1 = minmax.apply(formatted_series1)
+        evaluation_result1 = _series_granularity_evaluation(flagged_series1,anomaly_labels1)
+        self.assertEqual(len(evaluation_result1),1)
+        self.assertAlmostEqual(evaluation_result1['false_positives'],1)
+        # evaluation_result1:
+        # { 'false_positives': 1
+        # }
+
+        try:
+            series2 = series_generator.generate(anomalies=['spike_uv','step_uv'])
+            formatted_series2,anomaly_labels2 = _format_for_anomaly_detector(series2,synthetic=True)
+            flagged_series2 = minmax.apply(formatted_series2)
+            evaluation_result2 = _series_granularity_evaluation(flagged_series2,anomaly_labels2)
+        except Exception as e:
+            self.assertIsInstance(e,ValueError)
