@@ -394,3 +394,22 @@ def timeseries_df_to_wide_df(timeseries_df):
     wide_df.index.name = 'ID'
     wide_df.columns.name = None
     return wide_df.sort_index(axis=1)
+
+
+def timeseries_df_to_list_of_timeseries_df(timeseries_df, anomaly_labels=False):
+    list_of_timeseries_df = []
+    for column in timeseries_df.columns:
+        if anomaly_labels:
+            if column.startswith('anomaly_'):
+                continue
+            this_timeseries_df = timeseries_df.filter([column, 'anomaly_'+column])
+            this_timeseries_df.rename(columns={'anomaly_'+column: 'anomaly'}, inplace=True)
+            list_of_timeseries_df.append(this_timeseries_df)
+        else:
+            list_of_timeseries_df.append(timeseries_df.filter([column]))
+    return list_of_timeseries_df
+
+
+def list_of_timeseries_df_to_timeseries_df(list_of_timeseries_df):
+    return pd.concat(list_of_timeseries_df, axis=1)
+
