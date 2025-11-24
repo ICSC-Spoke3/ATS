@@ -29,14 +29,13 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
-    def _divide_time_interval(self,interval_str, max_anomalies_per_series):
+    def _divide_time_interval(self,interval_str, max_anomalies_per_serie, anomalies=[]):
         # TODO: Clarify UTC only
         total_seconds = int(pd.Timedelta(interval_str).total_seconds())
         segment_seconds = total_seconds / max_anomalies_per_series
 
-        # to move on code
-        #if segment_seconds < 20*24*60*60:
-         #       raise NotImplementedError("AAAAAAAA")
+        if segment_seconds < 20*24*60*60 and ("step_uv" in anomalies or "step_mv" in anomalies):
+            raise NotImplementedError("Step anomalies require longer time_span")
 
         return "{}s".format(segment_seconds)
     
@@ -119,7 +118,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         if number_of_anomalies > 0:
             logger.info("Generating datest with max {} anomalies per series and " \
             "with a {} % of series without anomalies.".format(max_anomalies_per_series, anomalies_ratio * 100))
-            sub_time_span = self._divide_time_interval(time_span, max_anomalies_per_series)
+            sub_time_span = self._divide_time_interval(time_span, max_anomalies_per_series,anomalies=anomalies)
         
         if "clouds" in anomalies:
             if "clouds" not in effects:
