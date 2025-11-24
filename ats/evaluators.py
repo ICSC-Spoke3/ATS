@@ -46,7 +46,7 @@ def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=F
         return evaluation_results
 
 
-def _calculate_model_scores(single_model_evaluation={}):
+def _calculate_model_scores(single_model_evaluation={},granularity='data_point'):
     anomalies = list(single_model_evaluation['sample_1'].keys())
     samples_n = len(single_model_evaluation)
     detections_per_anomaly = {}
@@ -80,7 +80,7 @@ class Evaluator():
             dataset_copies.append(dataset_copy)
         return dataset_copies
 
-    def evaluate(self,models={}):
+    def evaluate(self,models={},granularity='data_point'):
         if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
@@ -102,7 +102,7 @@ class Evaluator():
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
                 single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(sample_df,anomaly_labels_list[i])
-            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
+            models_scores[model_name] = _calculate_model_scores(single_model_evaluation,granularity=granularity)
             j+=1
 
         return models_scores
