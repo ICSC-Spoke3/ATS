@@ -29,7 +29,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             raise TypeError(f"`{name}` must be a list, got {type(value).__name__}.")
         return value
 
-    def _divide_time_interval(self,interval_str, max_anomalies_per_serie, anomalies=[]):
+    def _divide_time_interval(self,interval_str, max_anomalies_per_series, anomalies=[]):
         # TODO: Clarify UTC only
         total_seconds = int(pd.Timedelta(interval_str).total_seconds())
         segment_seconds = total_seconds / max_anomalies_per_series
