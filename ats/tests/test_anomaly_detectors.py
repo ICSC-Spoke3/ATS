@@ -6,7 +6,7 @@ import pandas as pd
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector
 from ..anomaly_detectors.ml.ifsom import IFSOMAnomalyDetector
 from ..anomaly_detectors.stat.robust import _COMNHARAnomalyDetector
-from ..utils import generate_timeseries_df, load_isp_format_wide_df, wide_df_to_list_of_timeseries_df
+from ..utils import generate_timeseries_df, load_isp_format_wide_df, wide_df_to_list_of_timeseries_df, timeseries_df_to_list_of_timeseries_df
 from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe
 
 # Setup logging
@@ -53,7 +53,7 @@ class TestStatAnomalyDetectors(unittest.TestCase):
     def setUp(self):
         np.random.seed(0)
 
-    def test_robust(self):
+    def test_robust_on_multivariate(self):
 
         # Generate data with anomalies
         timeseries_df, _ = generate_contaminated_dataframe(cn=150, cd=10, prct=0.4, cnj=80, tim=-4, repr=True)
@@ -71,6 +71,31 @@ class TestStatAnomalyDetectors(unittest.TestCase):
         self.assertTrue(results_timeseries_df.iloc[80]['anomaly'])
         self.assertTrue(results_timeseries_df.iloc[81]['anomaly'])
         self.assertFalse(results_timeseries_df.iloc[82]['anomaly'])
+
+
+    def test_robust_on_list_of_univariate(self):
+
+        # Generate data with anomalies
+        timeseries_df, _ = generate_contaminated_dataframe(cn=150, cd=10, prct=0.4, cnj=80, tim=-4, repr=True)
+
+        # Convert a big multivariate to n signle univariate
+        list_of_timeseries_df = timeseries_df_to_list_of_timeseries_df(timeseries_df)
+
+        # Instantiate the anomaly detector
+        anomaly_detector = _COMNHARAnomalyDetector()
+        results_list_timeseries_df = anomaly_detector.apply(list_of_timeseries_df)
+
+        # Uncomment to inspect results
+        #with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        #    print(results_list_timeseries_df)
+
+        self.assertEqual(len(results_list_timeseries_df),10)
+        self.assertFalse(results_list_timeseries_df[0].iloc[0]['anomaly'])
+        self.assertFalse(results_list_timeseries_df[0].iloc[79]['anomaly'])
+        self.assertTrue(results_list_timeseries_df[0].iloc[80]['anomaly'])
+        self.assertTrue(results_list_timeseries_df[0].iloc[81]['anomaly'])
+        self.assertFalse(results_list_timeseries_df[0].iloc[82]['anomaly'])
+        self.assertFalse(results_list_timeseries_df[0].iloc[-1]['anomaly'])
 
 
 class TestMLAnomalyDetectors(unittest.TestCase):
