@@ -123,3 +123,22 @@ def _get_model_output(dataset,model):
             flagged_dataset.append(flagged_series)
 
     return flagged_dataset
+
+def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+    one_series_evaluation_result = {}
+    flag_columns_n = len(flagged_timeseries_df.filter(like='anomaly').columns)
+    variables_n = len(flagged_timeseries_df.columns) - flag_columns_n
+    if variables_n != 1 and variables_n != flag_columns_n:
+        raise ValueError('Variable granularity is not for this model')
+    normalization_factor = variables_n * len(flagged_timeseries_df)
+
+    for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
+        anomaly_count = 0
+        for timestamp in flagged_timeseries_df.index:
+            if anomaly_labels_df[timestamp] == anomaly:
+                for column in flagged_timeseries_df.filter(like='anomaly').columns:
+                    anomaly_count += flagged_timeseries_df.loc[timestamp,column]
+        one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
+
+    one_series_evaluation_result['false_positives'] = one_series_evaluation_result.pop(None)
+    return one_series_evaluation_result

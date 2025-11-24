@@ -6,6 +6,7 @@ from ..evaluators import _get_model_output
 from ..evaluators import _format_for_anomaly_detector
 from ..evaluators import _calculate_model_scores
 from ..evaluators import Evaluator
+from ..evaluators import _variable_granularity_evaluation
 import unittest
 import pandas as pd
 import random as rnd
@@ -300,3 +301,18 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(dataset_copies[0]),2)
         self.assertIsInstance(dataset_copies[1],list)
         self.assertEqual(len(dataset_copies[1]),2)
+
+    def test_variable_granularity_evaluation(self):
+        series_generator = HumiTempTimeseriesGenerator()
+        series = series_generator.generate(anomalies=['step_uv'])
+        minmax = MinMaxAnomalyDetector()
+        formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
+        flagged_series = minmax.apply(formatted_series)
+        evaluation_result = _variable_granularity_evaluation(flagged_series,anomaly_labels)
+        # evaluation_result:
+        # { 'step_uv': 0.00034722222222222224
+        # 'false_positives': 0.00034722222222222224
+        # }
+        self.assertEqual(len(evaluation_result),2)
+        self.assertAlmostEqual(evaluation_result['step_uv'],1/len(series))
+        self.assertAlmostEqual(evaluation_result['false_positives'],1/len(series))
