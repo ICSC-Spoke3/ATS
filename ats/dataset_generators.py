@@ -106,9 +106,6 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         random_effects = self.__check_list(random_effects, "random_effects")
         anomalies = self.__check_list(anomalies, "anomalies")
 
-        if anomalies_ratio != 0.5:
-            raise NotImplementedError("Not yet.")
-
         number_of_anomalies = len(anomalies)
         if number_of_anomalies == 0:
             logger.info("No anomalies specified; generating dataset without anomalies. \n " \
@@ -130,10 +127,13 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         self.time_span = time_span
         self.dataset = dataset      
 
+        accumulator=0.0
         for i in range(n):
-            if i % 2 == 1:
+            accumulator += anomalies_ratio
+            if accumulator < 1.0:
                 anomalies_for_group = []
             else:
+                accumulator -= 1.0
                 if number_of_anomalies == 0:
                     anomalies_for_group = []
                 else:
