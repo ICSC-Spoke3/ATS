@@ -16,7 +16,7 @@ def _quantities_in(timeseries):
     return quantities
 
 
-def generate_time_boundaries(time_interval='90D',starting_year=None,
+def _generate_time_boundaries(time_interval='90D',starting_year=None,
                              starting_month= None,starting_day=None,
                              starting_hour=None,starting_minute=None):
 
@@ -43,7 +43,7 @@ def generate_time_boundaries(time_interval='90D',starting_year=None,
     return datetime_boundaries
 
 
-def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
+def _generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
                                            temperature=True,humidity=True):
     if not isinstance(temperature,bool):
         raise TypeError(f'"temperature" must be of type bool, got {type(temperature).__name__} instead.')
@@ -113,7 +113,7 @@ def generate_synthetic_humitemp_timeseries(sampling_interval,time_boundaries=[],
 
 
 # Spike anomaly
-def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
+def _add_spike_anomaly(timeseries,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
     quantities = _quantities_in(timeseries)
@@ -150,7 +150,7 @@ def add_spike_anomaly(timeseries,inplace=False,mode='uv'):
 
 
 # Step anomaly
-def add_step_anomaly(timeseries,mode='uv',inplace=False):
+def _add_step_anomaly(timeseries,mode='uv',inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
     quantities = _quantities_in(timeseries)
@@ -220,7 +220,7 @@ def add_step_anomaly(timeseries,mode='uv',inplace=False):
 
 
 # Noise anomaly
-def add_anomalous_noise(timeseries,inplace=False,mode='uv'):
+def _add_anomalous_noise(timeseries,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
     quantities = _quantities_in(timeseries)
@@ -256,7 +256,7 @@ def add_anomalous_noise(timeseries,inplace=False,mode='uv'):
 
 
 # Pattern anomaly
-def add_pattern_anomaly(timeseries,sampling_interval,inplace=False,mode='uv'):
+def _add_pattern_anomaly(timeseries,sampling_interval,inplace=False,mode='uv'):
     if not inplace:
         timeseries = deepcopy(timeseries)
     quantities = _quantities_in(timeseries)
@@ -332,14 +332,14 @@ def add_pattern_anomaly(timeseries,sampling_interval,inplace=False,mode='uv'):
 
 
 # Clouds anomaly
-def add_clouds_anomaly(timeseries,sampling_interval,inplace=False):
+def _add_clouds_anomaly(timeseries,sampling_interval,inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
 
-    return add_clouds_effect(timeseries,sampling_interval,inplace=inplace,mv_anomaly=True)
+    return _add_clouds_effect(timeseries,sampling_interval,inplace=inplace,mv_anomaly=True)
 
 
-def change_effect_label(timeseries,index,new_effect):
+def _change_effect_label(timeseries,index,new_effect):
     if not isinstance(new_effect,str):
         raise TypeError('The "new_effect" argument has to be of type string')
 
@@ -351,7 +351,7 @@ def change_effect_label(timeseries,index,new_effect):
         timeseries.loc[index,'effect_label'] += '_' + new_effect
 
 # Noise effect
-def add_noise_effect(timeseries,inplace=False):
+def _add_noise_effect(timeseries,inplace=False):
     if not inplace:
         timeseries = deepcopy(timeseries)
     quantities = _quantities_in(timeseries)
@@ -359,12 +359,12 @@ def add_noise_effect(timeseries,inplace=False):
     for quantity in quantities:
         timeseries[quantity] += np.random.normal(0,2,size=len(timeseries))
     for i in range(len(timeseries)):
-        change_effect_label(timeseries,i,'noise')
+        _change_effect_label(timeseries,i,'noise')
     return timeseries
 
 
 # Season effect
-def calculate_seasonal_sin_value(timeseries,starting_year):
+def _calculate_seasonal_sin_value(timeseries,starting_year):
         import calendar
         if calendar.isleap(starting_year):
             seasonal_periodicity = 8784
@@ -377,13 +377,13 @@ def calculate_seasonal_sin_value(timeseries,starting_year):
             delta_t = timeseries.loc[i,'timestamp'] - time_offset
             time_variable = delta_t.total_seconds()/3600
             sin_value = math.sin((2*math.pi/seasonal_periodicity)*time_variable)
-            change_effect_label(timeseries,i,'seasons')
+            _change_effect_label(timeseries,i,'seasons')
             seasonal_sin_values.append(sin_value)
 
         return pd.Series(seasonal_sin_values) 
 
 
-def add_seasons_effect(timeseries,starting_year,inplace=False):
+def _add_seasons_effect(timeseries,starting_year,inplace=False):
 
     if not inplace:
         timeseries=deepcopy(timeseries)
@@ -397,16 +397,16 @@ def add_seasons_effect(timeseries,starting_year,inplace=False):
     seasonal_humidity_amplitude = (winter_humi - summer_humi)/2
 
     if 'temperature' in quantities:
-       timeseries['temperature'] += winter_temp + seasonal_temperature_amplitude * calculate_seasonal_sin_value(timeseries,starting_year)
+       timeseries['temperature'] += winter_temp + seasonal_temperature_amplitude * _calculate_seasonal_sin_value(timeseries,starting_year)
        
     if 'humidity' in quantities:
-        timeseries['humidity'] += winter_humi - seasonal_humidity_amplitude * calculate_seasonal_sin_value(timeseries,starting_year)
+        timeseries['humidity'] += winter_humi - seasonal_humidity_amplitude * _calculate_seasonal_sin_value(timeseries,starting_year)
 
     return timeseries
 
 
 # Clouds effect
-def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=False):
+def _add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=False):
     if not inplace:
         timeseries=deepcopy(timeseries)
     quantities = _quantities_in(timeseries)
@@ -433,7 +433,7 @@ def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=Fals
 
                 else:
                     clouds_effect_intesity = 2 - (position_in_the_day/int(number_of_points_in_a_day/2))
-                change_effect_label(timeseries,index,'clouds')
+                _change_effect_label(timeseries,index,'clouds')
                 for quantity in quantities:
 
                     if quantity == 'temperature':
@@ -452,7 +452,7 @@ def add_clouds_effect(timeseries,sampling_interval,inplace=False,mv_anomaly=Fals
 
 
 # Spike effect
-def add_spike_effect(timeseries,inplace=False,mode='uv'): 
+def _add_spike_effect(timeseries,inplace=False,mode='uv'): 
     if not inplace:
         timeseries = deepcopy(timeseries)
     quantities = _quantities_in(timeseries)
@@ -468,7 +468,7 @@ def add_spike_effect(timeseries,inplace=False,mode='uv'):
         if is_a_spiked_value:
             spike_n += 1
             random_spike_intensity = rnd.choice(list(spike_factor.keys()))
-            change_effect_label(timeseries,i,'spike')
+            _change_effect_label(timeseries,i,'spike')
             if 'temperature' in quantities:
                 timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                  
 
@@ -483,7 +483,7 @@ def add_spike_effect(timeseries,inplace=False,mode='uv'):
     return timeseries
 
 
-def csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
+def _csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
     quantities = _quantities_in(timeseries)
     data_type = ''
 
@@ -506,7 +506,7 @@ def csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
     timeseries.to_csv(path + file_name + '.csv', sep=';', index=False, encoding='utf-8')
 
 
-def plot_func(timeseries,anomalies=[]):
+def _plot_func(timeseries,anomalies=[]):
     import matplotlib.pyplot as plt
     quantities = _quantities_in(timeseries)
 
@@ -597,11 +597,11 @@ class HumiTempTimeseriesGenerator(TimeseriesGenerator):
             if effect not in avaliable_effects:
                 raise ValueError(f'Effect "{effect}" is not supported.')
 
-        datetime_boundaries = generate_time_boundaries(self.time_span,self.starting_year,
+        datetime_boundaries = _generate_time_boundaries(self.time_span,self.starting_year,
                                                        self.starting_month,self.starting_day,
                                                        self.starting_hour,self.starting_minute)
 
-        timeseries_df = generate_synthetic_humitemp_timeseries(self.sampling_interval,datetime_boundaries,
+        timeseries_df = _generate_synthetic_humitemp_timeseries(self.sampling_interval,datetime_boundaries,
                                                                self.temperature,self.humidity)
         final_humitemp_timeseries_df = timeseries_df
 
@@ -610,76 +610,76 @@ class HumiTempTimeseriesGenerator(TimeseriesGenerator):
             if isinstance(anomalies,list):
 
                 if 'pattern_uv' in anomalies:
-                    final_humitemp_timeseries_df = add_pattern_anomaly(final_humitemp_timeseries_df,
+                    final_humitemp_timeseries_df = _add_pattern_anomaly(final_humitemp_timeseries_df,
                                                                        self.sampling_interval,mode='uv')
                     if 'pattern_mv' in anomalies:
                         raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'pattern_mv' in anomalies:
-                    final_humitemp_timeseries_df = add_pattern_anomaly(final_humitemp_timeseries_df,
+                    final_humitemp_timeseries_df = _add_pattern_anomaly(final_humitemp_timeseries_df,
                                                                        self.sampling_interval,mode='mv')
 
                 if 'spike_uv' in anomalies:
-                    final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='uv')
+                    final_humitemp_timeseries_df = _add_spike_anomaly(final_humitemp_timeseries_df,mode='uv')
 
                     if 'spike_mv' in anomalies:
                         raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'spike_mv' in anomalies:
-                    final_humitemp_timeseries_df = add_spike_anomaly(final_humitemp_timeseries_df,mode='mv')
+                    final_humitemp_timeseries_df = _add_spike_anomaly(final_humitemp_timeseries_df,mode='mv')
 
                 if 'step_uv' in anomalies:
-                    final_humitemp_timeseries_df = add_step_anomaly(final_humitemp_timeseries_df,mode='uv')
+                    final_humitemp_timeseries_df = _add_step_anomaly(final_humitemp_timeseries_df,mode='uv')
 
                     if 'step_mv' in anomalies:
                         raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'step_mv' in anomalies:
-                    final_humitemp_timeseries_df = add_step_anomaly(final_humitemp_timeseries_df,mode='mv')
+                    final_humitemp_timeseries_df = _add_step_anomaly(final_humitemp_timeseries_df,mode='mv')
 
                 if 'noise_uv' in anomalies:
-                    final_humitemp_timeseries_df = add_anomalous_noise(final_humitemp_timeseries_df,mode='uv')
+                    final_humitemp_timeseries_df = _add_anomalous_noise(final_humitemp_timeseries_df,mode='uv')
 
                     if 'noise_mv' in anomalies:
                         raise ValueError('The injection of anomalies has to be either in univariate mode or in multivariate mode. Cannot select both at the same timestamp')
 
                 if 'noise_mv' in anomalies:
-                    final_humitemp_timeseries_df = add_anomalous_noise(final_humitemp_timeseries_df,mode='mv')
+                    final_humitemp_timeseries_df = _add_anomalous_noise(final_humitemp_timeseries_df,mode='mv')
 
                 if 'clouds' in anomalies:
 
                     if 'clouds' not in effects:
                         raise ValueError('Clouds effect must be inside the effects if using clouds anomaly')
-                    final_humitemp_timeseries_df = add_clouds_anomaly(final_humitemp_timeseries_df,
-                                                                      self.sampling_interval)
+                    final_humitemp_timeseries_df = _add_clouds_anomaly(final_humitemp_timeseries_df)
 
         if effects:
 
             if isinstance(effects,list):
 
                 if 'noise' in effects:
-                    final_humitemp_timeseries_df = add_noise_effect(final_humitemp_timeseries_df)
+                    final_humitemp_timeseries_df = _add_noise_effect(final_humitemp_timeseries_df,
+                                                                        self.sampling_interval)
 
                 if 'seasons' in effects:
-                    final_humitemp_timeseries_df = add_seasons_effect(final_humitemp_timeseries_df,
+                    final_humitemp_timeseries_df = _add_seasons_effect(final_humitemp_timeseries_df,
                                                                       datetime_boundaries[0].year)
 
                 if 'clouds' in effects and 'clouds' not in anomalies:
-                    final_humitemp_timeseries_df = add_clouds_effect(final_humitemp_timeseries_df,
+                    final_humitemp_timeseries_df = _add_clouds_effect(final_humitemp_timeseries_df,
                                                                       self.sampling_interval)
 
                 if 'spike' in effects:
-                    final_humitemp_timeseries_df = add_spike_effect(final_humitemp_timeseries_df)
+                    final_humitemp_timeseries_df = _add_spike_effect(final_humitemp_timeseries_df)
 
         if index_by_timestamp:
             final_humitemp_timeseries_df.set_index(final_humitemp_timeseries_df['timestamp'],inplace=True)
             final_humitemp_timeseries_df.drop(columns=['timestamp'],inplace=True)
 
         if plot:
-            plot_func(final_humitemp_timeseries_df,anomalies)
+            _plot_func(final_humitemp_timeseries_df,anomalies)
 
         if generate_csv:
-            csv_file_maker(final_humitemp_timeseries_df,anomalies,effects,path=csv_path)
+            _csv_file_maker(final_humitemp_timeseries_df,anomalies,effects,path=csv_path)
 
         return final_humitemp_timeseries_df
 
