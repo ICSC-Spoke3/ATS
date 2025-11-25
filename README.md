@@ -25,7 +25,7 @@ This is a list of the various methodologies available, together with their capab
 
 `IFSOMAnomalyDetector`
 
-- **Description:** anomaly detector based on Isolation Forest and Self-organizing maps
+- **Description:** anomaly detector based on Isolation Forest and Self-organizing maps [3]
 - **Type:** unsupervised
 - **Works on:** lists of series (uv)
 - **Real time:** no
