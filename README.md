@@ -35,7 +35,7 @@ This is a list of the various methodologies available, together with their capab
 
 `COMAnomalyDetector`
 
-- **Description:** Robust anomaly detection technique based on the covariance matrix
+- **Description:** Robust anomaly detection technique based on the covariance matrix [2]
 - **Type:** unsupervised
 - **Works on:** single series (mv) or lists of series (uv)
 - **Real time:** no
