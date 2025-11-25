@@ -73,5 +73,6 @@ Optionally:
 
 ## References
 
-[1] **Robust anomaly detection for time series data in sensor-based critical systems**. Stefano Alberto Russo https://arts.units.it/handle/11368/3107341
+[1] **Robust anomaly detection for time series data in sensor-based critical systems**. Stefano Alberto Russo https://arts.units.it/handle/11368/3107341 
+
 [2] **Anomaly Detection in High-Dimensional Bank Account Balances via Robust Methods**. Federico Maddanu, Tommaso Proietti, Riccardo Crupi https://arxiv.org/abs/2511.11143
