@@ -45,7 +45,7 @@ This is a list of the various methodologies available, together with their capab
 
 `NHARAnomalyDetector`
 
-- **Description:** Robust anomaly detection technique based on non-linear regression via neural networks and residuals modeling 
+- **Description:** Robust anomaly detection technique based on non-linear regression via neural networks and residuals modeling [2]
 - **Type:** unsupervised
 - **Works on:** single series (mv) or lists of series (uv)
 - **Real time:** no
