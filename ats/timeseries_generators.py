@@ -650,7 +650,6 @@ class HumiTempTimeseriesGenerator(TimeseriesGenerator):
 
                     if 'clouds' not in effects:
                         raise ValueError('Clouds effect must be inside the effects if using clouds anomaly')
-                    effects.remove('clouds')
                     final_humitemp_timeseries_df = add_clouds_anomaly(final_humitemp_timeseries_df,
                                                                       self.sampling_interval)
 
@@ -665,7 +664,7 @@ class HumiTempTimeseriesGenerator(TimeseriesGenerator):
                     final_humitemp_timeseries_df = add_seasons_effect(final_humitemp_timeseries_df,
                                                                       datetime_boundaries[0].year)
 
-                if 'clouds' in effects:
+                if 'clouds' in effects and 'clouds' not in anomalies:
                     final_humitemp_timeseries_df = add_clouds_effect(final_humitemp_timeseries_df,
                                                                       self.sampling_interval)
 
