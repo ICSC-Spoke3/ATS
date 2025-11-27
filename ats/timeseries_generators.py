@@ -470,7 +470,7 @@ def _add_spike_effect(timeseries,inplace=False,mode='uv'):
             random_spike_intensity = rnd.choice(list(spike_factor.keys()))
             _change_effect_label(timeseries,i,'spike')
             if 'temperature' in quantities:
-                timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]                  
+                timeseries.loc[i,'temperature'] += spike_factor[random_spike_intensity]
 
             if 'humidity' in quantities:
 
@@ -650,15 +650,15 @@ class HumiTempTimeseriesGenerator(TimeseriesGenerator):
 
                     if 'clouds' not in effects:
                         raise ValueError('Clouds effect must be inside the effects if using clouds anomaly')
-                    final_humitemp_timeseries_df = _add_clouds_anomaly(final_humitemp_timeseries_df)
+                    final_humitemp_timeseries_df = _add_clouds_anomaly(final_humitemp_timeseries_df,
+                                                                        self.sampling_interval)
 
         if effects:
 
             if isinstance(effects,list):
 
                 if 'noise' in effects:
-                    final_humitemp_timeseries_df = _add_noise_effect(final_humitemp_timeseries_df,
-                                                                        self.sampling_interval)
+                    final_humitemp_timeseries_df = _add_noise_effect(final_humitemp_timeseries_df)
 
                 if 'seasons' in effects:
                     final_humitemp_timeseries_df = _add_seasons_effect(final_humitemp_timeseries_df,
