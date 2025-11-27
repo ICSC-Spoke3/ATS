@@ -3,6 +3,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import random as rnd
+import matplotlib
 from ..timeseries_generators import HumiTempTimeseriesGenerator
 from ..timeseries_generators import generate_time_boundaries
 from ..timeseries_generators import add_step_anomaly
@@ -25,6 +26,7 @@ class TestSyntheticHumiTempTimeseriesGenerator(unittest.TestCase):
     def setUp(self):
         rnd.seed(123)
         np.random.seed(123)
+        matplotlib.use('Agg')
 
     def test_defaults(self):
         default_generator = HumiTempTimeseriesGenerator()
