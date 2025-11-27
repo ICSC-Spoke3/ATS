@@ -152,7 +152,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             except Exception as e:
                 logger.error(f"Error generating series {i+1}: {e}")
                 continue
-            logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects}")
+            logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects} and anomalies: {anomalies_for_group}  ")
             self.anomalies_list_per_series.append(anomalies_for_group)
             dataset.append(series)
     
