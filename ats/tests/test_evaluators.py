@@ -298,11 +298,13 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(model_scores['anomaly_2'],0.3333333333333333)
         self.assertAlmostEqual(model_scores['false_positives'],0.333333333333333)
 
-    def test_evaluate(self):
-        anomalies = ['spike_uv','step_uv']
+    def test_evaluate_point_granularity(self):
+        anomalies = ['step_uv']
+        effects = []
+        # series with 2880 data points
         series_generator = HumiTempTimeseriesGenerator()
-        series1 = series_generator.generate(anomalies=anomalies)
-        series2 = series_generator.generate(anomalies=anomalies)
+        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series2 = series_generator.generate(anomalies=anomalies,effects=effects)
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
@@ -312,17 +314,18 @@ class TestEvaluators(unittest.TestCase):
                 'detector_2': minmax2,
                 'detector_3': minmax3
                 }
-        evaluation_results = evaluator.evaluate(models=models)
+        evaluation_results = evaluator.evaluate(models=models,granularity='data_point')
         # Evaluation_results:
-        # detector_1: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
-        # detector_2: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
-        # detector_3: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
-
+        # detector_1: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_2: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_3: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
         self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),3)
-        self.assertEqual(len(evaluation_results['detector_1']),3)
-        self.assertEqual(len(evaluation_results['detector_2']),3)
-        self.assertEqual(len(evaluation_results['detector_3']),3)
+        self.assertEqual(len(evaluation_results['detector_1']),2)
+        self.assertEqual(len(evaluation_results['detector_2']),2)
+        self.assertEqual(len(evaluation_results['detector_3']),2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.000694444444444444)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.000694444444444444)
 
     def test_copy_dataset(self):
         series_generator = HumiTempTimeseriesGenerator()
