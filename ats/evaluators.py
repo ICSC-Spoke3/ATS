@@ -47,26 +47,26 @@ def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=F
 
 
 def _calculate_model_scores(single_model_evaluation={},granularity='data_point'):
-    anomalies = list(single_model_evaluation['sample_1'].keys())
-    samples_n = len(single_model_evaluation)
-    detections_per_anomaly = {}
-    avg_detections_per_anomaly = {}
-
-    for anomaly in anomalies:
-        detections_per_anomaly[anomaly] = 0
-
+    dataset_anomalies = set()
     for sample in single_model_evaluation.keys():
-        for anomaly in single_model_evaluation[sample].keys():
-            # TODO: evaluate_anomaly_detector and calculate_model_scores are redundant
-            if single_model_evaluation[sample][anomaly] and anomaly != 'false_positives':
-                detections_per_anomaly[anomaly] +=1
-            elif anomaly == 'false_positives':
-                detections_per_anomaly[anomaly] +=single_model_evaluation[sample][anomaly]
+        sample_anomalies = set(single_model_evaluation[sample].keys())
+        dataset_anomalies.update(sample_anomalies)
 
-    for anomaly,counts in detections_per_anomaly.items():
-        avg_detections_per_anomaly[anomaly] = counts/samples_n if anomaly != 'false_positives' else counts
+    anomaly_scores = {}
+    for anomaly in dataset_anomalies:
+        anomaly_scores[anomaly] = 0
 
-    return avg_detections_per_anomaly
+    for anomaly in dataset_anomalies:
+        for sample in single_model_evaluation.keys():
+            if anomaly in single_model_evaluation[sample].keys():
+                anomaly_scores[anomaly] += single_model_evaluation[sample][anomaly]
+
+    if granularity == 'series':
+        samples_n = len(single_model_evaluation)
+        for key in anomaly_scores.keys():
+            anomaly_scores[key] /= samples_n
+
+    return anomaly_scores
 
 
 class Evaluator():

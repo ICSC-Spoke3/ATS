@@ -242,25 +242,61 @@ class TestEvaluators(unittest.TestCase):
     def test_calculate_model_scores(self):
         single_model_evaluation = {
             'sample_1': {
-                'anomaly_1': True,
-                'anomaly_2': False,
-                'false_positives': 2
+                'anomaly_1': 0.5,
+                'anomaly_2': 0.2,
+                'false_positives': 0.6
             },
             'sample_2': {
-                'anomaly_1': True,
-                'anomaly_2': True,
-                'false_positives': 1
+                'anomaly_1': 0.3,
+                'anomaly_2': 0.4,
+                'anomaly_3': 0.1,
+                'false_positives': 0.2
             },
             }
-        model_scores = _calculate_model_scores(single_model_evaluation)
+        model_scores = _calculate_model_scores(single_model_evaluation,granularity='data_point')
+        # model_scores:
+        # { 'anomaly_3': 0.1,
+        #   'anomaly_1': 0.8,
+        #   'false_positives': 0.8,
+        #   'anomaly_2': 0.6
+        # }
+        self.assertEqual(len(model_scores),4)
+        self.assertIsInstance(model_scores,dict)
+        self.assertIn('anomaly_1',model_scores.keys())
+        self.assertIn('anomaly_2',model_scores.keys())
+        self.assertIn('anomaly_3',model_scores.keys())
+        self.assertIn('false_positives',model_scores.keys())
+        self.assertAlmostEqual(model_scores['anomaly_1'],0.8)
+        self.assertAlmostEqual(model_scores['anomaly_2'],0.6)
+        self.assertAlmostEqual(model_scores['anomaly_3'],0.1)
+        self.assertAlmostEqual(model_scores['false_positives'],0.8)
+
+    def test_calculate_model_score_series_granularity(self):
+        single_model_evaluation = {
+            'sample_1': {
+                'anomaly_1': 1,
+            },
+            'sample_2': {
+                'false_positives': 1
+            },
+            'sample_3': {
+                'anomaly_2': 1
+            }
+            }
+        model_scores = _calculate_model_scores(single_model_evaluation,granularity='series')
+        # model_scores:
+        # { 'anomaly_1': 0.3333333333333333,
+        #   'false_positives': 0.3333333333333333,
+        #   'anomaly_2': 0.3333333333333333
+        # }
         self.assertEqual(len(model_scores),3)
         self.assertIsInstance(model_scores,dict)
         self.assertIn('anomaly_1',model_scores.keys())
         self.assertIn('anomaly_2',model_scores.keys())
         self.assertIn('false_positives',model_scores.keys())
-        self.assertAlmostEqual(model_scores['anomaly_1'],1.0)
-        self.assertAlmostEqual(model_scores['anomaly_2'],0.5)
-        self.assertAlmostEqual(model_scores['false_positives'],3)
+        self.assertAlmostEqual(model_scores['anomaly_1'],0.3333333333333333)
+        self.assertAlmostEqual(model_scores['anomaly_2'],0.3333333333333333)
+        self.assertAlmostEqual(model_scores['false_positives'],0.333333333333333)
 
     def test_evaluate(self):
         anomalies = ['spike_uv','step_uv']
