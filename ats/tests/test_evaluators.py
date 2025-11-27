@@ -327,6 +327,36 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.000694444444444444)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.000694444444444444)
 
+    def test_evaluate_variable_granularity(self):
+        anomalies = ['step_uv']
+        effects = []
+        # series with 2880 data points
+        series_generator = HumiTempTimeseriesGenerator()
+        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series2 = series_generator.generate(anomalies=anomalies,effects=effects)
+        dataset = [series1,series2]
+        evaluator = Evaluator(test_data=dataset)
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluation_results = evaluator.evaluate(models=models,granularity='variable')
+        # Evaluation_results:
+        # detector_1: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_2: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_3: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+
+        self.assertIsInstance(evaluation_results,dict)
+        self.assertEqual(len(evaluation_results),3)
+        self.assertEqual(len(evaluation_results['detector_1']),2)
+        self.assertEqual(len(evaluation_results['detector_2']),2)
+        self.assertEqual(len(evaluation_results['detector_3']),2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.000694444444444444)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.000694444444444444)
+
     def test_copy_dataset(self):
         series_generator = HumiTempTimeseriesGenerator()
         series1 = series_generator.generate(effects=['noise'])
