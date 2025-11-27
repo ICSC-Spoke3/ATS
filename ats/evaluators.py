@@ -101,7 +101,13 @@ class Evaluator():
             single_model_evaluation = {}
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
-                single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(sample_df,anomaly_labels_list[i])
+                if granularity == 'data_point':
+                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels)
+                if granularity == 'variable':
+                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels)
+                if granularity == 'series':
+                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels)
+                
             models_scores[model_name] = _calculate_model_scores(single_model_evaluation,granularity=granularity)
             j+=1
 
