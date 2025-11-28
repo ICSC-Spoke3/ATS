@@ -85,7 +85,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
     def generate(self, n_series=9, time_span='60D',
                  effects='default', anomalies='default', 
                  max_anomalies_per_series = 1, anomalies_ratio = 0.5,
-                 auto_repeat_anomalies = False):
+                 auto_repeat_anomalies = True):
         """
         Generate a synthetic dataset of humidity-temperature time series
         with different anomaly configurations.
