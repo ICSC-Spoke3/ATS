@@ -114,7 +114,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             sub_time_span = time_span
         if number_of_anomalies > 0:
             logger.info("Generating datest with max {} anomalies per series and " \
-            "with a {} % of series without anomalies.".format(max_anomalies_per_series, anomalies_ratio * 100))
+            "with a {} % of series with anomalies.".format(max_anomalies_per_series, anomalies_ratio * 100))
             max_anomalies_per_series = min(max_anomalies_per_series, number_of_anomalies)
             sub_time_span = self._divide_time_interval(time_span, max_anomalies_per_series,anomalies=anomalies)
         
