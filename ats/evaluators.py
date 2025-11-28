@@ -2,15 +2,15 @@ from .anomaly_detectors.naive import MinMaxAnomalyDetector
 import pandas as pd
 from copy import deepcopy
 
-def _format_for_anomaly_detector(input_df,synthetic=False):
+def _format_for_anomaly_detector(df,synthetic=False):
     if synthetic:
-        input_df.drop(columns=['effect_label'],inplace=True)
-    if 'anomaly_label' not in input_df.columns:
+        df = df.drop(columns=['effect_label'],inplace=False)
+    if 'anomaly_label' not in df.columns:
         raise ValueError('The input DataFrame has to contain an "anomaly_label" column for evaluation')
 
-    anomaly_labels = input_df.loc[:,'anomaly_label']
-    output_df = input_df.drop(columns=['anomaly_label'],inplace=False)
-    return output_df,anomaly_labels
+    anomaly_labels = df.loc[:,'anomaly_label']
+    df = df.drop(columns=['anomaly_label'],inplace=False)
+    return df,anomaly_labels
 
 def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=False):
 
