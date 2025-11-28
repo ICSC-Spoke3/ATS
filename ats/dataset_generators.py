@@ -84,7 +84,8 @@ class HumiTempDatasetGenerator(DatasetGenerator):
 
     def generate(self, n_series=9, time_span='60D',
                  effects='default', anomalies='default', 
-                 max_anomalies_per_series = 1, anomalies_ratio = 0.5):
+                 max_anomalies_per_series = 1, anomalies_ratio = 0.5,
+                 auto_repeate_anomalies = False):
         """
         Generate a synthetic dataset of humidity-temperature time series
         with different anomaly configurations.
@@ -96,6 +97,8 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             anomalies (list[str]): Anomalies to apply in each series.
             max_anomalies_per_series (int): Max anomalies per series.
             anomalies_ratio (float): ratio of series with anomalies w.r.t. series without it in the dataset (0-1 range).
+            auto_repeat_anomalies (bool): If True, anomalies are automatically reused to fill the requested number per series. 
+                If False, anomalies will only appear as many times as listed in the `anomalies` argument.
         Returns:
             list: Generated synthetic time series.
         """
@@ -115,6 +118,11 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             raise TypeError(f"'anomalies_ratio' must be a float, got {type(anomalies_ratio).__name__}.")
         if not (0 <= anomalies_ratio <= 1):
             raise ValueError("'anomalies_ratio' must be between 0 and 1.")
+        if not isinstance(auto_repeate_anomalies, bool):
+            raise TypeError(f"'auto_repeate_anomalies' must be a boolean, got {type(auto_repeate_anomalies).__name__}.")
+        
+        if auto_repeate_anomalies == True:
+            raise NotImplementedError("auto_repeate_anomalies=True is not implemented yet.")
         
         # Validate list parameters
         effects = self.__check_list(effects, "effects")
