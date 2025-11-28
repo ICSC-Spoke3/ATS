@@ -507,44 +507,50 @@ def _csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
     timeseries.to_csv(path + file_name + '.csv', sep=';', index=False, encoding='utf-8')
 
 
-def _plot_func(timeseries,anomalies=[],auto_search_anomalies_label = False):
+def _plot_func(timeseries, anomalies=None, auto_search_anomalies_label=False):
+
     quantities = _quantities_in(timeseries)
 
     if auto_search_anomalies_label:
         anomalies = []
         prev = None
-        for label in timeseries["anomaly_label"]:
-            if label is None:
-                continue
-            if label != prev:
-                anomalies.append(label)
-            prev = label
-            
-    colors = { 'temperature': 'crimson',
-              'humidity': 'navy'
 
+        for i in range(len(timeseries)):
+            anomaly_target = timeseries.iloc[i]['anomaly_label']
+            if anomaly_target is None:
+                continue
+            if anomaly_target != prev:
+                anomalies.append(anomaly_target)
+            prev = anomaly_target
+
+    if anomalies is None:
+        anomalies = []
+
+    colors = {
+        'temperature': 'crimson',
+        'humidity': 'navy'
     }
-    anomaly_highlighter = { 'spike_uv': 'red',
-                           'spike_mv': 'blue',
-                           'step_uv': 'orange',
-                           'step_mv': 'yellow',
-                           'pattern_uv': 'green',
-                           'pattern_mv': 'pink',
-                           'noise_uv': 'purple',
-                           'noise_mv': 'cyan',
-                           'clouds': 'violet'   
+
+    anomaly_highlighter = {
+        'spike_uv': 'red',
+        'spike_mv': 'blue',
+        'step_uv': 'orange',
+        'step_mv': 'yellow',
+        'pattern_uv': 'green',
+        'pattern_mv': 'pink',
+        'noise_uv': 'purple',
+        'noise_mv': 'cyan',
+        'clouds': 'violet'
     }
     fig, ax = plt.subplots(figsize=(15, 4))
 
     for quantity in quantities:
-        ax.plot(timeseries[quantity],label=quantity,color=colors[quantity])
+        ax.plot(timeseries[quantity], label=quantity, color=colors[quantity])
 
     ax.set_ylabel(', '.join(quantities))
-    start_band_position = timeseries.index[0]
-    stop_band_position = timeseries.index[0]
+    legend_added = set()
 
     if anomalies:
-
         for anomaly in anomalies:
             inside_band = False
             start_band_position = None
@@ -560,18 +566,33 @@ def _plot_func(timeseries,anomalies=[],auto_search_anomalies_label = False):
                 elif inside_band and anomaly_target != anomaly:
                     stop_band_position = idx
                     inside_band = False
-                    ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
+
+                    ax.axvspan(
+                        start_band_position,
+                        stop_band_position,
+                        color=anomaly_highlighter[anomaly],
+                        alpha=0.3,
+                        label=anomaly if anomaly not in legend_added else None
+                    )
+                    legend_added.add(anomaly)
+
 
             if inside_band:
-                stop_band_position = timeseries.index[- 1]
-                ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
-  
+                stop_band_position = timeseries.index[-1]
+                ax.axvspan(
+                    start_band_position,
+                    stop_band_position,
+                    color=anomaly_highlighter[anomaly],
+                    alpha=0.3,
+                    label=anomaly if anomaly not in legend_added else None
+                )
+                legend_added.add(anomaly)
+
     ax.set_xlabel("timestamp")
     ax.legend()
     ax.grid(True)
     plt.tight_layout()
     plt.show()
-
 
 class TimeseriesGenerator:
     pass
