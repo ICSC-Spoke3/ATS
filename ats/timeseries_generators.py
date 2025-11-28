@@ -582,7 +582,7 @@ def _plot_func(timeseries, anomalies=None, auto_search_anomalies_label=False):
                     stop_band_position = None  
         
     ax.set_xlabel("timestamp")
-    ax.legend()
+    ax.legend(loc='upper left')
     ax.grid(True)
     plt.tight_layout()
     plt.show()
