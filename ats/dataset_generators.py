@@ -138,9 +138,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                 raise ValueError("Cannot use 'clouds' anomaly without including 'clouds' effect.")
 
         dataset = []
-        self.anomalies_list_per_series = []
         self.time_span = time_span
-        self.dataset = dataset      
 
         accumulator=0.0
         for i in range(n):
@@ -168,15 +166,27 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                 logger.error(f"Error generating series {i+1}: {e}")
                 continue
             logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects} and anomalies: {anomalies_for_group}  ")
-            self.anomalies_list_per_series.append(anomalies_for_group)
             dataset.append(series)
     
         return dataset
     
-    def plot_dataset(self):
-        for df, anomalies in zip(self.dataset, self.anomalies_list_per_series):
-            _plot_func(df, auto_search_anomalies_label=True) 
-
+    @staticmethod
+    def plot_dataset(dataset):
+        """
+        Plots each DataFrame in the dataset using _plot_func.
+        Returns a list of plot objects (or None if plotting failed for a DataFrame).
+        Logs any errors encountered during plotting.
+        """
+        plot_objects = []
+        for idx, df in enumerate(dataset):
+            try:
+                plot_obj = _plot_func(df, auto_search_anomalies_label=True)
+                plot_objects.append(plot_obj)
+            except Exception as e:
+                logger.error(f"Error plotting dataset index {idx}: {e}")
+                plot_objects.append(None)
+        return plot_objects
+    
     def _expected_points(self): 
         obs_window = pd.Timedelta(self.time_span)
         samp_interval = pd.Timedelta(self.sampling_interval)

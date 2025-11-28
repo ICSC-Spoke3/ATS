@@ -122,7 +122,7 @@ class TestDatasetGenerator(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_plot_dataset(self, mock_show):
         generator = HumiTempDatasetGenerator()
-        test_dataset = generator.generate(n_series=3,time_span='1D',
+        test_dataset = generator.generate(n_series=3, time_span='1D',
             effects=['noise'], anomalies=['spike_uv'])
-        generator.plot_dataset()  
+        generator.plot_dataset(test_dataset)
         self.assertEqual(mock_show.call_count, 3)
