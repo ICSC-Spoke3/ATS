@@ -507,9 +507,19 @@ def _csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
     timeseries.to_csv(path + file_name + '.csv', sep=';', index=False, encoding='utf-8')
 
 
-def _plot_func(timeseries,anomalies=[]):
+def _plot_func(timeseries,anomalies=[],auto_search_anomalies_label = False):
     quantities = _quantities_in(timeseries)
 
+    if auto_search_anomalies_label:
+        anomalies = []
+        prev = None
+        for label in timeseries["anomaly_label"]:
+            if label is None:
+                continue
+            if label != prev:
+                anomalies.append(label)
+            prev = label
+            
     colors = { 'temperature': 'crimson',
               'humidity': 'navy'
 
