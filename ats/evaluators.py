@@ -9,8 +9,8 @@ def _format_for_anomaly_detector(input_df,synthetic=False):
         raise ValueError('The input DataFrame has to contain an "anomaly_label" column for evaluation')
 
     anomaly_labels = input_df.loc[:,'anomaly_label']
-    input_df.drop(columns=['anomaly_label'],inplace=True)
-    return input_df,anomaly_labels
+    output_df = input_df.drop(columns=['anomaly_label'],inplace=False)
+    return output_df,anomaly_labels
 
 def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=False):
 
