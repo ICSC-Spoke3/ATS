@@ -12,8 +12,10 @@ def _quantities_in(timeseries):
     quantities = list(timeseries.columns)
     if 'timestamp' in quantities:
         quantities.remove('timestamp')
-    quantities.remove('anomaly_label')
-    quantities.remove('effect_label')
+    if 'effect_label' in quantities:
+        quantities.remove('effect_label')
+    if 'anomaly_label' in quantities:
+        quantities.remove('anomaly_label')
     return quantities
 
 
@@ -610,7 +612,7 @@ class HumiTempTimeseriesGenerator(TimeseriesGenerator):
 
     def generate(self,plot=False,generate_csv=False,
                  csv_path='',anomalies=['spike_uv','step_uv'],
-                 effects=['noise','seasons','clouds'],index_by_timestamp=True):
+                 effects=['noise','seasons','clouds'],index_by_timestamp=True,include_effect_label=False):
 
         avaliable_anomalies = ['spike_uv','step_uv','noise_uv','pattern_uv','spike_mv','step_mv','noise_mv','pattern_mv','clouds']
         avaliable_effects = ['spike','noise','seasons','clouds']
@@ -704,6 +706,9 @@ class HumiTempTimeseriesGenerator(TimeseriesGenerator):
 
         if generate_csv:
             _csv_file_maker(final_humitemp_timeseries_df,anomalies,effects,path=csv_path)
+
+        if not include_effect_label:
+            final_humitemp_timeseries_df.drop(columns=['effect_label'],inplace=True)
 
         return final_humitemp_timeseries_df
 
