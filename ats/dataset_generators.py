@@ -160,7 +160,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
     
     def plot_dataset(self):
         for df, anomalies in zip(self.dataset, self.anomalies_list_per_series):
-            _plot_func(df, anomalies=anomalies) 
+            _plot_func(df, auto_search_anomalies_label=True) 
 
     def _expected_points(self): 
         obs_window = pd.Timedelta(self.time_span)
