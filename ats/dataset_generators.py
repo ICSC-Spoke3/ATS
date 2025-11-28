@@ -85,7 +85,7 @@ class HumiTempDatasetGenerator(DatasetGenerator):
     def generate(self, n_series=9, time_span='60D',
                  effects='default', anomalies='default', 
                  max_anomalies_per_series = 1, anomalies_ratio = 0.5,
-                 auto_repeate_anomalies = False):
+                 auto_repeat_anomalies = True):
         """
         Generate a synthetic dataset of humidity-temperature time series
         with different anomaly configurations.
@@ -118,12 +118,9 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             raise TypeError(f"'anomalies_ratio' must be a float, got {type(anomalies_ratio).__name__}.")
         if not (0 <= anomalies_ratio <= 1):
             raise ValueError("'anomalies_ratio' must be between 0 and 1.")
-        if not isinstance(auto_repeate_anomalies, bool):
-            raise TypeError(f"'auto_repeate_anomalies' must be a boolean, got {type(auto_repeate_anomalies).__name__}.")
-        
-        if auto_repeate_anomalies == True:
-            raise NotImplementedError("auto_repeate_anomalies=True is not implemented yet.")
-        
+        if not isinstance(auto_repeat_anomalies, bool):
+            raise TypeError(f"'auto_repeat_anomalies' must be a boolean, got {type(auto_repeat_anomalies).__name__}.")
+                
         # Validate list parameters
         effects = self.__check_list(effects, "effects")
         random_effects = self.__check_list(random_effects, "random_effects")
@@ -138,7 +135,8 @@ class HumiTempDatasetGenerator(DatasetGenerator):
         if number_of_anomalies > 0:
             logger.info("Generating datest with max {} anomalies per series and " \
             "with a {} % of series with anomalies.".format(max_anomalies_per_series, anomalies_ratio * 100))
-            max_anomalies_per_series = min(max_anomalies_per_series, number_of_anomalies)
+            if not auto_repeat_anomalies:
+                max_anomalies_per_series = min(max_anomalies_per_series, number_of_anomalies)
             sub_time_span = self._divide_time_interval(time_span, max_anomalies_per_series,anomalies=anomalies)
         
         if "clouds" in anomalies:
@@ -159,7 +157,10 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                     anomalies_for_group = []
                 else:
                     number_of_anomalies = rnd.randint(1, max_anomalies_per_series)
-                    anomalies_for_group = rnd.sample(anomalies, number_of_anomalies)
+                    if auto_repeat_anomalies:
+                        anomalies_for_group = rnd.choices(anomalies, k=number_of_anomalies)
+                    else:
+                        anomalies_for_group = rnd.sample(anomalies, number_of_anomalies)
 
             random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
             applied_effects = list(set(effects + random_applied_effects))
