@@ -1,4 +1,5 @@
 import datetime as dt
+import matplotlib.pyplot as plt
 import pandas as pd
 import random as rnd
 import numpy as np
@@ -507,7 +508,6 @@ def _csv_file_maker(timeseries,anomalies=[],effects=[],path=''):
 
 
 def _plot_func(timeseries,anomalies=[]):
-    import matplotlib.pyplot as plt
     quantities = _quantities_in(timeseries)
 
     colors = { 'temperature': 'crimson',
