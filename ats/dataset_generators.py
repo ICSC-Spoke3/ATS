@@ -174,18 +174,10 @@ class HumiTempDatasetGenerator(DatasetGenerator):
     def plot_dataset(dataset):
         """
         Plots each DataFrame in the dataset using _plot_func.
-        Returns a list of plot objects (or None if plotting failed for a DataFrame).
-        Logs any errors encountered during plotting.
         """
-        plot_objects = []
-        for idx, df in enumerate(dataset):
-            try:
-                plot_obj = _plot_func(df, auto_search_anomalies_label=True)
-                plot_objects.append(plot_obj)
-            except Exception as e:
-                logger.error(f"Error plotting dataset index {idx}: {e}")
-                plot_objects.append(None)
-        return plot_objects
+        for df in dataset:
+            _plot_func(df, auto_search_anomalies_label=True)
+
     
     def _expected_points(self): 
         obs_window = pd.Timedelta(self.time_span)
