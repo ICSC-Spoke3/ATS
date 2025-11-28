@@ -41,16 +41,26 @@ class HumiTempDatasetGenerator(DatasetGenerator):
     
     def _generate_series(self,sampling_interval='15min',sub_time_span='30D', anomalies=[], effects=[],max_anomalies_per_series=2):
         if len(anomalies) == 0:
-            n=0
+            anomalies = []
         else:
-            n=1
+            anomalies = anomalies.copy() 
+            for i in range(max_anomalies_per_series - len(anomalies)):
+                anomalies.append(None)
+        first_anomaly = rnd.sample(anomalies, 1)
+        anomalies.remove(first_anomaly[0])
+        if first_anomaly[0] is None:
+            first_anomaly = []
         series_combined = HumiTempTimeseriesGenerator(sampling_interval=sampling_interval,time_span=sub_time_span).generate(
-            effects=effects,       
-            anomalies=rnd.sample(anomalies, n) 
+            effects=effects, 
+            anomalies=first_anomaly
         )
         last_time = series_combined.index[-1] + pd.Timedelta(sampling_interval)
 
         for i in range(1, max_anomalies_per_series):
+            i_anomaly = rnd.sample(anomalies, 1)
+            anomalies.remove(i_anomaly[0])
+            if i_anomaly[0] is None:
+                i_anomaly = []
             last_time = series_combined.index[-1] + pd.Timedelta(sampling_interval)
             series = HumiTempTimeseriesGenerator( sampling_interval=sampling_interval,time_span=sub_time_span,
                                 starting_year = last_time.year,
@@ -60,10 +70,12 @@ class HumiTempDatasetGenerator(DatasetGenerator):
                                 starting_minute = last_time.minute
             ).generate(
                 effects=effects,       
-                anomalies=rnd.sample(anomalies, n)
+                anomalies=i_anomaly
             )
             series_combined = pd.concat([series_combined, series])
-        
+            if len(anomalies) != max_anomalies_per_series - i -1:
+                raise ValueError("Anomalies list length mismatch.")
+            
         return series_combined   
 
 
