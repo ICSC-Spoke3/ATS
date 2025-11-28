@@ -41,7 +41,10 @@ class HumiTempDatasetGenerator(DatasetGenerator):
     
     def _generate_series(self,sampling_interval='15min',sub_time_span='30D', anomalies=[], effects=[],max_anomalies_per_series=2):
         if len(anomalies) == 0:
-            anomalies = []
+            return HumiTempTimeseriesGenerator(
+                sampling_interval=sampling_interval,
+                time_span=self.time_span,
+            ).generate(effects=effects, anomalies=[])
         else:
             anomalies = anomalies.copy() 
             for i in range(max_anomalies_per_series - len(anomalies)):
