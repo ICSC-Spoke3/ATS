@@ -537,25 +537,25 @@ def _plot_func(timeseries,anomalies=[]):
 
         for anomaly in anomalies:
             inside_band = False
+            start_band_position = None
 
             for i in range(len(timeseries)):
                 anomaly_target = timeseries.iloc[i]['anomaly_label']
+                idx = timeseries.index[i]
 
                 if anomaly_target == anomaly and not inside_band:
-                    start_band_position = timeseries.index[i]
+                    start_band_position = idx
                     inside_band = True
 
-                elif anomaly_target is None and inside_band:
-                    stop_band_position = timeseries.index[i]
-                    break
+                elif inside_band and anomaly_target != anomaly:
+                    stop_band_position = idx
+                    inside_band = False
+                    ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
 
-                elif anomaly_target == anomaly and inside_band:
-                    stop_band_position = timeseries.index[(len(timeseries) - 1)]
-
-                else:
-                    continue
-
-            ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
+            if inside_band:
+                stop_band_position = timeseries.index[- 1]
+                ax.axvspan(start_band_position,stop_band_position,color=anomaly_highlighter[anomaly],alpha=0.3,label=anomaly)
+  
     ax.set_xlabel("timestamp")
     ax.legend()
     ax.grid(True)
