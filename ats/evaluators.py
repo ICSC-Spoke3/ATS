@@ -55,6 +55,8 @@ def _calculate_model_scores(single_model_evaluation={},granularity='data_point')
     anomaly_scores = {}
     for anomaly in dataset_anomalies:
         anomaly_scores[anomaly] = 0
+    if 'false_positives' not in dataset_anomalies:
+        anomaly_scores['false_positives'] = 0.0
 
     for anomaly in dataset_anomalies:
         for sample in single_model_evaluation.keys():
@@ -186,5 +188,7 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
         one_series_evaluation_result['false_positives'] = 1
     elif is_series_anomalous and anomalies:
         one_series_evaluation_result[anomalies[0]] = 1
+    elif not is_series_anomalous and anomalies:
+        one_series_evaluation_result[anomalies[0]] = 0
 
     return one_series_evaluation_result
