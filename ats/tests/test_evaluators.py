@@ -468,19 +468,30 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(dataset_copies[1]),2)
 
     def test_variable_granularity_evaluation(self):
-        series_generator = HumiTempTimeseriesGenerator()
-        series = series_generator.generate(include_effect_label=True, anomalies=['step_uv'])
-        minmax = MinMaxAnomalyDetector()
-        formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
-        flagged_series = minmax.apply(formatted_series)
-        evaluation_result = _variable_granularity_evaluation(flagged_series,anomaly_labels)
-        # evaluation_result:
-        # { 'step_uv': 0.00034722222222222224
-        # 'false_positives': 0.00034722222222222224
-        # }
-        self.assertEqual(len(evaluation_result),2)
-        self.assertAlmostEqual(evaluation_result['step_uv'],1/len(series))
-        self.assertAlmostEqual(evaluation_result['false_positives'],1/len(series))
+        dataset = [self.series1]
+        evaluator = Evaluator(test_data=dataset)
+        minmax1 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1}
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='variable')
+        self.assertIn('detector_1',evaluation_results.keys())
+        self.assertIn('anomalies_count',evaluation_results['detector_1'].keys())
+        self.assertIn('anomalies_ratio',evaluation_results['detector_1'].keys())
+        self.assertIn('false_positives_count',evaluation_results['detector_1'].keys())
+        self.assertIn('false_positives_ratio',evaluation_results['detector_1'].keys())
+
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],4)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],4/6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],0)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],0)
+
+        dataset1 = [self.series2]
+        evaluator1 = Evaluator(test_data=dataset1)
+        evaluation_results = evaluator1.evaluate(models=models,granularity='variable')
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],3)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],3/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1/(7*2))
 
     def test_point_granularity_evaluation(self):
         series_generator = HumiTempTimeseriesGenerator()
