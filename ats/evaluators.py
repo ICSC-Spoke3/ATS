@@ -110,7 +110,7 @@ class Evaluator():
                 if granularity == 'series':
                     single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i])
                 
-            models_scores[model_name] = _calculate_model_scores(single_model_evaluation,granularity=granularity)
+            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
             j+=1
 
         return models_scores
