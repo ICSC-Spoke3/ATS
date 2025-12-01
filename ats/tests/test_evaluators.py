@@ -46,6 +46,8 @@ class TestEvaluators(unittest.TestCase):
         # 2025-06-10 18:00:00+00:00 -0.756802 -0.997336     anomaly_1
         # 2025-06-10 19:00:00+00:00 -0.958924 -0.477482          None
         # 2025-06-10 20:00:00+00:00 -0.279415  0.481366          None
+        self.series3 = generate_timeseries_df(entries=3, variables=2)
+        self.series3['anomaly_label'] = [None, None, None]
 
     def test_evaluate_anomaly_detector(self):
 
