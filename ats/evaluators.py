@@ -166,7 +166,12 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
     one_series_evaluation_result = {}
     normalization_factor = len(flagged_timeseries_df)
 
+    total_inserted_anomalies_n = 0
+    total_detected_anomalies_n = 0
+    detection_counts_by_anomaly_type = {}
     for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
+        if anomaly is not None:
+            total_inserted_anomalies_n += frequency
         anomaly_count = 0
         for timestamp in flagged_timeseries_df.index:
             if anomaly_labels_df[timestamp] == anomaly:
@@ -174,9 +179,15 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
                     if flagged_timeseries_df.loc[timestamp,column]:
                         anomaly_count += 1
                         break
+        if anomaly is not None:
+            total_detected_anomalies_n += anomaly_count
+        detection_counts_by_anomaly_type[anomaly] = anomaly_count
         one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
 
-    one_series_evaluation_result['false_positives'] = one_series_evaluation_result.pop(None)
+    one_series_evaluation_result['false_positives_count'] = detection_counts_by_anomaly_type.pop(None)
+    one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']/normalization_factor
+    one_series_evaluation_result['anomalies_count'] = total_detected_anomalies_n
+    one_series_evaluation_result['anomalies_ratio'] = total_detected_anomalies_n/total_inserted_anomalies_n
     return one_series_evaluation_result
 
 def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
