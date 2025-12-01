@@ -302,14 +302,7 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],8/21)
 
     def test_evaluate_variable_granularity(self):
-        anomalies = ['step_uv']
-        effects = []
-        # series with 2880 data points
-        series_generator = HumiTempTimeseriesGenerator()
-        series_1 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
-        series_2 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
-        dataset = [series_1,series_2]
-        evaluator = Evaluator(test_data=dataset)
+        dataset = [self.series1, self.series2, self.series3]
         minmax1 = MinMaxAnomalyDetector()
         minmax2 = MinMaxAnomalyDetector()
         minmax3 = MinMaxAnomalyDetector()
@@ -317,19 +310,12 @@ class TestEvaluators(unittest.TestCase):
                 'detector_2': minmax2,
                 'detector_3': minmax3
                 }
+        evaluator = Evaluator(test_data=dataset)
         evaluation_results = evaluator.evaluate(models=models,granularity='variable')
-        # Evaluation_results:
-        # detector_1: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
-        # detector_2: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
-        # detector_3: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
-
-        self.assertIsInstance(evaluation_results,dict)
-        self.assertEqual(len(evaluation_results),3)
-        self.assertEqual(len(evaluation_results['detector_1']),2)
-        self.assertEqual(len(evaluation_results['detector_2']),2)
-        self.assertEqual(len(evaluation_results['detector_3']),2)
-        self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.000694444444444444)
-        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.000694444444444444)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],7)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],25/48)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],5)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],31/126)
 
     def test_evaluate_series_granularity(self):
         anomalies = ['step_uv']
