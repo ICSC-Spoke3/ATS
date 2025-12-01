@@ -26,6 +26,27 @@ class TestEvaluators(unittest.TestCase):
         rnd.seed(123)
         np.random.seed(123)
 
+        series1 = generate_timeseries_df(entries=5, variables=2)
+        series1['anomaly_label'] = [None, 'anomaly_2', 'anomaly_1', None, 'anomaly_1']
+        # series1
+        # timestamp                  value_1   value_2      anomaly_label                                               
+        # 2025-06-10 14:00:00+00:00  0.000000  0.707107          None
+        # 2025-06-10 15:00:00+00:00  0.841471  0.977061     anomaly_2
+        # 2025-06-10 16:00:00+00:00  0.909297  0.348710     anomaly_1
+        # 2025-06-10 17:00:00+00:00  0.141120 -0.600243          None
+        # 2025-06-10 18:00:00+00:00 -0.756802 -0.997336     anomaly_1
+        series2 = generate_timeseries_df(entries=7, variables=2)
+        series2['anomaly_label'] = ['anomaly_1', 'anomaly_2', 'anomaly_1', None, 'anomaly_1', None, None]
+        # series2
+        # timestamp                  value_1   value_2      anomaly_label
+        # 2025-06-10 14:00:00+00:00  0.000000  0.707107     anomaly_1
+        # 2025-06-10 15:00:00+00:00  0.841471  0.977061     anomaly_2
+        # 2025-06-10 16:00:00+00:00  0.909297  0.348710     anomaly_1
+        # 2025-06-10 17:00:00+00:00  0.141120 -0.600243          None
+        # 2025-06-10 18:00:00+00:00 -0.756802 -0.997336     anomaly_1
+        # 2025-06-10 19:00:00+00:00 -0.958924 -0.477482          None
+        # 2025-06-10 20:00:00+00:00 -0.279415  0.481366          None
+
     def test_evaluate_anomaly_detector(self):
 
         min_max_anomaly_detector = MinMaxAnomalyDetector()
