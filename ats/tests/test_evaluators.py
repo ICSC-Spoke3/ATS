@@ -263,63 +263,27 @@ class TestEvaluators(unittest.TestCase):
         self.assertIn('humidity_anomaly',list(flagged_dataset[1].columns))
 
     def test_calculate_model_scores(self):
-        single_model_evaluation = {
-            'sample_1': {
-                'anomaly_1': 0.5,
-                'anomaly_2': 0.2,
-                'false_positives': 0.6
-            },
-            'sample_2': {
-                'anomaly_1': 0.3,
-                'anomaly_2': 0.4,
-                'anomaly_3': 0.1,
-                'false_positives': 0.2
-            },
-            }
-        model_scores = _calculate_model_scores(single_model_evaluation,granularity='data_point')
-        # model_scores:
-        # { 'anomaly_3': 0.1,
-        #   'anomaly_1': 0.8,
-        #   'false_positives': 0.8,
-        #   'anomaly_2': 0.6
-        # }
-        self.assertEqual(len(model_scores),4)
+        single_model_evaluation = { 'sample_1': {'anomalies_count': 3, 'anomalies_ratio': 1.5,
+                                                    'false_positives_count': 1, 
+                                                    'false_positives_ratio': 0.14},
+                                    'sample_2': {'anomalies_count': 3, 'anomalies_ratio': 1.5,
+                                                    'false_positives_count': 1, 
+                                                    'false_positives_ratio': 0.14},
+                                    'sample_3': {'anomalies_count': 3, 'anomalies_ratio': 1.5,
+                                                    'false_positives_count': 1,
+                                                    'false_positives_ratio': 0.14}
+        }
+        model_scores = _calculate_model_scores(single_model_evaluation)
         self.assertIsInstance(model_scores,dict)
-        self.assertIn('anomaly_1',model_scores.keys())
-        self.assertIn('anomaly_2',model_scores.keys())
-        self.assertIn('anomaly_3',model_scores.keys())
-        self.assertIn('false_positives',model_scores.keys())
-        self.assertAlmostEqual(model_scores['anomaly_1'],0.8)
-        self.assertAlmostEqual(model_scores['anomaly_2'],0.6)
-        self.assertAlmostEqual(model_scores['anomaly_3'],0.1)
-        self.assertAlmostEqual(model_scores['false_positives'],0.8)
+        self.assertIn('anomalies_count',model_scores.keys())
+        self.assertIn('anomalies_ratio',model_scores.keys())
+        self.assertIn('false_positives_count',model_scores.keys())
+        self.assertIn('false_positives_ratio',model_scores.keys())
 
-    def test_calculate_model_score_series_granularity(self):
-        single_model_evaluation = {
-            'sample_1': {
-                'anomaly_1': 1,
-            },
-            'sample_2': {
-                'false_positives': 1
-            },
-            'sample_3': {
-                'anomaly_2': 1
-            }
-            }
-        model_scores = _calculate_model_scores(single_model_evaluation,granularity='series')
-        # model_scores:
-        # { 'anomaly_1': 0.3333333333333333,
-        #   'false_positives': 0.3333333333333333,
-        #   'anomaly_2': 0.3333333333333333
-        # }
-        self.assertEqual(len(model_scores),3)
-        self.assertIsInstance(model_scores,dict)
-        self.assertIn('anomaly_1',model_scores.keys())
-        self.assertIn('anomaly_2',model_scores.keys())
-        self.assertIn('false_positives',model_scores.keys())
-        self.assertAlmostEqual(model_scores['anomaly_1'],0.3333333333333333)
-        self.assertAlmostEqual(model_scores['anomaly_2'],0.3333333333333333)
-        self.assertAlmostEqual(model_scores['false_positives'],0.333333333333333)
+        self.assertAlmostEqual(model_scores['anomalies_count'],9)
+        self.assertAlmostEqual(model_scores['anomalies_ratio'],1.5)
+        self.assertAlmostEqual(model_scores['false_positives_count'],3)
+        self.assertAlmostEqual(model_scores['false_positives_ratio'],0.14)
 
     def test_evaluate_point_granularity(self):
         anomalies = ['step_uv']
@@ -522,36 +486,30 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1/7)
 
     def test_series_granularity_evaluation(self):
-        series_generator = HumiTempTimeseriesGenerator()
-        series = series_generator.generate(include_effect_label=True, anomalies=['step_uv'])
-        minmax = MinMaxAnomalyDetector()
-        formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
-        flagged_series = minmax.apply(formatted_series)
-        evaluation_result = _series_granularity_evaluation(flagged_series,anomaly_labels)
-        # evaluation_result:
-        # { 'step_uv': 1
-        # }
-        self.assertEqual(len(evaluation_result),1)
-        self.assertAlmostEqual(evaluation_result['step_uv'],1)
-
-        series_1 = series_generator.generate(include_effect_label=True, anomalies=[])
+        dataset = [self.series1]
+        evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
-        formatted_series1,anomaly_labels1 = _format_for_anomaly_detector(series_1,synthetic=True)
-        flagged_series1 = minmax.apply(formatted_series1)
-        evaluation_result1 = _series_granularity_evaluation(flagged_series1,anomaly_labels1)
-        self.assertEqual(len(evaluation_result1),1)
-        self.assertAlmostEqual(evaluation_result1['false_positives'],1)
-        # evaluation_result1:
-        # { 'false_positives': 1
-        # }
+        models={'detector_1': minmax1}
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='series')
+        self.assertIn('detector_1',evaluation_results.keys())
+        self.assertIn('anomalies_count',evaluation_results['detector_1'].keys())
+        self.assertIn('anomalies_ratio',evaluation_results['detector_1'].keys())
+        self.assertIn('false_positives_count',evaluation_results['detector_1'].keys())
+        self.assertIn('false_positives_ratio',evaluation_results['detector_1'].keys())
 
-        try:
-            series_2 = series_generator.generate(include_effect_label=True, anomalies=['spike_uv','step_uv'])
-            formatted_series2,anomaly_labels2 = _format_for_anomaly_detector(series_2,synthetic=True)
-            flagged_series2 = minmax.apply(formatted_series2)
-            evaluation_result2 = _series_granularity_evaluation(flagged_series2,anomaly_labels2)
-        except Exception as e:
-            self.assertIsInstance(e,ValueError)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],1)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],1)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],0)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],0)
+
+        dataset1 = [self.series3]
+        evaluator1 = Evaluator(test_data=dataset1)
+        evaluation_results = evaluator1.evaluate(models=models,granularity='series')
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],0)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],0)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1)
 
     def test_double_evaluator(self):
         anomalies = ['step_uv']
