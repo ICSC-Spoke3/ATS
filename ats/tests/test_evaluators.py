@@ -6,6 +6,9 @@ from ..evaluators import _get_model_output
 from ..evaluators import _format_for_anomaly_detector
 from ..evaluators import _calculate_model_scores
 from ..evaluators import Evaluator
+from ..evaluators import _variable_granularity_evaluation
+from ..evaluators import _point_granularity_evaluation
+from ..evaluators import _series_granularity_evaluation
 import unittest
 import pandas as pd
 import random as rnd
@@ -239,31 +242,69 @@ class TestEvaluators(unittest.TestCase):
     def test_calculate_model_scores(self):
         single_model_evaluation = {
             'sample_1': {
-                'anomaly_1': True,
-                'anomaly_2': False,
-                'false_positives': 2
+                'anomaly_1': 0.5,
+                'anomaly_2': 0.2,
+                'false_positives': 0.6
             },
             'sample_2': {
-                'anomaly_1': True,
-                'anomaly_2': True,
-                'false_positives': 1
+                'anomaly_1': 0.3,
+                'anomaly_2': 0.4,
+                'anomaly_3': 0.1,
+                'false_positives': 0.2
             },
             }
-        model_scores = _calculate_model_scores(single_model_evaluation)
+        model_scores = _calculate_model_scores(single_model_evaluation,granularity='data_point')
+        # model_scores:
+        # { 'anomaly_3': 0.1,
+        #   'anomaly_1': 0.8,
+        #   'false_positives': 0.8,
+        #   'anomaly_2': 0.6
+        # }
+        self.assertEqual(len(model_scores),4)
+        self.assertIsInstance(model_scores,dict)
+        self.assertIn('anomaly_1',model_scores.keys())
+        self.assertIn('anomaly_2',model_scores.keys())
+        self.assertIn('anomaly_3',model_scores.keys())
+        self.assertIn('false_positives',model_scores.keys())
+        self.assertAlmostEqual(model_scores['anomaly_1'],0.8)
+        self.assertAlmostEqual(model_scores['anomaly_2'],0.6)
+        self.assertAlmostEqual(model_scores['anomaly_3'],0.1)
+        self.assertAlmostEqual(model_scores['false_positives'],0.8)
+
+    def test_calculate_model_score_series_granularity(self):
+        single_model_evaluation = {
+            'sample_1': {
+                'anomaly_1': 1,
+            },
+            'sample_2': {
+                'false_positives': 1
+            },
+            'sample_3': {
+                'anomaly_2': 1
+            }
+            }
+        model_scores = _calculate_model_scores(single_model_evaluation,granularity='series')
+        # model_scores:
+        # { 'anomaly_1': 0.3333333333333333,
+        #   'false_positives': 0.3333333333333333,
+        #   'anomaly_2': 0.3333333333333333
+        # }
         self.assertEqual(len(model_scores),3)
         self.assertIsInstance(model_scores,dict)
         self.assertIn('anomaly_1',model_scores.keys())
         self.assertIn('anomaly_2',model_scores.keys())
         self.assertIn('false_positives',model_scores.keys())
-        self.assertAlmostEqual(model_scores['anomaly_1'],1.0)
-        self.assertAlmostEqual(model_scores['anomaly_2'],0.5)
-        self.assertAlmostEqual(model_scores['false_positives'],3)
+        self.assertAlmostEqual(model_scores['anomaly_1'],0.3333333333333333)
+        self.assertAlmostEqual(model_scores['anomaly_2'],0.3333333333333333)
+        self.assertAlmostEqual(model_scores['false_positives'],0.333333333333333)
 
-    def test_evaluate(self):
-        anomalies = ['spike_uv','step_uv']
+    def test_evaluate_point_granularity(self):
+        anomalies = ['step_uv']
+        effects = []
+        # series with 2880 data points
         series_generator = HumiTempTimeseriesGenerator()
-        series1 = series_generator.generate(anomalies=anomalies)
-        series2 = series_generator.generate(anomalies=anomalies)
+        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series2 = series_generator.generate(anomalies=anomalies,effects=effects)
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
@@ -273,17 +314,121 @@ class TestEvaluators(unittest.TestCase):
                 'detector_2': minmax2,
                 'detector_3': minmax3
                 }
-        evaluation_results = evaluator.evaluate(models=models)
+        evaluation_results = evaluator.evaluate(models=models,granularity='data_point')
         # Evaluation_results:
-        # detector_1: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
-        # detector_2: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
-        # detector_3: {'step_uv': 1.0, 'spike_uv': 0.0, 'false_positives': 4}
+        # detector_1: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_2: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_3: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        self.assertIsInstance(evaluation_results,dict)
+        self.assertEqual(len(evaluation_results),3)
+        self.assertEqual(len(evaluation_results['detector_1']),2)
+        self.assertEqual(len(evaluation_results['detector_2']),2)
+        self.assertEqual(len(evaluation_results['detector_3']),2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.000694444444444444)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.000694444444444444)
 
+    def test_evaluate_variable_granularity(self):
+        anomalies = ['step_uv']
+        effects = []
+        # series with 2880 data points
+        series_generator = HumiTempTimeseriesGenerator()
+        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series2 = series_generator.generate(anomalies=anomalies,effects=effects)
+        dataset = [series1,series2]
+        evaluator = Evaluator(test_data=dataset)
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluation_results = evaluator.evaluate(models=models,granularity='variable')
+        # Evaluation_results:
+        # detector_1: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_2: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+        # detector_3: {'step_uv': 0.000694444444444444, 'false_positives': 0.000694444444444444}
+
+        self.assertIsInstance(evaluation_results,dict)
+        self.assertEqual(len(evaluation_results),3)
+        self.assertEqual(len(evaluation_results['detector_1']),2)
+        self.assertEqual(len(evaluation_results['detector_2']),2)
+        self.assertEqual(len(evaluation_results['detector_3']),2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.000694444444444444)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.000694444444444444)
+
+    def test_evaluate_series_granularity(self):
+        anomalies = ['step_uv']
+        effects = []
+        series_generator = HumiTempTimeseriesGenerator()
+        # series1 will be a true anomaly for the minmax
+        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
+        # series2 will be a false positive for minmax (it sees always 2 anomalous data points for each variable)
+        series2 = series_generator.generate(anomalies=[],effects=effects)
+        dataset = [series1,series2]
+        evaluator = Evaluator(test_data=dataset)
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluation_results = evaluator.evaluate(models=models,granularity='series')
+        # Evaluation_results:
+        # detector_1: {'step_uv': 0.5, 'false_positives': 0.5}
+        # detector_2: {'step_uv': 0.5, 'false_positives': 0.5}
+        # detector_3: {'step_uv': 0.5, 'false_positives': 0.5}
+
+        self.assertIsInstance(evaluation_results,dict)
+        self.assertEqual(len(evaluation_results),3)
+        self.assertEqual(len(evaluation_results['detector_1']),2)
+        self.assertEqual(len(evaluation_results['detector_2']),2)
+        self.assertEqual(len(evaluation_results['detector_3']),2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.5)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.5)
+
+    def test_series_granularity_eval_with_non_detected_anomalies(self):
+        effects = []
+        series_generator = HumiTempTimeseriesGenerator()
+        # series1 will be a true anomaly for the minmax
+        series1 = series_generator.generate(anomalies=['step_uv'],effects=effects)
+        # series2 will be a false positive for minmax (it sees always 2 anomalous data points for each variable)
+        series2 = series_generator.generate(anomalies=['pattern_uv'],effects=effects)
+        dataset = [series1,series2]
+        evaluator = Evaluator(test_data=dataset)
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluation_results = evaluator.evaluate(models=models,granularity='series')
+        # Evaluation_results:
+        # detector_1: {'step_uv': 0.5, 'pattern_uv': 0.5, 'false_positives': 0.0}
+        # detector_2: {'step_uv': 0.5, 'pattern_uv': 0.5, 'false_positives': 0.0}
+        # detector_3: {'step_uv': 0.5, 'pattern_uv': 0.5, 'false_positives': 0.0}
         self.assertIsInstance(evaluation_results,dict)
         self.assertEqual(len(evaluation_results),3)
         self.assertEqual(len(evaluation_results['detector_1']),3)
         self.assertEqual(len(evaluation_results['detector_2']),3)
         self.assertEqual(len(evaluation_results['detector_3']),3)
+        self.assertAlmostEqual(evaluation_results['detector_1']['step_uv'],0.5)
+        self.assertAlmostEqual(evaluation_results['detector_1']['pattern_uv'],0.5)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives'],0.0)
+
+    def test_raised_error_evaluation_series_granularity(self):
+        anomalies = ['step_uv','spike_uv']
+        series_generator = HumiTempTimeseriesGenerator()
+        series = series_generator.generate(anomalies=anomalies)
+        dataset = [series]
+        minmax = MinMaxAnomalyDetector()
+        evaluator = Evaluator(test_data=dataset)
+        try:
+            evaluation_result = evaluator.evaluate(models={'detector':minmax},granularity='series')
+        except Exception as e:
+            self.assertIsInstance(e,ValueError)
 
     def test_copy_dataset(self):
         series_generator = HumiTempTimeseriesGenerator()
@@ -300,3 +445,65 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(dataset_copies[0]),2)
         self.assertIsInstance(dataset_copies[1],list)
         self.assertEqual(len(dataset_copies[1]),2)
+
+    def test_variable_granularity_evaluation(self):
+        series_generator = HumiTempTimeseriesGenerator()
+        series = series_generator.generate(anomalies=['step_uv'])
+        minmax = MinMaxAnomalyDetector()
+        formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
+        flagged_series = minmax.apply(formatted_series)
+        evaluation_result = _variable_granularity_evaluation(flagged_series,anomaly_labels)
+        # evaluation_result:
+        # { 'step_uv': 0.00034722222222222224
+        # 'false_positives': 0.00034722222222222224
+        # }
+        self.assertEqual(len(evaluation_result),2)
+        self.assertAlmostEqual(evaluation_result['step_uv'],1/len(series))
+        self.assertAlmostEqual(evaluation_result['false_positives'],1/len(series))
+
+    def test_point_granularity_evaluation(self):
+        series_generator = HumiTempTimeseriesGenerator()
+        series = series_generator.generate(anomalies=['step_uv'])
+        minmax = MinMaxAnomalyDetector()
+        formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
+        flagged_series = minmax.apply(formatted_series)
+        evaluation_result = _point_granularity_evaluation(flagged_series,anomaly_labels)
+        # evaluation_result:
+        # { 'step_uv': 0.0006944444444444445
+        # 'false_positives': 0.0006944444444444445
+        # }
+        self.assertEqual(len(evaluation_result),2)
+        self.assertAlmostEqual(evaluation_result['step_uv'],2/len(series))
+        self.assertAlmostEqual(evaluation_result['false_positives'],2/len(series))
+
+    def test_series_granularity_evaluation(self):
+        series_generator = HumiTempTimeseriesGenerator()
+        series = series_generator.generate(anomalies=['step_uv'])
+        minmax = MinMaxAnomalyDetector()
+        formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
+        flagged_series = minmax.apply(formatted_series)
+        evaluation_result = _series_granularity_evaluation(flagged_series,anomaly_labels)
+        # evaluation_result:
+        # { 'step_uv': 1
+        # }
+        self.assertEqual(len(evaluation_result),1)
+        self.assertAlmostEqual(evaluation_result['step_uv'],1)
+
+        series1 = series_generator.generate(anomalies=[])
+        minmax1 = MinMaxAnomalyDetector()
+        formatted_series1,anomaly_labels1 = _format_for_anomaly_detector(series1,synthetic=True)
+        flagged_series1 = minmax.apply(formatted_series1)
+        evaluation_result1 = _series_granularity_evaluation(flagged_series1,anomaly_labels1)
+        self.assertEqual(len(evaluation_result1),1)
+        self.assertAlmostEqual(evaluation_result1['false_positives'],1)
+        # evaluation_result1:
+        # { 'false_positives': 1
+        # }
+
+        try:
+            series2 = series_generator.generate(anomalies=['spike_uv','step_uv'])
+            formatted_series2,anomaly_labels2 = _format_for_anomaly_detector(series2,synthetic=True)
+            flagged_series2 = minmax.apply(formatted_series2)
+            evaluation_result2 = _series_granularity_evaluation(flagged_series2,anomaly_labels2)
+        except Exception as e:
+            self.assertIsInstance(e,ValueError)

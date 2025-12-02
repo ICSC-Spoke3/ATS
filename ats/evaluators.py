@@ -46,27 +46,29 @@ def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=F
         return evaluation_results
 
 
-def _calculate_model_scores(single_model_evaluation={}):
-    anomalies = list(single_model_evaluation['sample_1'].keys())
-    samples_n = len(single_model_evaluation)
-    detections_per_anomaly = {}
-    avg_detections_per_anomaly = {}
-
-    for anomaly in anomalies:
-        detections_per_anomaly[anomaly] = 0
-
+def _calculate_model_scores(single_model_evaluation={},granularity='data_point'):
+    dataset_anomalies = set()
     for sample in single_model_evaluation.keys():
-        for anomaly in single_model_evaluation[sample].keys():
-            # TODO: evaluate_anomaly_detector and calculate_model_scores are redundant
-            if single_model_evaluation[sample][anomaly] and anomaly != 'false_positives':
-                detections_per_anomaly[anomaly] +=1
-            elif anomaly == 'false_positives':
-                detections_per_anomaly[anomaly] +=single_model_evaluation[sample][anomaly]
+        sample_anomalies = set(single_model_evaluation[sample].keys())
+        dataset_anomalies.update(sample_anomalies)
 
-    for anomaly,counts in detections_per_anomaly.items():
-        avg_detections_per_anomaly[anomaly] = counts/samples_n if anomaly != 'false_positives' else counts
+    anomaly_scores = {}
+    for anomaly in dataset_anomalies:
+        anomaly_scores[anomaly] = 0
+    if 'false_positives' not in dataset_anomalies:
+        anomaly_scores['false_positives'] = 0.0
 
-    return avg_detections_per_anomaly
+    for anomaly in dataset_anomalies:
+        for sample in single_model_evaluation.keys():
+            if anomaly in single_model_evaluation[sample].keys():
+                anomaly_scores[anomaly] += single_model_evaluation[sample][anomaly]
+
+    if granularity == 'series':
+        samples_n = len(single_model_evaluation)
+        for key in anomaly_scores.keys():
+            anomaly_scores[key] /= samples_n
+
+    return anomaly_scores
 
 
 class Evaluator():
@@ -80,7 +82,7 @@ class Evaluator():
             dataset_copies.append(dataset_copy)
         return dataset_copies
 
-    def evaluate(self,models={}):
+    def evaluate(self,models={},granularity='data_point'):
         if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
@@ -101,8 +103,14 @@ class Evaluator():
             single_model_evaluation = {}
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
-                single_model_evaluation[f'sample_{i+1}'] = evaluate_anomaly_detector(sample_df,anomaly_labels_list[i])
-            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
+                if granularity == 'data_point':
+                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                if granularity == 'variable':
+                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                if granularity == 'series':
+                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                
+            models_scores[model_name] = _calculate_model_scores(single_model_evaluation,granularity=granularity)
             j+=1
 
         return models_scores
@@ -123,3 +131,64 @@ def _get_model_output(dataset,model):
             flagged_dataset.append(flagged_series)
 
     return flagged_dataset
+
+def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+    one_series_evaluation_result = {}
+    flag_columns_n = len(flagged_timeseries_df.filter(like='anomaly').columns)
+    variables_n = len(flagged_timeseries_df.columns) - flag_columns_n
+    if variables_n != 1 and variables_n != flag_columns_n:
+        raise ValueError('Variable granularity is not for this model')
+    normalization_factor = variables_n * len(flagged_timeseries_df)
+
+    for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
+        anomaly_count = 0
+        for timestamp in flagged_timeseries_df.index:
+            if anomaly_labels_df[timestamp] == anomaly:
+                for column in flagged_timeseries_df.filter(like='anomaly').columns:
+                    anomaly_count += flagged_timeseries_df.loc[timestamp,column]
+        one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
+
+    one_series_evaluation_result['false_positives'] = one_series_evaluation_result.pop(None)
+    return one_series_evaluation_result
+
+def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+    one_series_evaluation_result = {}
+    normalization_factor = len(flagged_timeseries_df)
+
+    for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
+        anomaly_count = 0
+        for timestamp in flagged_timeseries_df.index:
+            if anomaly_labels_df[timestamp] == anomaly:
+                for column in flagged_timeseries_df.filter(like='anomaly').columns:
+                    if flagged_timeseries_df.loc[timestamp,column]:
+                        anomaly_count += 1
+                        break
+        one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
+
+    one_series_evaluation_result['false_positives'] = one_series_evaluation_result.pop(None)
+    return one_series_evaluation_result
+
+def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+    anomalies = []
+    for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
+        if anomaly is not None:
+            anomalies.append(anomaly)
+    anomalies_n = len(anomalies)
+    if anomalies_n > 1:
+        raise ValueError('Evaluation with series granularity supports series with only one anomaly')
+
+    one_series_evaluation_result = {}
+    is_series_anomalous = 0
+    for timestamp in flagged_timeseries_df.index:
+        for column in flagged_timeseries_df.filter(like='anomaly').columns:
+            if flagged_timeseries_df.loc[timestamp,column]:
+                is_series_anomalous = 1
+                break
+    if is_series_anomalous and not anomalies:
+        one_series_evaluation_result['false_positives'] = 1
+    elif is_series_anomalous and anomalies:
+        one_series_evaluation_result[anomalies[0]] = 1
+    elif not is_series_anomalous and anomalies:
+        one_series_evaluation_result[anomalies[0]] = 0
+
+    return one_series_evaluation_result
