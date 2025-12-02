@@ -62,13 +62,12 @@ def _calculate_model_scores(single_model_evaluation={}):
         anomalies_count += single_model_evaluation[sample]['anomalies_count']
         if single_model_evaluation[sample]['anomalies_ratio'] is not None:
             anomalies_ratio += single_model_evaluation[sample]['anomalies_ratio']
-        else:
             anomalous_series_n += 1
         false_positives_count += single_model_evaluation[sample]['false_positives_count']
         false_positives_ratio += single_model_evaluation[sample]['false_positives_ratio']
 
     model_scores['anomalies_count'] = anomalies_count
-    model_scores['anomalies_ratio'] = anomalies_ratio/(len(single_model_evaluation) - anomalous_series_n)
+    model_scores['anomalies_ratio'] = anomalies_ratio/anomalous_series_n
     model_scores['false_positives_count'] = false_positives_count
     model_scores['false_positives_ratio'] = false_positives_ratio/len(single_model_evaluation)
 
