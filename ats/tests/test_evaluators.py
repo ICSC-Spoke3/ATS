@@ -61,7 +61,7 @@ class TestEvaluators(unittest.TestCase):
     def test_evaluate_anomaly_det_on_spiked_synth_timeseries(self):
 
         spiked_humi_temp_generator = HumiTempTimeseriesGenerator()
-        timeseries_df = spiked_humi_temp_generator.generate(anomalies=['spike_uv'],effects=[])
+        timeseries_df = spiked_humi_temp_generator.generate(include_effect_label=True, anomalies=['spike_uv'],effects=[])
         # Generated DataFrame:
         # Timestamp                    temperature           humidity             anomaly_label    effect_label
         # ...
@@ -102,7 +102,7 @@ class TestEvaluators(unittest.TestCase):
     def test_evaluate_anomaly_det_on_step_synth_timeseries(self):
 
         step_humi_temp_generator = HumiTempTimeseriesGenerator()
-        timeseries_df = step_humi_temp_generator.generate(anomalies=['step_uv'],effects=[])
+        timeseries_df = step_humi_temp_generator.generate(include_effect_label=True, anomalies=['step_uv'],effects=[])
         # Generated DataFrame:
         # Timestamp                    temperature           humidity             anomaly_label    effect_label
         # ...
@@ -127,7 +127,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_evaluate_anomaly_det_on_synth_not_anomalous_timeseries(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
-        timeseries_df = humi_temp_generator.generate(anomalies=[],effects=[])
+        timeseries_df = humi_temp_generator.generate(include_effect_label=True, anomalies=[],effects=[])
         # Generated DataFrame:
         # Timestamp                    temperature           humidity             anomaly_label    effect_label
         # ...
@@ -171,7 +171,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_evaluation_details_on_synth_spiked_timeseries(self):
         spiked_humi_temp_generator = HumiTempTimeseriesGenerator()
-        timeseries_df = spiked_humi_temp_generator.generate(anomalies=['spike_uv'],effects=[])
+        timeseries_df = spiked_humi_temp_generator.generate(include_effect_label=True, anomalies=['spike_uv'],effects=[])
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         f_timeseries_df,anomaly_labels = _format_for_anomaly_detector(timeseries_df,synthetic=True)
         evaluated_ts_df = min_max_anomaly_detector.apply(f_timeseries_df)
@@ -187,7 +187,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_evaluation_details_on_synth_step_timeseries(self):
         step_humi_temp_generator = HumiTempTimeseriesGenerator()
-        timeseries_df = step_humi_temp_generator.generate(anomalies=['step_uv'],effects=[])
+        timeseries_df = step_humi_temp_generator.generate(include_effect_label=True, anomalies=['step_uv'],effects=[])
 
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         f_timeseries_df,anomaly_labels = _format_for_anomaly_detector(timeseries_df,synthetic=True)
@@ -208,7 +208,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_evaluation_details_on_synth_not_anomalous_timeseries(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
-        timeseries_df = humi_temp_generator.generate(anomalies=[],effects=[])
+        timeseries_df = humi_temp_generator.generate(include_effect_label=True, anomalies=[],effects=[])
 
         min_max_anomaly_detector = MinMaxAnomalyDetector()
         f_timeseries_df,anomaly_labels = _format_for_anomaly_detector(timeseries_df,synthetic=True)
@@ -225,8 +225,8 @@ class TestEvaluators(unittest.TestCase):
 
     def test_get_model_output(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
-        humitemp_series1 = humi_temp_generator.generate(anomalies=[],effects=[])
-        humitemp_series2 = humi_temp_generator.generate(anomalies=[],effects=['noise'])
+        humitemp_series1 = humi_temp_generator.generate(include_effect_label=True, anomalies=[],effects=[])
+        humitemp_series2 = humi_temp_generator.generate(include_effect_label=True, anomalies=[],effects=['noise'])
         format_humitemp_series1,anomalies1 = _format_for_anomaly_detector(humitemp_series1,synthetic=True)
         format_humitemp_series2,anomalies2 = _format_for_anomaly_detector(humitemp_series2,synthetic=True)
         min_max = MinMaxAnomalyDetector()
@@ -303,8 +303,8 @@ class TestEvaluators(unittest.TestCase):
         effects = []
         # series with 2880 data points
         series_generator = HumiTempTimeseriesGenerator()
-        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
-        series2 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series1 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
+        series2 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
@@ -332,8 +332,8 @@ class TestEvaluators(unittest.TestCase):
         effects = []
         # series with 2880 data points
         series_generator = HumiTempTimeseriesGenerator()
-        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
-        series2 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series1 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
+        series2 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
@@ -362,9 +362,9 @@ class TestEvaluators(unittest.TestCase):
         effects = []
         series_generator = HumiTempTimeseriesGenerator()
         # series1 will be a true anomaly for the minmax
-        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series1 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
         # series2 will be a false positive for minmax (it sees always 2 anomalous data points for each variable)
-        series2 = series_generator.generate(anomalies=[],effects=effects)
+        series2 = series_generator.generate(include_effect_label=True, anomalies=[],effects=effects)
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
@@ -392,9 +392,9 @@ class TestEvaluators(unittest.TestCase):
         effects = []
         series_generator = HumiTempTimeseriesGenerator()
         # series1 will be a true anomaly for the minmax
-        series1 = series_generator.generate(anomalies=['step_uv'],effects=effects)
+        series1 = series_generator.generate(include_effect_label=True, anomalies=['step_uv'],effects=effects)
         # series2 will be a false positive for minmax (it sees always 2 anomalous data points for each variable)
-        series2 = series_generator.generate(anomalies=['pattern_uv'],effects=effects)
+        series2 = series_generator.generate(include_effect_label=True, anomalies=['pattern_uv'],effects=effects)
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
@@ -421,7 +421,7 @@ class TestEvaluators(unittest.TestCase):
     def test_raised_error_evaluation_series_granularity(self):
         anomalies = ['step_uv','spike_uv']
         series_generator = HumiTempTimeseriesGenerator()
-        series = series_generator.generate(anomalies=anomalies)
+        series = series_generator.generate(include_effect_label=True, anomalies=anomalies)
         dataset = [series]
         minmax = MinMaxAnomalyDetector()
         evaluator = Evaluator(test_data=dataset)
@@ -432,8 +432,8 @@ class TestEvaluators(unittest.TestCase):
 
     def test_copy_dataset(self):
         series_generator = HumiTempTimeseriesGenerator()
-        series1 = series_generator.generate(effects=['noise'])
-        series2 = series_generator.generate(effects=['noise'])
+        series1 = series_generator.generate(include_effect_label=True, effects=['noise'])
+        series2 = series_generator.generate(include_effect_label=True, effects=['noise'])
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
@@ -448,7 +448,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_variable_granularity_evaluation(self):
         series_generator = HumiTempTimeseriesGenerator()
-        series = series_generator.generate(anomalies=['step_uv'])
+        series = series_generator.generate(include_effect_label=True, anomalies=['step_uv'])
         minmax = MinMaxAnomalyDetector()
         formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
         flagged_series = minmax.apply(formatted_series)
@@ -463,7 +463,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_point_granularity_evaluation(self):
         series_generator = HumiTempTimeseriesGenerator()
-        series = series_generator.generate(anomalies=['step_uv'])
+        series = series_generator.generate(include_effect_label=True, anomalies=['step_uv'])
         minmax = MinMaxAnomalyDetector()
         formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
         flagged_series = minmax.apply(formatted_series)
@@ -478,7 +478,7 @@ class TestEvaluators(unittest.TestCase):
 
     def test_series_granularity_evaluation(self):
         series_generator = HumiTempTimeseriesGenerator()
-        series = series_generator.generate(anomalies=['step_uv'])
+        series = series_generator.generate(include_effect_label=True, anomalies=['step_uv'])
         minmax = MinMaxAnomalyDetector()
         formatted_series,anomaly_labels = _format_for_anomaly_detector(series,synthetic=True)
         flagged_series = minmax.apply(formatted_series)
@@ -489,7 +489,7 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(len(evaluation_result),1)
         self.assertAlmostEqual(evaluation_result['step_uv'],1)
 
-        series1 = series_generator.generate(anomalies=[])
+        series1 = series_generator.generate(include_effect_label=True, anomalies=[])
         minmax1 = MinMaxAnomalyDetector()
         formatted_series1,anomaly_labels1 = _format_for_anomaly_detector(series1,synthetic=True)
         flagged_series1 = minmax.apply(formatted_series1)
@@ -501,7 +501,7 @@ class TestEvaluators(unittest.TestCase):
         # }
 
         try:
-            series2 = series_generator.generate(anomalies=['spike_uv','step_uv'])
+            series2 = series_generator.generate(include_effect_label=True, anomalies=['spike_uv','step_uv'])
             formatted_series2,anomaly_labels2 = _format_for_anomaly_detector(series2,synthetic=True)
             flagged_series2 = minmax.apply(formatted_series2)
             evaluation_result2 = _series_granularity_evaluation(flagged_series2,anomaly_labels2)
@@ -513,9 +513,9 @@ class TestEvaluators(unittest.TestCase):
         effects = []
         series_generator = HumiTempTimeseriesGenerator()
         # series1 will be a true anomaly for the minmax
-        series1 = series_generator.generate(anomalies=anomalies,effects=effects)
+        series1 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
         # series2 will be a false positive for minmax (it sees always 2 anomalous data points for each variable)
-        series2 = series_generator.generate(anomalies=[],effects=effects)
+        series2 = series_generator.generate(include_effect_label=True, anomalies=[],effects=effects)
         dataset = [series1,series2]
         evaluator = Evaluator(test_data=dataset)
         minmax1 = MinMaxAnomalyDetector()
