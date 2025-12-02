@@ -67,7 +67,10 @@ def _calculate_model_scores(single_model_evaluation={}):
         false_positives_ratio += single_model_evaluation[sample]['false_positives_ratio']
 
     model_scores['anomalies_count'] = anomalies_count
-    model_scores['anomalies_ratio'] = anomalies_ratio/anomalous_series_n
+    if anomalous_series_n:
+        model_scores['anomalies_ratio'] = anomalies_ratio/anomalous_series_n
+    else:
+        model_scores['anomalies_ratio'] = None
     model_scores['false_positives_count'] = false_positives_count
     model_scores['false_positives_ratio'] = false_positives_ratio/len(single_model_evaluation)
 
@@ -215,6 +218,6 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
     one_series_evaluation_result['false_positives_count'] = 1 if is_series_anomalous and not anomalies else 0
     one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']
     one_series_evaluation_result['anomalies_count'] = 1 if is_series_anomalous and anomalies else 0
-    one_series_evaluation_result['anomalies_ratio'] = one_series_evaluation_result['anomalies_count']
+    one_series_evaluation_result['anomalies_ratio'] = one_series_evaluation_result['anomalies_count'] if anomalies else None
 
     return one_series_evaluation_result
