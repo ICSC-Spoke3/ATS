@@ -91,6 +91,7 @@ class Evaluator():
     def evaluate(self,models={},granularity='point',strategy='flags'):
         if strategy != 'flags':
             raise NotImplementedError(f'Evaluation strategy {strategy} is not implemented')
+
         if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
