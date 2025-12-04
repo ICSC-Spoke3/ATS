@@ -47,11 +47,6 @@ def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=F
 
 
 def _calculate_model_scores(single_model_evaluation={}):
-    dataset_anomalies = set()
-    for sample in single_model_evaluation.keys():
-        sample_anomalies = set(single_model_evaluation[sample].keys())
-        dataset_anomalies.update(sample_anomalies)
-
     model_scores = {}
     anomalies_count = 0
     false_positives_count = 0
@@ -73,8 +68,10 @@ def _calculate_model_scores(single_model_evaluation={}):
         model_scores['anomalies_ratio'] = None
     model_scores['false_positives_count'] = false_positives_count
     model_scores['false_positives_ratio'] = false_positives_ratio/len(single_model_evaluation)
-
     return model_scores
+
+    def _get_breakdown_info(single_model_evaluation={}):
+        pass
 
 
 class Evaluator():
@@ -120,8 +117,10 @@ class Evaluator():
                     single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i])
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
-                
-            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
+            if breakdown:    
+                models_scores[model_name] = _calculate_model_scores(single_model_evaluation) | _get_breakdown_info(single_model_evaluation)
+            else:
+                models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
             j+=1
 
         return models_scores
