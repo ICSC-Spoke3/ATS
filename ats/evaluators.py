@@ -114,7 +114,7 @@ class Evaluator():
                 elif granularity == 'variable':
                     single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                 elif granularity == 'series':
-                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
             if breakdown:    
