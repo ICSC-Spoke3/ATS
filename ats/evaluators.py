@@ -221,22 +221,32 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakd
     else:
         return one_series_evaluation_result
 
-def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     anomalies = []
     for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
         if anomaly is not None:
             anomalies.append(anomaly)
+    if len(anomalies) != 1 and breakdown:
+        raise ValueError('Series must have only 1 anomaly type for breakdown in mode granularity = "series"')
+    else:
+        inserted_anomaly = anomalies[0]
 
     one_series_evaluation_result = {}
+    breakdown_info = {}
     is_series_anomalous = 0
     for timestamp in flagged_timeseries_df.index:
         for column in flagged_timeseries_df.filter(like='anomaly').columns:
             if flagged_timeseries_df.loc[timestamp,column]:
                 is_series_anomalous = 1
+                breakdown_info[inserted_anomaly + '_anomaly_count'] = 1
+                breakdown_info[inserted_anomaly + '_anomaly_ratio'] = 1
                 break
     one_series_evaluation_result['false_positives_count'] = 1 if is_series_anomalous and not anomalies else 0
     one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']
     one_series_evaluation_result['anomalies_count'] = 1 if is_series_anomalous and anomalies else 0
     one_series_evaluation_result['anomalies_ratio'] = one_series_evaluation_result['anomalies_count'] if anomalies else None
 
-    return one_series_evaluation_result
+    if breakdown:
+        return one_series_evaluation_result | breakdown_info
+    else:
+        return one_series_evaluation_result

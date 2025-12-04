@@ -478,6 +478,30 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1)
 
+    def test_series_granularity_evaluation_with_breakdown(self):
+        series = generate_timeseries_df(entries=3, variables=2)
+        series['anomaly_label'] = [None,None,'anomaly_1']
+        formatted_series,anomaly_labels = _format_for_anomaly_detector(series)
+        minmax1 = MinMaxAnomalyDetector()
+        flagged_series = _get_model_output([formatted_series],minmax1)
+        evaluation_results = _series_granularity_evaluation(flagged_series[0],anomaly_labels,breakdown=True)
+
+        self.assertIn('anomalies_count',evaluation_results.keys())
+        self.assertIn('anomalies_ratio',evaluation_results.keys())
+        self.assertIn('false_positives_count',evaluation_results.keys())
+        self.assertIn('false_positives_ratio',evaluation_results.keys())
+        self.assertIn('anomaly_1_anomaly_count',evaluation_results.keys())
+        self.assertIn('anomaly_1_anomaly_ratio',evaluation_results.keys())
+        self.assertAlmostEqual(evaluation_results['anomaly_1_anomaly_count'],1)
+        self.assertAlmostEqual(evaluation_results['anomaly_1_anomaly_ratio'],1)
+
+        formatted_series1,anomaly_labels1 = _format_for_anomaly_detector(self.series1)
+        flagged_series1 = _get_model_output([formatted_series1],minmax1)
+        try:
+            evaluation_results = _point_granularity_evaluation(flagged_series1[0],anomaly_labels1,breakdown=True)
+        except Exception as e:
+            self.assertIsInstance(e,ValueError)
+
     def test_double_evaluator(self):
         anomalies = ['step_uv']
         effects = []
