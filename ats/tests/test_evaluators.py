@@ -375,6 +375,36 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1/(7*2))
 
+    def test_variable_granularity_evaluation_with_breakdown(self):
+        formatted_series,anomaly_labels = _format_for_anomaly_detector(self.series1)
+        minmax1 = MinMaxAnomalyDetector()
+        flagged_series = _get_model_output([formatted_series],minmax1)
+        evaluation_results = _variable_granularity_evaluation(flagged_series[0],anomaly_labels,breakdown=True)
+
+        self.assertIn('anomalies_count',evaluation_results.keys())
+        self.assertIn('anomalies_ratio',evaluation_results.keys())
+        self.assertIn('false_positives_count',evaluation_results.keys())
+        self.assertIn('false_positives_ratio',evaluation_results.keys())
+
+        self.assertIn('anomaly_1_anomaly_count',evaluation_results.keys())
+        self.assertIn('anomaly_1_anomaly_ratio',evaluation_results.keys())
+        self.assertIn('anomaly_2_anomaly_count',evaluation_results.keys())
+        self.assertIn('anomaly_2_anomaly_ratio',evaluation_results.keys())
+
+        self.assertAlmostEqual(evaluation_results['anomaly_1_anomaly_count'],3)
+        self.assertAlmostEqual(evaluation_results['anomaly_1_anomaly_ratio'],3/4)
+        self.assertAlmostEqual(evaluation_results['anomaly_2_anomaly_count'],1)
+        self.assertAlmostEqual(evaluation_results['anomaly_2_anomaly_ratio'],1/2)
+
+        formatted_series1,anomaly_labels1 = _format_for_anomaly_detector(self.series3)
+        flagged_series1 = _get_model_output([formatted_series1],minmax1)
+        evaluation_results1 = _variable_granularity_evaluation(flagged_series1[0],anomaly_labels1,breakdown=True)
+
+        self.assertNotIn('anomaly_1_anomaly_count',evaluation_results1.keys())
+        self.assertNotIn('anomaly_1_anomaly_ratio',evaluation_results1.keys())
+        self.assertNotIn('anomaly_2_anomaly_count',evaluation_results1.keys())
+        self.assertNotIn('anomaly_2_anomaly_ratio',evaluation_results1.keys())
+
     def test_point_granularity_evaluation(self):
         dataset = [self.series1]
         evaluator = Evaluator(test_data=dataset)

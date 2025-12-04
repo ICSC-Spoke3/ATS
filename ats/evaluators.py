@@ -115,7 +115,7 @@ class Evaluator():
                 if granularity == 'point':
                     single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i])
                 elif granularity == 'variable':
-                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                 elif granularity == 'series':
                     single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i])
                 else:
@@ -143,7 +143,7 @@ def _get_model_output(dataset,model):
 
     return flagged_dataset
 
-def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     one_series_evaluation_result = {}
     flag_columns_n = len(flagged_timeseries_df.filter(like='anomaly').columns)
     variables_n = len(flagged_timeseries_df.columns) - flag_columns_n
@@ -153,7 +153,8 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
 
     total_inserted_anomalies_n = 0
     total_detected_anomalies_n = 0
-    detection_counts_by_anomaly_type = {}
+    breakdown_info = {}
+    false_positives_count = 0
     for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
         if anomaly is not None:
             total_inserted_anomalies_n += frequency
@@ -164,17 +165,23 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
                     anomaly_count += flagged_timeseries_df.loc[timestamp,column]
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
-        detection_counts_by_anomaly_type[anomaly] = anomaly_count
+            breakdown_info[anomaly + '_anomaly' + '_count'] = anomaly_count
+            breakdown_info[anomaly + '_anomaly' + '_ratio'] = anomaly_count/(frequency * variables_n)
+        else:
+            false_positives_count +=1
 
     total_inserted_anomalies_n *= variables_n
-    one_series_evaluation_result['false_positives_count'] = detection_counts_by_anomaly_type.pop(None)
-    one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']/normalization_factor
+    one_series_evaluation_result['false_positives_count'] = false_positives_count
+    one_series_evaluation_result['false_positives_ratio'] = false_positives_count/normalization_factor
     one_series_evaluation_result['anomalies_count'] = total_detected_anomalies_n
     if total_inserted_anomalies_n:
         one_series_evaluation_result['anomalies_ratio'] = total_detected_anomalies_n/total_inserted_anomalies_n
     else:
         one_series_evaluation_result['anomalies_ratio'] = None
-    return one_series_evaluation_result
+    if breakdown:
+        return one_series_evaluation_result | breakdown_info
+    else:
+        return one_series_evaluation_result
 
 def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
     one_series_evaluation_result = {}
