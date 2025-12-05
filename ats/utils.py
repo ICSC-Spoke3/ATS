@@ -33,8 +33,7 @@ def generate_timeseries_df(start='2025-06-10 14:00:00',  tz='UTC', freq='h', ent
     return df
 
 
-def plot_timeseries_df(timeseries_df, *args, **kwargs):
-
+def convert_timeseries_df_to_timeseries(timeseries_df):
     timeseries = TimeSeries.from_df(timeseries_df)
 
     # Convert anomaly flags in data indexes
@@ -42,6 +41,23 @@ def plot_timeseries_df(timeseries_df, *args, **kwargs):
         for data_label in datapoint.data_labels():
             if data_label.endswith('anomaly'):
                 datapoint.data_indexes[data_label] = datapoint.data.pop(data_label)
+
+    return timeseries
+
+def convert_timeseries_to_timeseries_df(timeseries):
+    timeseries_df = timeseries.to_df()
+
+    # Convert anomaly flags from data indexes to columns
+    for datapoint in timeseries:
+        for data_label in datapoint.data_indexes.keys():
+            if data_label.endswith('anomaly'):
+                timeseries_df.at[datapoint.timestamp, data_label] = datapoint.data_indexes[data_label]
+
+    return timeseries_df
+
+def plot_timeseries_df(timeseries_df, *args, **kwargs):
+
+    timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
 
     return timeseries.plot(*args, **kwargs)
 
