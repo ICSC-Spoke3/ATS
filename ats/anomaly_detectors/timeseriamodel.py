@@ -1,6 +1,17 @@
 from base import AnomalyDetector
+from timeseria.datastructures import TimeSeries
+import pandas as pd
 
-class TimeseriaAnomalyDetector(AnomalyDetector):  OPPURE  MyAnomalyDetector()
+# Setup logging
+import logging
+logger = logging.getLogger(__name__)
+
+class TimeseriaAnomalyDetector(AnomalyDetector):  
+    
+    def __init__(self):
+        self.model = None
+        pass
+
     def apply(self,data):
         if not isinstance(data,pd.DataFrame):
             raise NotImplementedError()
