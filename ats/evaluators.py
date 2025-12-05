@@ -70,8 +70,33 @@ def _calculate_model_scores(single_model_evaluation={}):
     model_scores['false_positives_ratio'] = false_positives_ratio/len(single_model_evaluation)
     return model_scores
 
-    def _get_breakdown_info(single_model_evaluation={}):
-        pass
+def _get_breakdown_info(single_model_evaluation={}):
+    if 'anomalies_count' in single_model_evaluation.keys():
+        del single_model_evaluation['anomalies_count']
+    if 'anomalies_ratio' in single_model_evaluation.keys():
+        del single_model_evaluation['anomalies_ratio']
+    if 'false_positives_count' in single_model_evaluation.keys():
+        del single_model_evaluation['false_positives_count']
+    if 'false_positives_ratio' in single_model_evaluation.keys():
+        del single_model_evaluation['false_positives_ratio']
+
+    breakdown_info = {}
+    # how many series in the dataset have that anomaly type
+    anomaly_series_count_by_type = {}
+    for sample, sample_evaluation in single_model_evaluation.items():
+        for key in sample_evaluation.keys():
+            if key in breakdown_info.keys():
+                anomaly_series_count_by_type[key] +=1
+                breakdown_info[key] += sample_evaluation[key]
+            else:
+                anomaly_series_count_by_type[key] =1
+                breakdown_info[key] = sample_evaluation[key]
+
+    for key in breakdown_info.keys():
+        if '_ratio' in key:
+            breakdown_info[key] /= anomaly_series_count_by_type[key]
+
+    return breakdown_info
 
 
 class Evaluator():

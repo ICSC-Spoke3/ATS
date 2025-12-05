@@ -9,6 +9,7 @@ from ..evaluators import Evaluator
 from ..evaluators import _variable_granularity_evaluation
 from ..evaluators import _point_granularity_evaluation
 from ..evaluators import _series_granularity_evaluation
+from ..evaluators import _get_breakdown_info
 import unittest
 import pandas as pd
 import random as rnd
@@ -501,6 +502,44 @@ class TestEvaluators(unittest.TestCase):
             evaluation_results = _point_granularity_evaluation(flagged_series1[0],anomaly_labels1,breakdown=True)
         except Exception as e:
             self.assertIsInstance(e,ValueError)
+
+    def test_get_breakdown_info(self):
+        single_model_evaluation = { 'sample_1': {'anomalies_count': 3, 'anomalies_ratio': 1.5,
+                                                    'false_positives_count': 1, 
+                                                    'false_positives_ratio': 0.14,
+                                                    'spike_anomaly_count': 1,
+                                                    'spike_anomaly_ratio': 0.5},
+                                    'sample_2': {'anomalies_count': 3, 'anomalies_ratio': 1.5,
+                                                    'false_positives_count': 1, 
+                                                    'false_positives_ratio': 0.14,
+                                                    'spike_anomaly_count': 1,
+                                                    'spike_anomaly_ratio': 0.5,
+                                                    'step_anomaly_count': 2,
+                                                    'step_anomaly_ratio': 2/3
+                                                    },
+                                    'sample_3': {'anomalies_count': 3, 'anomalies_ratio': 1.5,
+                                                    'false_positives_count': 1,
+                                                    'false_positives_ratio': 0.14,
+                                                    'step_anomaly_count': 3,
+                                                    'step_anomaly_ratio': 1,
+                                                    'pattern_anomaly_count': 2,
+                                                    'pattern_anomaly_ratio': 0.5
+                                                    }
+        }
+        breakdown = _get_breakdown_info(single_model_evaluation)
+        self.assertIn('spike_anomaly_count',breakdown.keys())
+        self.assertIn('spike_anomaly_ratio',breakdown.keys())
+        self.assertIn('step_anomaly_count',breakdown.keys())
+        self.assertIn('step_anomaly_ratio',breakdown.keys())
+        self.assertIn('pattern_anomaly_count',breakdown.keys())
+        self.assertIn('pattern_anomaly_ratio',breakdown.keys())
+
+        self.assertAlmostEqual(breakdown['spike_anomaly_count'],2)
+        self.assertAlmostEqual(breakdown['spike_anomaly_ratio'],1/2)
+        self.assertAlmostEqual(breakdown['step_anomaly_count'],5)
+        self.assertAlmostEqual(breakdown['step_anomaly_ratio'],5/6)
+        self.assertAlmostEqual(breakdown['pattern_anomaly_count'],2)
+        self.assertAlmostEqual(breakdown['pattern_anomaly_ratio'],0.5)
 
     def test_double_evaluator(self):
         anomalies = ['step_uv']
