@@ -32,11 +32,9 @@ def generate_timeseries_df(start='2025-06-10 14:00:00',  tz='UTC', freq='h', ent
     df.index.name = 'timestamp'
     return df
 
-
 def convert_timeseries_df_to_timeseries(timeseries_df):
     timeseries = TimeSeries.from_df(timeseries_df)
 
-    # Convert anomaly flags in data indexes
     for datapoint in timeseries:
         for data_label in datapoint.data_labels():
             if data_label.endswith('anomaly'):
@@ -45,9 +43,8 @@ def convert_timeseries_df_to_timeseries(timeseries_df):
     return timeseries
 
 def convert_timeseries_to_timeseries_df(timeseries):
-    timeseries_df = timeseries.to_df()
+    timeseries_df = TimeSeries.to_df(timeseries)
 
-    # Convert anomaly flags from data indexes to columns
     for datapoint in timeseries:
         for data_label in datapoint.data_indexes.keys():
             if data_label.endswith('anomaly'):
