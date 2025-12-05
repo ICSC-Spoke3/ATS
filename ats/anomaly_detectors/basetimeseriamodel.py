@@ -12,7 +12,6 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
     
     def __init__(self):
         self.model = PeriodicAverageAnomalyDetector()
-        pass
 
     def apply(self,data):
         if not isinstance(data,pd.DataFrame):
@@ -27,13 +26,12 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
 
         # Convert back to DataFrame
         timeseries_df = convert_timeseries_to_timeseries_df(timeseries)
-        for col in timeseries_df.columns:
-            anomaly_col = f"{col}_anomaly"
-            timeseries_df[anomaly_col] = timeseries_df[f"{col}_anomaly"]
+        #for col in timeseries_df.columns:
+         #   anomaly_col = f"{col}_anomaly"
+          #  timeseries_df[anomaly_col] = timeseries_df[f"{col}_anomaly"]
             
         return timeseries_df
     
     # Implementare fit e apply
     # Aggiungere value_1_anomaly value_2_anomaly anomaly 
     # anomaly = unione (?)
-    #timeseries --> df
