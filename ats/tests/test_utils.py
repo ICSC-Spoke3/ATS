@@ -29,10 +29,12 @@ class TestUtils(unittest.TestCase):
         timeseries_df = generate_timeseries_df(entries=10, variables=2)
         self.assertEqual(timeseries_df.shape, (10,2))
     
-    def test_convert_timeseries_df_to_timeseries_and_back(self):
-        timeseries_df = generate_timeseries_df(entries=5, variables=2)
+    def test_convert_timeseries_df_to_timeseries_and_back_with_anomalies(self):
+        timeseries_df = generate_timeseries_df(entries=10, variables=2)
+        
         timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
         timeseries_df_converted = convert_timeseries_to_timeseries_df(timeseries)
+        
         pd.testing.assert_frame_equal(timeseries_df, timeseries_df_converted)
     
     # Tests for normalize_parameter
