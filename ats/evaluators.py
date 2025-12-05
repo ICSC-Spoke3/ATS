@@ -222,14 +222,16 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakd
             if anomaly_labels_df[timestamp] == anomaly:
                 for column in flagged_timeseries_df.filter(like='anomaly').columns:
                     if flagged_timeseries_df.loc[timestamp,column]:
-                        anomaly_count += 1
+                        if anomaly is not None:
+                            anomaly_count += 1
+                        else:
+                            false_positives_count += 1
                         break
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
             breakdown_info[anomaly + '_anomaly_count'] = anomaly_count
             breakdown_info[anomaly + '_anomaly_ratio'] = anomaly_count/frequency
-        else:
-            false_positives_count += 1
+
         one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
 
     one_series_evaluation_result['false_positives_count'] = false_positives_count
