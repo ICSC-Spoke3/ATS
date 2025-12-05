@@ -184,13 +184,14 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,bre
         for timestamp in flagged_timeseries_df.index:
             if anomaly_labels_df[timestamp] == anomaly:
                 for column in flagged_timeseries_df.filter(like='anomaly').columns:
-                    anomaly_count += flagged_timeseries_df.loc[timestamp,column]
+                    if anomaly is not None:
+                        anomaly_count += flagged_timeseries_df.loc[timestamp,column]
+                    else:
+                        false_positives_count += flagged_timeseries_df.loc[timestamp,column]
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
             breakdown_info[anomaly + '_anomaly' + '_count'] = anomaly_count
             breakdown_info[anomaly + '_anomaly' + '_ratio'] = anomaly_count/(frequency * variables_n)
-        else:
-            false_positives_count +=1
 
     total_inserted_anomalies_n *= variables_n
     one_series_evaluation_result['false_positives_count'] = false_positives_count
