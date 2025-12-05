@@ -541,6 +541,33 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(breakdown['pattern_anomaly_count'],2)
         self.assertAlmostEqual(breakdown['pattern_anomaly_ratio'],0.5)
 
+    def test_variable_granularity_eval_with_breakdown(self):
+        dataset = [self.series1, self.series2, self.series3]
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='variable',breakdown=True)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],7)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],25/48)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],5)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],31/126)
+
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_anomaly_count'],5)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_anomaly_ratio'],13/24)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_anomaly_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_anomaly_ratio'],1/2)
+
+    def test_point_granularity_eval_with_breakdown(self):
+        pass
+
+    def test_series_granularity_eval_with_breakdown(self):
+        pass
+
     def test_double_evaluator(self):
         anomalies = ['step_uv']
         effects = []

@@ -71,14 +71,15 @@ def _calculate_model_scores(single_model_evaluation={}):
     return model_scores
 
 def _get_breakdown_info(single_model_evaluation={}):
-    if 'anomalies_count' in single_model_evaluation.keys():
-        del single_model_evaluation['anomalies_count']
-    if 'anomalies_ratio' in single_model_evaluation.keys():
-        del single_model_evaluation['anomalies_ratio']
-    if 'false_positives_count' in single_model_evaluation.keys():
-        del single_model_evaluation['false_positives_count']
-    if 'false_positives_ratio' in single_model_evaluation.keys():
-        del single_model_evaluation['false_positives_ratio']
+    for sample in single_model_evaluation.keys():
+        if 'anomalies_count' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['anomalies_count']
+        if 'anomalies_ratio' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['anomalies_ratio']
+        if 'false_positives_count' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['false_positives_count']
+        if 'false_positives_ratio' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['false_positives_ratio']
 
     breakdown_info = {}
     # how many series in the dataset have that anomaly type
@@ -143,7 +144,12 @@ class Evaluator():
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
 
-            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
+            if breakdown:
+                scores = _calculate_model_scores(single_model_evaluation)
+                breakdown_info = _get_breakdown_info(single_model_evaluation)
+                models_scores[model_name] = scores | breakdown_info
+            else:
+                models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
             j+=1
 
         return models_scores
