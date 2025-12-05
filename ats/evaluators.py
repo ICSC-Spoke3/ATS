@@ -142,10 +142,8 @@ class Evaluator():
                     single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
-            if breakdown:    
-                models_scores[model_name] = _calculate_model_scores(single_model_evaluation) | _get_breakdown_info(single_model_evaluation)
-            else:
-                models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
+
+            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
             j+=1
 
         return models_scores
@@ -252,8 +250,6 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
             anomalies.append(anomaly)
     if len(anomalies) != 1 and breakdown:
         raise ValueError('Series must have only 1 anomaly type for breakdown in mode granularity = "series"')
-    else:
-        inserted_anomaly = anomalies[0]
 
     one_series_evaluation_result = {}
     breakdown_info = {}
@@ -262,8 +258,10 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
         for column in flagged_timeseries_df.filter(like='anomaly').columns:
             if flagged_timeseries_df.loc[timestamp,column]:
                 is_series_anomalous = 1
-                breakdown_info[inserted_anomaly + '_anomaly_count'] = 1
-                breakdown_info[inserted_anomaly + '_anomaly_ratio'] = 1
+                if anomalies:
+                    inserted_anomaly = anomalies[0]
+                    breakdown_info[inserted_anomaly + '_anomaly_count'] = 1
+                    breakdown_info[inserted_anomaly + '_anomaly_ratio'] = 1
                 break
     one_series_evaluation_result['false_positives_count'] = 1 if is_series_anomalous and not anomalies else 0
     one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']
