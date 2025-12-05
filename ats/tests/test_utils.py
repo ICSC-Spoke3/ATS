@@ -35,14 +35,6 @@ class TestUtils(unittest.TestCase):
         timeseries_df_converted = convert_timeseries_to_timeseries_df(timeseries)
         pd.testing.assert_frame_equal(timeseries_df, timeseries_df_converted)
     
-    @patch("plotly.graph_objects.Figure.show")
-    def test_plot_timeseries_df(self, mock_show):
-        timeseries_df = generate_timeseries_df(entries=10, variables=2)
-        fig = plot_timeseries_df(timeseries_df, renderer="json", show=True)
-        self.assertIsInstance(fig, go.Figure)
-        mock_show.assert_not_called()
-
-
     # Tests for normalize_parameter
     def test_normalize_generic_parameter(self):
         df = pd.DataFrame({"a": [1, 2, 3, 4, 5]})

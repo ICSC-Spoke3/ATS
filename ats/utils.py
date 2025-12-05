@@ -50,6 +50,8 @@ def convert_timeseries_to_timeseries_df(timeseries):
             if data_label.endswith('anomaly'):
                 timeseries_df.at[datapoint.timestamp, data_label] = datapoint.data_indexes[data_label]
 
+    timeseries_df.index.name = 'timestamp'
+    timeseries_df.index.freq = timeseries_df.index.inferred_freq
     return timeseries_df
 
 def plot_timeseries_df(timeseries_df, *args, **kwargs):
