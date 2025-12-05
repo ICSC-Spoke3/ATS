@@ -88,7 +88,7 @@ class Evaluator():
             dataset_copies.append(dataset_copy)
         return dataset_copies
 
-    def evaluate(self,models={},granularity='data_point'):
+    def evaluate(self,models={},granularity='point'):
         if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
@@ -109,7 +109,7 @@ class Evaluator():
             single_model_evaluation = {}
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
-                if granularity == 'data_point':
+                if granularity == 'point':
                     single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i])
                 elif granularity == 'variable':
                     single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i])

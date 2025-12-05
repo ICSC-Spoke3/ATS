@@ -295,7 +295,7 @@ class TestEvaluators(unittest.TestCase):
                 'detector_3': minmax3
                 }
         evaluator = Evaluator(test_data=dataset)
-        evaluation_results = evaluator.evaluate(models=models,granularity='data_point')
+        evaluation_results = evaluator.evaluate(models=models,granularity='point')
         self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],6)
         self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],7/8)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],4)
@@ -381,7 +381,7 @@ class TestEvaluators(unittest.TestCase):
         minmax1 = MinMaxAnomalyDetector()
         models={'detector_1': minmax1}
         evaluator = Evaluator(test_data=dataset)
-        evaluation_results = evaluator.evaluate(models=models,granularity='data_point')
+        evaluation_results = evaluator.evaluate(models=models,granularity='point')
         self.assertIn('detector_1',evaluation_results.keys())
         self.assertIn('anomalies_count',evaluation_results['detector_1'].keys())
         self.assertIn('anomalies_ratio',evaluation_results['detector_1'].keys())
@@ -395,7 +395,7 @@ class TestEvaluators(unittest.TestCase):
 
         dataset1 = [self.series2]
         evaluator1 = Evaluator(test_data=dataset1)
-        evaluation_results = evaluator1.evaluate(models=models,granularity='data_point')
+        evaluation_results = evaluator1.evaluate(models=models,granularity='point')
         self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],3)
         self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],3/4)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
