@@ -111,7 +111,7 @@ class Evaluator():
             dataset_copies.append(dataset_copy)
         return dataset_copies
 
-    def evaluate(self,models={},granularity='point',strategy='flags'):
+    def evaluate(self,models={},granularity='point',strategy='flags',breakdown=False):
         if strategy != 'flags':
             raise NotImplementedError(f'Evaluation strategy {strategy} is not implemented')
 

@@ -572,7 +572,7 @@ class TestEvaluators(unittest.TestCase):
                 'detector_3': minmax3
                 }
         evaluator = Evaluator(test_data=dataset)
-        evaluation_results = evaluator.evaluate(models=models,granularity='data_point',breakdown=True)
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',breakdown=True)
         self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_count'],6)
         self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],7/8)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],4)
