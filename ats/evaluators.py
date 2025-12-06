@@ -136,7 +136,7 @@ class Evaluator():
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
                 if granularity == 'point':
-                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i],breakdown=breakdown)
                 elif granularity == 'variable':
                     single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                 elif granularity == 'series':
@@ -237,8 +237,6 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakd
             total_detected_anomalies_n += anomaly_count
             breakdown_info[anomaly + '_anomaly_count'] = anomaly_count
             breakdown_info[anomaly + '_anomaly_ratio'] = anomaly_count/frequency
-
-        one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
 
     one_series_evaluation_result['false_positives_count'] = false_positives_count
     one_series_evaluation_result['false_positives_ratio'] = false_positives_count/normalization_factor

@@ -578,10 +578,10 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],4)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],8/21)
 
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_anomaly_count'],5)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_anomaly_ratio'],13/24)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_anomaly_count'],4)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_anomaly_ratio'],5/6)
         self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_anomaly_count'],2)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_anomaly_ratio'],1/2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_anomaly_ratio'],1)
 
     def test_double_evaluator(self):
         anomalies = ['step_uv']
