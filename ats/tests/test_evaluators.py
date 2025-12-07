@@ -264,25 +264,25 @@ class TestEvaluators(unittest.TestCase):
         self.assertIn('humidity_anomaly',list(flagged_dataset[1].columns))
 
     def test_calculate_model_scores(self):
-        single_model_evaluation = { 'sample_1': {'true_positives_count': 3, 'anomalies_ratio': 1.5,
+        single_model_evaluation = { 'sample_1': {'true_positives_count': 3, 'true_positives_rate': 1.5,
                                                     'false_positives_count': 1, 
                                                     'false_positives_ratio': 0.14},
-                                    'sample_2': {'true_positives_count': 3, 'anomalies_ratio': 1.5,
+                                    'sample_2': {'true_positives_count': 3, 'true_positives_rate': 1.5,
                                                     'false_positives_count': 1, 
                                                     'false_positives_ratio': 0.14},
-                                    'sample_3': {'true_positives_count': 3, 'anomalies_ratio': 1.5,
+                                    'sample_3': {'true_positives_count': 3, 'true_positives_rate': 1.5,
                                                     'false_positives_count': 1,
                                                     'false_positives_ratio': 0.14}
         }
         model_scores = _calculate_model_scores(single_model_evaluation)
         self.assertIsInstance(model_scores,dict)
         self.assertIn('true_positives_count',model_scores.keys())
-        self.assertIn('anomalies_ratio',model_scores.keys())
+        self.assertIn('true_positives_rate',model_scores.keys())
         self.assertIn('false_positives_count',model_scores.keys())
         self.assertIn('false_positives_ratio',model_scores.keys())
 
         self.assertAlmostEqual(model_scores['true_positives_count'],9)
-        self.assertAlmostEqual(model_scores['anomalies_ratio'],1.5)
+        self.assertAlmostEqual(model_scores['true_positives_rate'],1.5)
         self.assertAlmostEqual(model_scores['false_positives_count'],3)
         self.assertAlmostEqual(model_scores['false_positives_ratio'],0.14)
 
@@ -298,7 +298,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator = Evaluator(test_data=dataset)
         evaluation_results = evaluator.evaluate(models=models,granularity='point')
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],4)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],8/21)
 
@@ -314,7 +314,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator = Evaluator(test_data=dataset)
         evaluation_results = evaluator.evaluate(models=models,granularity='variable')
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],7)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],25/48)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],25/48)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],5)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],31/126)
 
@@ -330,7 +330,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator = Evaluator(test_data=dataset)
         evaluation_results = evaluator.evaluate(models=models,granularity='series')
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],2)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],2/2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],2/2)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1/3)
 
@@ -359,12 +359,12 @@ class TestEvaluators(unittest.TestCase):
         evaluation_results = evaluator.evaluate(models=models,granularity='variable')
         self.assertIn('detector_1',evaluation_results.keys())
         self.assertIn('true_positives_count',evaluation_results['detector_1'].keys())
-        self.assertIn('anomalies_ratio',evaluation_results['detector_1'].keys())
+        self.assertIn('true_positives_rate',evaluation_results['detector_1'].keys())
         self.assertIn('false_positives_count',evaluation_results['detector_1'].keys())
         self.assertIn('false_positives_ratio',evaluation_results['detector_1'].keys())
 
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],4)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],4/6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],4/6)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],0)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],0)
 
@@ -372,7 +372,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator1 = Evaluator(test_data=dataset1)
         evaluation_results = evaluator1.evaluate(models=models,granularity='variable')
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],3)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],3/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],3/8)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1/(7*2))
 
@@ -383,7 +383,7 @@ class TestEvaluators(unittest.TestCase):
         evaluation_results = _variable_granularity_evaluation(flagged_series[0],anomaly_labels,breakdown=True)
 
         self.assertIn('true_positives_count',evaluation_results.keys())
-        self.assertIn('anomalies_ratio',evaluation_results.keys())
+        self.assertIn('true_positives_rate',evaluation_results.keys())
         self.assertIn('false_positives_count',evaluation_results.keys())
         self.assertIn('false_positives_ratio',evaluation_results.keys())
 
@@ -415,12 +415,12 @@ class TestEvaluators(unittest.TestCase):
         evaluation_results = evaluator.evaluate(models=models,granularity='point')
         self.assertIn('detector_1',evaluation_results.keys())
         self.assertIn('true_positives_count',evaluation_results['detector_1'].keys())
-        self.assertIn('anomalies_ratio',evaluation_results['detector_1'].keys())
+        self.assertIn('true_positives_rate',evaluation_results['detector_1'].keys())
         self.assertIn('false_positives_count',evaluation_results['detector_1'].keys())
         self.assertIn('false_positives_ratio',evaluation_results['detector_1'].keys())
 
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],3)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],3/3)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],3/3)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],0)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],0)
 
@@ -428,7 +428,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator1 = Evaluator(test_data=dataset1)
         evaluation_results = evaluator1.evaluate(models=models,granularity='point')
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],3)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],3/4)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],3/4)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1/7)
 
@@ -439,7 +439,7 @@ class TestEvaluators(unittest.TestCase):
         evaluation_results = _point_granularity_evaluation(flagged_series[0],anomaly_labels,breakdown=True)
 
         self.assertIn('true_positives_count',evaluation_results.keys())
-        self.assertIn('anomalies_ratio',evaluation_results.keys())
+        self.assertIn('true_positives_rate',evaluation_results.keys())
         self.assertIn('false_positives_count',evaluation_results.keys())
         self.assertIn('false_positives_ratio',evaluation_results.keys())
 
@@ -462,12 +462,12 @@ class TestEvaluators(unittest.TestCase):
         evaluation_results = evaluator.evaluate(models=models,granularity='series')
         self.assertIn('detector_1',evaluation_results.keys())
         self.assertIn('true_positives_count',evaluation_results['detector_1'].keys())
-        self.assertIn('anomalies_ratio',evaluation_results['detector_1'].keys())
+        self.assertIn('true_positives_rate',evaluation_results['detector_1'].keys())
         self.assertIn('false_positives_count',evaluation_results['detector_1'].keys())
         self.assertIn('false_positives_ratio',evaluation_results['detector_1'].keys())
 
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],1)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],1)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],0)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],0)
 
@@ -475,7 +475,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator1 = Evaluator(test_data=dataset1)
         evaluation_results = evaluator1.evaluate(models=models,granularity='series')
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],0)
-        self.assertIsNone(evaluation_results['detector_1']['anomalies_ratio'])
+        self.assertIsNone(evaluation_results['detector_1']['true_positives_rate'])
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],1)
 
@@ -488,7 +488,7 @@ class TestEvaluators(unittest.TestCase):
         evaluation_results = _series_granularity_evaluation(flagged_series[0],anomaly_labels,breakdown=True)
 
         self.assertIn('true_positives_count',evaluation_results.keys())
-        self.assertIn('anomalies_ratio',evaluation_results.keys())
+        self.assertIn('true_positives_rate',evaluation_results.keys())
         self.assertIn('false_positives_count',evaluation_results.keys())
         self.assertIn('false_positives_ratio',evaluation_results.keys())
         self.assertIn('anomaly_1_anomaly_count',evaluation_results.keys())
@@ -504,12 +504,12 @@ class TestEvaluators(unittest.TestCase):
             self.assertIsInstance(e,ValueError)
 
     def test_get_breakdown_info(self):
-        single_model_evaluation = { 'sample_1': {'true_positives_count': 3, 'anomalies_ratio': 1.5,
+        single_model_evaluation = { 'sample_1': {'true_positives_count': 3, 'true_positives_rate': 1.5,
                                                     'false_positives_count': 1, 
                                                     'false_positives_ratio': 0.14,
                                                     'spike_anomaly_count': 1,
                                                     'spike_anomaly_ratio': 0.5},
-                                    'sample_2': {'true_positives_count': 3, 'anomalies_ratio': 1.5,
+                                    'sample_2': {'true_positives_count': 3, 'true_positives_rate': 1.5,
                                                     'false_positives_count': 1, 
                                                     'false_positives_ratio': 0.14,
                                                     'spike_anomaly_count': 1,
@@ -517,7 +517,7 @@ class TestEvaluators(unittest.TestCase):
                                                     'step_anomaly_count': 2,
                                                     'step_anomaly_ratio': 2/3
                                                     },
-                                    'sample_3': {'true_positives_count': 3, 'anomalies_ratio': 1.5,
+                                    'sample_3': {'true_positives_count': 3, 'true_positives_rate': 1.5,
                                                     'false_positives_count': 1,
                                                     'false_positives_ratio': 0.14,
                                                     'step_anomaly_count': 3,
@@ -553,7 +553,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator = Evaluator(test_data=dataset)
         evaluation_results = evaluator.evaluate(models=models,granularity='variable',breakdown=True)
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],7)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],25/48)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],25/48)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],5)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],31/126)
 
@@ -574,7 +574,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator = Evaluator(test_data=dataset)
         evaluation_results = evaluator.evaluate(models=models,granularity='point',breakdown=True)
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],4)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],8/21)
 
@@ -601,7 +601,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator = Evaluator(test_data=dataset)
         evaluation_results = evaluator.evaluate(models=models,granularity='series',breakdown=True)
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],3)
-        self.assertAlmostEqual(evaluation_results['detector_1']['anomalies_ratio'],1)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],1)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],0)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],0)
 
