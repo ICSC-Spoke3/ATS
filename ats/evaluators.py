@@ -196,7 +196,7 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,bre
                         false_positives_count += flagged_timeseries_df.loc[timestamp,column]
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
-            breakdown_info[anomaly + '_anomaly' + '_count'] = anomaly_count
+            breakdown_info[anomaly + '_true_positives_count'] = anomaly_count
             breakdown_info[anomaly + '_true_positives_rate'] = anomaly_count/(frequency * variables_n)
 
     total_inserted_anomalies_n *= variables_n
@@ -235,7 +235,7 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakd
                         break
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
-            breakdown_info[anomaly + '_anomaly_count'] = anomaly_count
+            breakdown_info[anomaly + '_true_positives_count'] = anomaly_count
             breakdown_info[anomaly + '_true_positives_rate'] = anomaly_count/frequency
 
     one_series_evaluation_result['false_positives_count'] = false_positives_count
@@ -267,7 +267,7 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
                 is_series_anomalous = 1
                 if anomalies:
                     inserted_anomaly = anomalies[0]
-                    breakdown_info[inserted_anomaly + '_anomaly_count'] = 1
+                    breakdown_info[inserted_anomaly + '_true_positives_count'] = 1
                     breakdown_info[inserted_anomaly + '_true_positives_rate'] = 1
                 break
     one_series_evaluation_result['false_positives_count'] = 1 if is_series_anomalous and not anomalies else 0
