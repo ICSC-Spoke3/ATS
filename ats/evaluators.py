@@ -54,14 +54,14 @@ def _calculate_model_scores(single_model_evaluation={}):
     false_positives_ratio = 0
     anomalous_series_n = 0
     for sample in single_model_evaluation.keys():
-        anomalies_count += single_model_evaluation[sample]['anomalies_count']
+        anomalies_count += single_model_evaluation[sample]['true_positives_count']
         if single_model_evaluation[sample]['anomalies_ratio'] is not None:
             anomalies_ratio += single_model_evaluation[sample]['anomalies_ratio']
             anomalous_series_n += 1
         false_positives_count += single_model_evaluation[sample]['false_positives_count']
         false_positives_ratio += single_model_evaluation[sample]['false_positives_ratio']
 
-    model_scores['anomalies_count'] = anomalies_count
+    model_scores['true_positives_count'] = anomalies_count
     if anomalous_series_n:
         model_scores['anomalies_ratio'] = anomalies_ratio/anomalous_series_n
     else:
@@ -72,8 +72,8 @@ def _calculate_model_scores(single_model_evaluation={}):
 
 def _get_breakdown_info(single_model_evaluation={}):
     for sample in single_model_evaluation.keys():
-        if 'anomalies_count' in single_model_evaluation[sample].keys():
-            del single_model_evaluation[sample]['anomalies_count']
+        if 'true_positives_count' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['true_positives_count']
         if 'anomalies_ratio' in single_model_evaluation[sample].keys():
             del single_model_evaluation[sample]['anomalies_ratio']
         if 'false_positives_count' in single_model_evaluation[sample].keys():
@@ -202,7 +202,7 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,bre
     total_inserted_anomalies_n *= variables_n
     one_series_evaluation_result['false_positives_count'] = false_positives_count
     one_series_evaluation_result['false_positives_ratio'] = false_positives_count/normalization_factor
-    one_series_evaluation_result['anomalies_count'] = total_detected_anomalies_n
+    one_series_evaluation_result['true_positives_count'] = total_detected_anomalies_n
     if total_inserted_anomalies_n:
         one_series_evaluation_result['anomalies_ratio'] = total_detected_anomalies_n/total_inserted_anomalies_n
     else:
@@ -240,7 +240,7 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakd
 
     one_series_evaluation_result['false_positives_count'] = false_positives_count
     one_series_evaluation_result['false_positives_ratio'] = false_positives_count/normalization_factor
-    one_series_evaluation_result['anomalies_count'] = total_detected_anomalies_n
+    one_series_evaluation_result['true_positives_count'] = total_detected_anomalies_n
     if total_inserted_anomalies_n:
         one_series_evaluation_result['anomalies_ratio'] = total_detected_anomalies_n/total_inserted_anomalies_n
     else:
@@ -272,8 +272,8 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
                 break
     one_series_evaluation_result['false_positives_count'] = 1 if is_series_anomalous and not anomalies else 0
     one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']
-    one_series_evaluation_result['anomalies_count'] = 1 if is_series_anomalous and anomalies else 0
-    one_series_evaluation_result['anomalies_ratio'] = one_series_evaluation_result['anomalies_count'] if anomalies else None
+    one_series_evaluation_result['true_positives_count'] = 1 if is_series_anomalous and anomalies else 0
+    one_series_evaluation_result['anomalies_ratio'] = one_series_evaluation_result['true_positives_count'] if anomalies else None
 
     if breakdown:
         return one_series_evaluation_result | breakdown_info
