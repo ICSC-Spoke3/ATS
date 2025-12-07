@@ -94,7 +94,7 @@ def _get_breakdown_info(single_model_evaluation={}):
                 breakdown_info[key] = sample_evaluation[key]
 
     for key in breakdown_info.keys():
-        if '_ratio' in key:
+        if '_rate' in key:
             breakdown_info[key] /= anomaly_series_count_by_type[key]
 
     return breakdown_info
@@ -197,7 +197,7 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,bre
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
             breakdown_info[anomaly + '_anomaly' + '_count'] = anomaly_count
-            breakdown_info[anomaly + '_anomaly' + '_ratio'] = anomaly_count/(frequency * variables_n)
+            breakdown_info[anomaly + '_true_positives_rate'] = anomaly_count/(frequency * variables_n)
 
     total_inserted_anomalies_n *= variables_n
     one_series_evaluation_result['false_positives_count'] = false_positives_count
@@ -236,7 +236,7 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakd
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
             breakdown_info[anomaly + '_anomaly_count'] = anomaly_count
-            breakdown_info[anomaly + '_anomaly_ratio'] = anomaly_count/frequency
+            breakdown_info[anomaly + '_true_positives_rate'] = anomaly_count/frequency
 
     one_series_evaluation_result['false_positives_count'] = false_positives_count
     one_series_evaluation_result['false_positives_ratio'] = false_positives_count/normalization_factor
@@ -268,7 +268,7 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
                 if anomalies:
                     inserted_anomaly = anomalies[0]
                     breakdown_info[inserted_anomaly + '_anomaly_count'] = 1
-                    breakdown_info[inserted_anomaly + '_anomaly_ratio'] = 1
+                    breakdown_info[inserted_anomaly + '_true_positives_rate'] = 1
                 break
     one_series_evaluation_result['false_positives_count'] = 1 if is_series_anomalous and not anomalies else 0
     one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']
