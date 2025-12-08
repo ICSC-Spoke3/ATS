@@ -45,8 +45,6 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
         model = self.model
 
-        #TODO: remove fit from apply at some point
-        model.fit(timeseries, *args, **kwargs)
         timeseries = model.apply(timeseries, *args, **kwargs)
 
         # Convert back to DataFrame
