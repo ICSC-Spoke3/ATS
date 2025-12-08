@@ -48,5 +48,8 @@ class PeriodicAverageAnomalyDetector(TimeseriaAnomalyDetector):
         super().__init__()
         self.model = TimeseriaPeriodicAverageAnomalyDetector()
 
-    def apply(self,data):
-        return super().apply(data)
+    def fit(self,data, *args, **kwargs):
+        return super().fit(data, *args, **kwargs)
+
+    def apply(self,data, *args, **kwargs):
+        return super().apply(data, *args, **kwargs)
