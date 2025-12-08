@@ -24,7 +24,7 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         model.fit(timeseries, *args, **kwargs)
         self.model = model
 
-     def apply(self, data, *args, **kwargs):
+    def apply(self, data, *args, **kwargs):
         if not isinstance(data,pd.DataFrame):
             raise NotImplementedError('Not yet implemented for non DataFrame inputs')
         timeseries_df = data
