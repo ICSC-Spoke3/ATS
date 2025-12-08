@@ -12,6 +12,8 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
     
     def __init__(self):
         self.model = None
+        if self.model is None:
+            raise NotImplementedError('Subclasses must define a timeseria model')
     
     def fit(self, data, *args, **kwargs):
         if not isinstance(data,pd.DataFrame):
@@ -22,7 +24,6 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
         model = self.model
         model.fit(timeseries, *args, **kwargs)
-        self.model = model
 
     def apply(self, data, *args, **kwargs):
         if not isinstance(data,pd.DataFrame):
