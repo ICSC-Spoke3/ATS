@@ -2,6 +2,7 @@ from ats.utils import convert_timeseries_df_to_timeseries, convert_timeseries_to
 from .base import AnomalyDetector
 from timeseria.datastructures import TimeSeries
 from timeseria.models.anomaly_detectors import PeriodicAverageAnomalyDetector as TimeseriaPeriodicAverageAnomalyDetector
+from timeseria.models.anomaly_detectors import LSTMAnomalyDetector as TimeseriaLSTMAnomalyDetector  
 import pandas as pd
 
 # Setup logging
@@ -56,3 +57,8 @@ class PeriodicAverageAnomalyDetector(TimeseriaAnomalyDetector):
     def __init__(self):
         super().__init__()
         self.model = TimeseriaPeriodicAverageAnomalyDetector()
+
+class LSTMAnomalyDetector(TimeseriaAnomalyDetector):
+    def __init__(self):
+        super().__init__()
+        self.model = TimeseriaLSTMAnomalyDetector()
