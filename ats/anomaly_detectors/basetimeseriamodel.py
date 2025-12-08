@@ -1,7 +1,7 @@
 from ats.utils import convert_timeseries_df_to_timeseries, convert_timeseries_to_timeseries_df
 from .base import AnomalyDetector
 from timeseria.datastructures import TimeSeries
-from timeseria.models.anomaly_detectors import PeriodicAverageAnomalyDetector
+from timeseria.models.anomaly_detectors import PeriodicAverageAnomalyDetector as TimeseriaPeriodicAverageAnomalyDetector
 import pandas as pd
 
 # Setup logging
@@ -41,15 +41,11 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         timeseries_df = convert_timeseries_to_timeseries_df(timeseries)
             
         return timeseries_df
-    
-    # Implementare fit e apply
-    # Aggiungere value_1_anomaly value_2_anomaly anomaly 
-    # anomaly = unione (?)
 
 class PeriodicAverageAnomalyDetector(TimeseriaAnomalyDetector):
     def __init__(self):
         super().__init__()
-        self.model = PeriodicAverageAnomalyDetector()
+        self.model = TimeseriaPeriodicAverageAnomalyDetector()
 
     def apply(self,data):
         return super().apply(data)
