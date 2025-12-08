@@ -8,12 +8,18 @@ import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
-class TimeseriaAnomalyDetector(AnomalyDetector):  
+class TimeseriaAnomalyDetector(AnomalyDetector):
+    """
+    Base class for anomaly detectors wrapped from the timeseria library.
+    """  
     
     def __init__(self):
         self.model = None
     
-    def fit(self, data, *args, **kwargs):        
+    def fit(self, data, *args, **kwargs):
+        """
+        Fit the timeseria anomaly detector model.
+        """      
         if self.model is None:
             raise NotImplementedError('Subclasses must define a timeseria model')
         if not isinstance(data,pd.DataFrame):
@@ -26,6 +32,9 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         model.fit(timeseries, *args, **kwargs)
 
     def apply(self, data, *args, **kwargs):
+        """
+        Apply the timeseria anomaly detector model.
+        """     
         if self.model is None:
             raise NotImplementedError('Subclasses must define a timeseria model')
         if not isinstance(data,pd.DataFrame):
