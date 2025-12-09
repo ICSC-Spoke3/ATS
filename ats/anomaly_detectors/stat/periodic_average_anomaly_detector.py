@@ -1,0 +1,5 @@
+from ..base import TimeseriaAnomalyDetector
+from timeseria.models.anomaly_detectors import PeriodicAverageAnomalyDetector as TimeseriaPeriodicAverageAnomalyDetector
+
+class PeriodicAverageAnomalyDetector(TimeseriaAnomalyDetector):
+    model_class = TimeseriaPeriodicAverageAnomalyDetector

@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 from ..anomaly_detectors.base import TimeseriaAnomalyDetector
-from ..anomaly_detectors.basetimeseriamodel import PeriodicAverageAnomalyDetector
+from ..anomaly_detectors.stat.periodic_average_anomaly_detector import PeriodicAverageAnomalyDetector
 from ats.utils import generate_timeseries_df
 
 # Setup logging
