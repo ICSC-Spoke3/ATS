@@ -26,3 +26,11 @@ class TestModels(unittest.TestCase):
 
         self.assertIsInstance(applied_series, pd.DataFrame)
         self.assertIn('anomaly', applied_series.columns)
+    
+    def test_apply_params(self):
+        detector = PeriodicAverageAnomalyDetector()
+        detector.set_apply_params(threshold=2.0)
+        params = detector.get_apply_params()
+        
+        self.assertIn('threshold', params)
+        self.assertEqual(params['threshold'], 2.0)

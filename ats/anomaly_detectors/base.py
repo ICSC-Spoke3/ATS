@@ -46,6 +46,19 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         if self.model_class is None:
             raise NotImplementedError('Subclasses must define a timeseria model')
         self.model = self.model_class(*args, **kwargs)
+        self.apply_params = {}
+
+    def set_apply_params(self, **kwargs):
+        """
+        Set parameters for the apply method of the timeseria model.
+        """  
+        self.apply_params = kwargs
+    
+    def get_apply_params(self):
+        """
+        Get parameters for the apply method of the timeseria model.
+        """  
+        return self.apply_params
 
     def fit(self, data, *args, **kwargs):
         """
@@ -60,7 +73,7 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         model = self.model
         model.fit(timeseries, *args, **kwargs)
 
-    def apply(self, data, *args, **kwargs):
+    def apply(self, data):
         """
         Apply the timeseria anomaly detector model.
         """     
@@ -70,7 +83,7 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
 
         # Using timeseria to fit and apply the model
         timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
-        timeseries = self.model.apply(timeseries, *args, **kwargs)
+        timeseries = self.model.apply(timeseries, **self.apply_params)
 
         # Convert back to DataFrame
         timeseries_df = convert_timeseries_to_timeseries_df(timeseries)
