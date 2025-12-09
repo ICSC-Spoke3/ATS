@@ -2,7 +2,8 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from ..anomaly_detectors.basetimeseriamodel import TimeseriaAnomalyDetector, PeriodicAverageAnomalyDetector
+from ..anomaly_detectors.base import TimeseriaAnomalyDetector
+from ..anomaly_detectors.basetimeseriamodel import PeriodicAverageAnomalyDetector
 from ats.utils import generate_timeseries_df
 
 # Setup logging
