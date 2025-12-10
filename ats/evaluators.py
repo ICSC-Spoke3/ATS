@@ -114,9 +114,6 @@ class Evaluator():
         return dataset_copies
 
     def evaluate(self,models={},granularity='point',strategy='flags',breakdown=False):
-        if strategy != 'flags':
-            raise NotImplementedError(f'Evaluation strategy {strategy} is not implemented')
-
         if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
@@ -138,11 +135,23 @@ class Evaluator():
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
                 if granularity == 'point':
-                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i],breakdown=breakdown)
+                    if strategy == 'flags':
+                        single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i],breakdown=breakdown)
+                    elif strategy == 'events':
+                        single_model_evaluation[f'sample_{i+1}'] = _point_eval_with_events_strategy(sample_df,anomaly_labels_df[i],breakdown=breakdown)
+
                 elif granularity == 'variable':
-                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    if strategy == 'flags':
+                        single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    elif strategy == 'events':
+                        single_model_evaluation[f'sample_{i+1}'] = _variable_eval_with_events_strategy(sample_df,anomaly_labels_df[i],breakdown=breakdown)
+
                 elif granularity == 'series':
-                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    if strategy == 'flags':
+                        single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    elif strategy == 'events':
+                        single_model_evaluation[f'sample_{i+1}'] = _series_eval_with_events_strategy(sample_df,anomaly_labels_df[i],breakdown=breakdown)
+
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
 
@@ -360,3 +369,12 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
         return one_series_evaluation_result | breakdown_info
     else:
         return one_series_evaluation_result
+
+def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
+    pass
+
+def _point_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
+    pass
+
+def _series_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
+    pass
