@@ -83,7 +83,7 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
 
         # Using timeseria to fit and apply the model
         timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
-        timeseries = self.model.apply(timeseries, **self.apply_params)
+        timeseries = self.model.apply(timeseries, **self.get_apply_params())
 
         # Convert back to DataFrame
         timeseries_df = convert_timeseries_to_timeseries_df(timeseries)
