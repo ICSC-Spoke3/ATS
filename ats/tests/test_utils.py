@@ -5,6 +5,9 @@ import plotly.graph_objects as go
 from unittest.mock import patch
 
 from ..utils import (generate_timeseries_df, 
+                     convert_timeseries_df_to_timeseries,
+                     convert_timeseries_to_timeseries_df,
+                     plot_timeseries_df,
                      normalize_parameter, 
                      normalize_df, 
                      plot_3d_interactive,
@@ -23,10 +26,17 @@ logger.setup()
 class TestUtils(unittest.TestCase):
 
     def test_generate_timeseries_df(self):
-
         timeseries_df = generate_timeseries_df(entries=10, variables=2)
         self.assertEqual(timeseries_df.shape, (10,2))
-
+    
+    def test_convert_timeseries_df_to_timeseries_and_back_with_anomalies(self):
+        timeseries_df = generate_timeseries_df(entries=10, variables=2)
+        
+        timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
+        timeseries_df_converted = convert_timeseries_to_timeseries_df(timeseries)
+        
+        pd.testing.assert_frame_equal(timeseries_df, timeseries_df_converted)
+    
     # Tests for normalize_parameter
     def test_normalize_generic_parameter(self):
         df = pd.DataFrame({"a": [1, 2, 3, 4, 5]})
