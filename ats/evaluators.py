@@ -373,8 +373,35 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
 def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
     pass
 
-def _point_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
-    pass
+def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
+    detected_events_n = 0
+    false_positives_n = 0
+    inserted_events_n = _get_anomalous_events(anomaly_labels_df)
+    evaluation_result = {}
+
+    previous_timestamp = None
+    for timestamp in flagged_timeseries_df.index:
+        anomaly_label = anomaly_labels_df.loc[timestamp]
+        is_anomalous = flagged_timeseries_df.loc[timestamp]
+        if anomaly_label is not None and is_anomalous:
+            if anomaly_label != previous_anomaly_label:
+                detected_events_n += 1 
+
+        elif anomaly_label is None and is_anomalous:
+            if anomaly_label != previous_anomaly_label:
+                false_positives_n += 1
+
+        previous_timestamp = timestamp
+        previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
+
+    evaluation_result['true_positives_count'] = detected_events_n
+    evaluation_result['true_positives_rate'] = detected_events_n/inserted_events_n
+    evaluation_result['false_positives_count'] = false_positives_n
+    evaluation_result['false_positives_count'] = false_positives_n/len(flagged_timeseries_df)
+    return evaluation_result
 
 def _series_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
+    pass
+
+def _get_anomalous_events(anomaly_labels_df):
     pass
