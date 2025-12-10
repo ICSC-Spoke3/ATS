@@ -47,11 +47,6 @@ def evaluate_anomaly_detector(evaluated_timeseries_df, anomaly_labels, details=F
 
 
 def _calculate_model_scores(single_model_evaluation={}):
-    dataset_anomalies = set()
-    for sample in single_model_evaluation.keys():
-        sample_anomalies = set(single_model_evaluation[sample].keys())
-        dataset_anomalies.update(sample_anomalies)
-
     model_scores = {}
     anomalies_count = 0
     false_positives_count = 0
@@ -73,8 +68,36 @@ def _calculate_model_scores(single_model_evaluation={}):
         model_scores['anomalies_ratio'] = None
     model_scores['false_positives_count'] = false_positives_count
     model_scores['false_positives_ratio'] = false_positives_ratio/len(single_model_evaluation)
-
     return model_scores
+
+def _get_breakdown_info(single_model_evaluation={}):
+    for sample in single_model_evaluation.keys():
+        if 'anomalies_count' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['anomalies_count']
+        if 'anomalies_ratio' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['anomalies_ratio']
+        if 'false_positives_count' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['false_positives_count']
+        if 'false_positives_ratio' in single_model_evaluation[sample].keys():
+            del single_model_evaluation[sample]['false_positives_ratio']
+
+    breakdown_info = {}
+    # how many series in the dataset have that anomaly type
+    anomaly_series_count_by_type = {}
+    for sample, sample_evaluation in single_model_evaluation.items():
+        for key in sample_evaluation.keys():
+            if key in breakdown_info.keys():
+                anomaly_series_count_by_type[key] +=1
+                breakdown_info[key] += sample_evaluation[key]
+            else:
+                anomaly_series_count_by_type[key] =1
+                breakdown_info[key] = sample_evaluation[key]
+
+    for key in breakdown_info.keys():
+        if '_ratio' in key:
+            breakdown_info[key] /= anomaly_series_count_by_type[key]
+
+    return breakdown_info
 
 
 class Evaluator():
@@ -88,9 +111,10 @@ class Evaluator():
             dataset_copies.append(dataset_copy)
         return dataset_copies
 
-    def evaluate(self,models={},granularity='point',strategy='flags'):
+    def evaluate(self,models={},granularity='point',strategy='flags',breakdown=False):
         if strategy != 'flags':
             raise NotImplementedError(f'Evaluation strategy {strategy} is not implemented')
+
         if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
@@ -112,15 +136,20 @@ class Evaluator():
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
                 if granularity == 'point':
-                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i],breakdown=breakdown)
                 elif granularity == 'variable':
-                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                 elif granularity == 'series':
-                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i])
+                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
-                
-            models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
+
+            if breakdown:
+                scores = _calculate_model_scores(single_model_evaluation)
+                breakdown_info = _get_breakdown_info(single_model_evaluation)
+                models_scores[model_name] = scores | breakdown_info
+            else:
+                models_scores[model_name] = _calculate_model_scores(single_model_evaluation)
             j+=1
 
         return models_scores
@@ -142,7 +171,7 @@ def _get_model_output(dataset,model):
 
     return flagged_dataset
 
-def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     one_series_evaluation_result = {}
     flag_columns_n = len(flagged_timeseries_df.filter(like='anomaly').columns)
     variables_n = len(flagged_timeseries_df.columns) - flag_columns_n
@@ -152,7 +181,8 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
 
     total_inserted_anomalies_n = 0
     total_detected_anomalies_n = 0
-    detection_counts_by_anomaly_type = {}
+    breakdown_info = {}
+    false_positives_count = 0
     for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
         if anomaly is not None:
             total_inserted_anomalies_n += frequency
@@ -160,28 +190,36 @@ def _variable_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
         for timestamp in flagged_timeseries_df.index:
             if anomaly_labels_df[timestamp] == anomaly:
                 for column in flagged_timeseries_df.filter(like='anomaly').columns:
-                    anomaly_count += flagged_timeseries_df.loc[timestamp,column]
+                    if anomaly is not None:
+                        anomaly_count += flagged_timeseries_df.loc[timestamp,column]
+                    else:
+                        false_positives_count += flagged_timeseries_df.loc[timestamp,column]
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
-        detection_counts_by_anomaly_type[anomaly] = anomaly_count
+            breakdown_info[anomaly + '_anomaly' + '_count'] = anomaly_count
+            breakdown_info[anomaly + '_anomaly' + '_ratio'] = anomaly_count/(frequency * variables_n)
 
     total_inserted_anomalies_n *= variables_n
-    one_series_evaluation_result['false_positives_count'] = detection_counts_by_anomaly_type.pop(None)
-    one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']/normalization_factor
+    one_series_evaluation_result['false_positives_count'] = false_positives_count
+    one_series_evaluation_result['false_positives_ratio'] = false_positives_count/normalization_factor
     one_series_evaluation_result['anomalies_count'] = total_detected_anomalies_n
     if total_inserted_anomalies_n:
         one_series_evaluation_result['anomalies_ratio'] = total_detected_anomalies_n/total_inserted_anomalies_n
     else:
         one_series_evaluation_result['anomalies_ratio'] = None
-    return one_series_evaluation_result
+    if breakdown:
+        return one_series_evaluation_result | breakdown_info
+    else:
+        return one_series_evaluation_result
 
-def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     one_series_evaluation_result = {}
     normalization_factor = len(flagged_timeseries_df)
 
     total_inserted_anomalies_n = 0
     total_detected_anomalies_n = 0
-    detection_counts_by_anomaly_type = {}
+    breakdown_info = {}
+    false_positives_count = 0
     for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
         if anomaly is not None:
             total_inserted_anomalies_n += frequency
@@ -190,38 +228,54 @@ def _point_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
             if anomaly_labels_df[timestamp] == anomaly:
                 for column in flagged_timeseries_df.filter(like='anomaly').columns:
                     if flagged_timeseries_df.loc[timestamp,column]:
-                        anomaly_count += 1
+                        if anomaly is not None:
+                            anomaly_count += 1
+                        else:
+                            false_positives_count += 1
                         break
         if anomaly is not None:
             total_detected_anomalies_n += anomaly_count
-        detection_counts_by_anomaly_type[anomaly] = anomaly_count
-        one_series_evaluation_result[anomaly] = anomaly_count / normalization_factor
+            breakdown_info[anomaly + '_anomaly_count'] = anomaly_count
+            breakdown_info[anomaly + '_anomaly_ratio'] = anomaly_count/frequency
 
-    one_series_evaluation_result['false_positives_count'] = detection_counts_by_anomaly_type.pop(None)
-    one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']/normalization_factor
+    one_series_evaluation_result['false_positives_count'] = false_positives_count
+    one_series_evaluation_result['false_positives_ratio'] = false_positives_count/normalization_factor
     one_series_evaluation_result['anomalies_count'] = total_detected_anomalies_n
     if total_inserted_anomalies_n:
         one_series_evaluation_result['anomalies_ratio'] = total_detected_anomalies_n/total_inserted_anomalies_n
     else:
         one_series_evaluation_result['anomalies_ratio'] = None
-    return one_series_evaluation_result
+    if breakdown:
+        return one_series_evaluation_result | breakdown_info
+    else:
+        return one_series_evaluation_result
 
-def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df):
+def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     anomalies = []
     for anomaly,frequency in anomaly_labels_df.value_counts(dropna=False).items():
         if anomaly is not None:
             anomalies.append(anomaly)
+    if len(anomalies) != 1 and breakdown:
+        raise ValueError('Series must have only 1 anomaly type for breakdown in mode granularity = "series"')
 
     one_series_evaluation_result = {}
+    breakdown_info = {}
     is_series_anomalous = 0
     for timestamp in flagged_timeseries_df.index:
         for column in flagged_timeseries_df.filter(like='anomaly').columns:
             if flagged_timeseries_df.loc[timestamp,column]:
                 is_series_anomalous = 1
+                if anomalies:
+                    inserted_anomaly = anomalies[0]
+                    breakdown_info[inserted_anomaly + '_anomaly_count'] = 1
+                    breakdown_info[inserted_anomaly + '_anomaly_ratio'] = 1
                 break
     one_series_evaluation_result['false_positives_count'] = 1 if is_series_anomalous and not anomalies else 0
     one_series_evaluation_result['false_positives_ratio'] = one_series_evaluation_result['false_positives_count']
     one_series_evaluation_result['anomalies_count'] = 1 if is_series_anomalous and anomalies else 0
     one_series_evaluation_result['anomalies_ratio'] = one_series_evaluation_result['anomalies_count'] if anomalies else None
 
-    return one_series_evaluation_result
+    if breakdown:
+        return one_series_evaluation_result | breakdown_info
+    else:
+        return one_series_evaluation_result
