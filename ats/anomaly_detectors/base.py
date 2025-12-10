@@ -3,7 +3,6 @@
 
 import pandas as pd
 from ats.utils import convert_timeseries_df_to_timeseries, convert_timeseries_to_timeseries_df
-from timeseria.datastructures import TimeSeries
 
 # Setup logging
 import logging
