@@ -70,6 +70,18 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         # Using timeseria to fit the model
         timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
         self.model.fit(timeseries, *args, **kwargs)
+    
+    def fit_update(self, data, *args, **kwargs):
+        """
+        Fit update the timeseria anomaly detector model.
+        """      
+        if not isinstance(data,pd.DataFrame):
+            raise NotImplementedError('Not yet implemented for non DataFrame inputs')
+        timeseries_df = data
+
+        # Using timeseria to fit the model
+        timeseries = convert_timeseries_df_to_timeseries(timeseries_df)
+        self.model.fit_update(timeseries, *args, **kwargs)
 
     def apply(self, data):
         """
