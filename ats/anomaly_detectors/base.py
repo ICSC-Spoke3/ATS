@@ -3,6 +3,7 @@
 
 import pandas as pd
 from ats.utils import convert_timeseries_df_to_timeseries, convert_timeseries_to_timeseries_df
+from timeseria.models.anomaly_detectors import ModelBasedAnomalyDetector as TimeseriaModelBasedAnomalyDetector
 
 # Setup logging
 import logging
@@ -100,3 +101,10 @@ class TimeseriaAnomalyDetector(AnomalyDetector):
         timeseries_df['anomaly'] = (timeseries_df['anomaly'].astype(float) != 0).astype(int)
 
         return timeseries_df
+    
+
+class ModelBasedAnomalyDetector(TimeseriaAnomalyDetector):
+    """
+    Base class for model base anomaly detectors (from timeseria).
+    """  
+    model_class = TimeseriaModelBasedAnomalyDetector
