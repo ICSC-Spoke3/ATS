@@ -11,7 +11,6 @@ from ..evaluators import _point_granularity_evaluation
 from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
 from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
-from ..evaluators import _get_anomalous_events
 from ..evaluators import _count_anomalous_events
 from ..evaluators import _point_eval_with_events_strategy
 
