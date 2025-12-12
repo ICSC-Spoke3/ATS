@@ -376,7 +376,7 @@ def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=Fa
 def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     detected_events_n = 0
     false_positives_n = 0
-    inserted_events_n = _count_anomalous_events(anomaly_labels_df)
+    inserted_events_n,inserted_events_by_type = _count_anomalous_events(anomaly_labels_df)
     evaluation_result = {}
     breakdown_info = {}
 
@@ -407,6 +407,9 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     evaluation_result['true_positives_rate'] = detected_events_n/inserted_events_n
     evaluation_result['false_positives_count'] = false_positives_n
     evaluation_result['false_positives_ratio'] = false_positives_n/len(flagged_timeseries_df)
+
+    for key in inserted_events_by_type.keys():
+        breakdown_info[key + '_true_positives_rate'] = breakdown_info[key + '_true_positives_count']/inserted_events_by_type[key]
     if breakdown:
         return evaluation_result | breakdown_info
     else:
