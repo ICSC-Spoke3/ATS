@@ -694,3 +694,4 @@ class TestEvaluators(unittest.TestCase):
         evaluation_result = _point_eval_with_events_strategy(series,anomaly_labels,breakdown=True)
         self.assertIn('anomaly_1_true_positives_count',evaluation_result.keys())
         self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_rate'],1)
