@@ -11,6 +11,8 @@ from ..evaluators import _point_granularity_evaluation
 from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
 from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
+from ..evaluators import _get_anomalous_events
+
 import unittest
 import pandas as pd
 import random as rnd
@@ -652,3 +654,14 @@ class TestEvaluators(unittest.TestCase):
         models={'paverage': PeriodicAverageAnomalyDetector() }
         evaluation_results = evaluator.evaluate(models=models,granularity='point')
 
+    def test_get_anomalous_events(self):
+        humi_temp_generator = HumiTempTimeseriesGenerator()
+        timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['step_uv'])
+        anomalous_events = _get_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        self.assertEqual(anomalous_events,1)
+
+    def test_get_anomalous_events_with_point_anomaly(self):
+        humi_temp_generator = HumiTempTimeseriesGenerator()
+        timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['spike_uv'])
+        anomalous_events = _get_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        self.assertEqual(anomalous_events,1)
