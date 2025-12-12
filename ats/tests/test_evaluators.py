@@ -695,3 +695,19 @@ class TestEvaluators(unittest.TestCase):
         self.assertIn('anomaly_1_true_positives_count',evaluation_result.keys())
         self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_count'],2)
         self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_rate'],1)
+
+    def test_eval_point_granularity_events_strategy(self):
+        dataset = [self.series1, self.series2, self.series3]
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events')
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],8/21)

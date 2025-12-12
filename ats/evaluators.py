@@ -138,19 +138,19 @@ class Evaluator():
                     if strategy == 'flags':
                         single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i],breakdown=breakdown)
                     elif strategy == 'events':
-                        single_model_evaluation[f'sample_{i+1}'] = _point_eval_with_events_strategy(sample_df,anomaly_labels_df[i],breakdown=breakdown)
+                        single_model_evaluation[f'sample_{i+1}'] = _point_eval_with_events_strategy(sample_df,anomaly_labels_list[i],breakdown=breakdown)
 
                 elif granularity == 'variable':
                     if strategy == 'flags':
                         single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                     elif strategy == 'events':
-                        single_model_evaluation[f'sample_{i+1}'] = _variable_eval_with_events_strategy(sample_df,anomaly_labels_df[i],breakdown=breakdown)
+                        single_model_evaluation[f'sample_{i+1}'] = _variable_eval_with_events_strategy(sample_df,anomaly_labels_list[i],breakdown=breakdown)
 
                 elif granularity == 'series':
                     if strategy == 'flags':
                         single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
                     elif strategy == 'events':
-                        single_model_evaluation[f'sample_{i+1}'] = _series_eval_with_events_strategy(sample_df,anomaly_labels_df[i],breakdown=breakdown)
+                        single_model_evaluation[f'sample_{i+1}'] = _series_eval_with_events_strategy(sample_df,anomaly_labels_list[i],breakdown=breakdown)
 
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
@@ -404,7 +404,10 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
         previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
 
     evaluation_result['true_positives_count'] = detected_events_n
-    evaluation_result['true_positives_rate'] = detected_events_n/inserted_events_n
+    if inserted_events_n:
+        evaluation_result['true_positives_rate'] = detected_events_n/inserted_events_n
+    else:
+        evaluation_result['true_positives_rate'] = None
     evaluation_result['false_positives_count'] = false_positives_n
     evaluation_result['false_positives_ratio'] = false_positives_n/len(flagged_timeseries_df)
 
