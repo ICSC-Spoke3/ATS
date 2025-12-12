@@ -2,13 +2,14 @@ import numpy as np
 import pandas as pd
 from .support_functions import detect_outliers_on_data
 from ...utils import list_of_timeseries_df_to_timeseries_df, timeseries_df_to_list_of_timeseries_df
+from ..base import AnomalyDetector
 
 # Setup logging
 import logging
 logger = logging.getLogger(__name__)
 
 
-class _COMNHARAnomalyDetector:
+class _COMNHARAnomalyDetector(AnomalyDetector):
     """
     Statistically robust anomaly detector based on COM, HAR, and NHAR methodologies.
     """
@@ -19,7 +20,7 @@ class _COMNHARAnomalyDetector:
         self.trend = trend
         self.methods = methods
 
-
+    @AnomalyDetector.apply_method
     def apply(self, data, *args, **kwargs):
         """
         Apply statistical anomaly detection on time series data.

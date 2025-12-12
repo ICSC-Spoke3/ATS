@@ -121,6 +121,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
 
         return pd.Series(a_calc.result(method='array'), index=a_calc.result(method='features'))
 
+    @AnomalyDetector.fit_method
     def fit(self, data, som_size_x=9, som_size_y=9, sigma_som=1.0, learning_rate_som=0.5, random_seed_som=29,
             n_iterations_som=1000, neighborhood_function_som='gaussian', n_estimators_if='100', max_samples_if='auto',
             contamination_if=0.05, max_features_if=1, random_state_if=29, exclude_extra_features=None, caching=True,
@@ -277,7 +278,7 @@ class IFSOMAnomalyDetector(AnomalyDetector):
             self.data['df_features'] = df_features
             self.data['df_features_scaled'] = df_features_scaled
 
-
+    @AnomalyDetector.apply_method
     def apply(self, data, *args, **kwargs):
 
         #==============================
