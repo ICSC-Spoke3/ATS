@@ -679,3 +679,14 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_result['true_positives_rate'],2/2)
         self.assertAlmostEqual(evaluation_result['false_positives_count'],1)
         self.assertAlmostEqual(evaluation_result['false_positives_ratio'],1/6)
+
+    def test_point_eval_with_events_strategy_and_breakdown(self):
+        # model output
+        series = generate_timeseries_df(entries=6, variables=1)
+        series['value_anomaly'] = [0,1,1,1,1,1]
+
+        anomaly_labels = pd.Series([None, 'anomaly_1', 'anomaly_1', None, None,'anomaly_1'])
+        anomaly_labels.index = series.index
+        evaluation_result = _point_eval_with_events_strategy(series,anomaly_labels,breakdown=True)
+        self.assertIn('anomaly_1_true_positives_count',evaluation_result.keys())
+        self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_count'],2)
