@@ -419,7 +419,7 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
         return evaluation_result
 
 def _series_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
-    pass
+    raise NotImplementedError('Evaluation with events strategy and series granularity not implemented')
 
 def _count_anomalous_events(anomaly_labels_df):
     anomalous_events_n = 0
