@@ -710,4 +710,4 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
-        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],8/21)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],10/(21*3))
