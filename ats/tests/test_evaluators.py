@@ -12,6 +12,7 @@ from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
 from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
 from ..evaluators import _get_anomalous_events
+from ..evaluators import _count_anomalous_events
 from ..evaluators import _point_eval_with_events_strategy
 
 import unittest
@@ -655,17 +656,20 @@ class TestEvaluators(unittest.TestCase):
         models={'paverage': PeriodicAverageAnomalyDetector() }
         evaluation_results = evaluator.evaluate(models=models,granularity='point')
 
-    def test_get_anomalous_events(self):
+    def test_count_anomalous_events(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
         timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['step_uv'])
-        anomalous_events = _get_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
         self.assertEqual(anomalous_events,1)
+        self.assertIsInstance(events_by_type,dict)
+        self.assertEqual(events_by_type['step_uv'],1)
 
-    def test_get_anomalous_events_with_point_anomaly(self):
+    def test_count_anomalous_events_with_point_anomaly(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
         timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['spike_uv'])
-        anomalous_events = _get_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
         self.assertEqual(anomalous_events,1)
+        self.assertEqual(events_by_type['spike_uv'],1)
 
     def test_point_eval_with_events_strategy(self):
         # model output

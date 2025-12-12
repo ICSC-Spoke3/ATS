@@ -376,7 +376,7 @@ def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=Fa
 def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     detected_events_n = 0
     false_positives_n = 0
-    inserted_events_n = _get_anomalous_events(anomaly_labels_df)
+    inserted_events_n = _count_anomalous_events(anomaly_labels_df)
     evaluation_result = {}
     breakdown_info = {}
 
@@ -415,14 +415,22 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
 def _series_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
     pass
 
-def _get_anomalous_events(anomaly_labels_df):
+def _count_anomalous_events(anomaly_labels_df):
     anomalous_events_n = 0
+    events_by_type_n = {}
     previous_anomaly_label = None
     for timestamp in anomaly_labels_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
         if anomaly_label is not None:
             if anomaly_label != previous_anomaly_label:
                 anomalous_events_n += 1
+
+                key = anomaly_label
+                if key in events_by_type_n.keys():
+                    events_by_type_n[key] +=1
+                else:
+                    events_by_type_n[key] =1
+
         previous_timestamp = timestamp
         previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
-    return anomalous_events_n
+    return anomalous_events_n, events_by_type_n
