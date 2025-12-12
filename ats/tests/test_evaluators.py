@@ -12,6 +12,7 @@ from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
 from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
 from ..evaluators import _get_anomalous_events
+from ..evaluators import _point_eval_with_events_strategy
 
 import unittest
 import pandas as pd
@@ -665,3 +666,16 @@ class TestEvaluators(unittest.TestCase):
         timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['spike_uv'])
         anomalous_events = _get_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
         self.assertEqual(anomalous_events,1)
+
+    def test_point_eval_with_events_strategy(self):
+        # model output
+        series = generate_timeseries_df(entries=6, variables=1)
+        series['value_anomaly'] = [0,1,1,1,1,1]
+
+        anomaly_labels = pd.Series([None, 'anomaly_1', 'anomaly_1', None, None,'anomaly_1'])
+        anomaly_labels.index = series.index
+        evaluation_result = _point_eval_with_events_strategy(series,anomaly_labels)
+        self.assertAlmostEqual(evaluation_result['true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_result['true_positives_rate'],2/2)
+        self.assertAlmostEqual(evaluation_result['false_positives_count'],1)
+        self.assertAlmostEqual(evaluation_result['false_positives_ratio'],1/6)
