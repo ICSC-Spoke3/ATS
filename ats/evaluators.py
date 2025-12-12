@@ -380,7 +380,7 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     evaluation_result = {}
     breakdown_info = {}
 
-    previous_anomaly_label = None
+    previous_anomaly_label = 0
     for timestamp in flagged_timeseries_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
         flags_df = flagged_timeseries_df.filter(like='_anomaly')
