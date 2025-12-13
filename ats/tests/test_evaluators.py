@@ -710,3 +710,18 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
         self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],10/(21*3))
+
+    def test_eval_point_granularity_events_strategy_with_breakdown(self):
+        dataset = [self.series1, self.series2, self.series3]
+        minmax = MinMaxAnomalyDetector()
+        models={'detector_1': minmax}
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events',breakdown=True)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],10/(21*3))
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_true_positives_count'],4)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_true_positives_rate'],5/6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_rate'],1)
