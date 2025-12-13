@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 class MinMaxAnomalyDetector(AnomalyDetector):
 
+    @AnomalyDetector.apply_method
     def apply(self, data, inplace=False):
 
         logger.info(f'Applying MinMaxAnomalyDetector with inplace={inplace}')

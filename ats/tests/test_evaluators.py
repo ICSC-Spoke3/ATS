@@ -10,6 +10,7 @@ from ..evaluators import _variable_granularity_evaluation
 from ..evaluators import _point_granularity_evaluation
 from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
+from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
 import unittest
 import pandas as pd
 import random as rnd
@@ -636,3 +637,18 @@ class TestEvaluators(unittest.TestCase):
                 }
         evaluation_results = evaluator.evaluate(models=models,granularity='series')
         evaluation_results = evaluator.evaluate(models=models,granularity='series')
+
+    def test_evaluate_with_autofit_model(self):
+
+        anomalies = ['step_uv']
+        effects = []
+        series_generator = HumiTempTimeseriesGenerator()
+        # series_1 will be a true anomaly for the minmax
+        series_1 = series_generator.generate(include_effect_label=True, anomalies=anomalies,effects=effects)
+        # series_2 will be a false positive for minmax (it sees always 2 anomalous data points for each variable)
+        series_2 = series_generator.generate(include_effect_label=True, anomalies=[],effects=effects)
+        dataset = [series_1,series_2]
+        evaluator = Evaluator(test_data=dataset)
+        models={'paverage': PeriodicAverageAnomalyDetector() }
+        evaluation_results = evaluator.evaluate(models=models,granularity='point')
+
