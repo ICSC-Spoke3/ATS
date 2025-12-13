@@ -11,6 +11,9 @@ from ..evaluators import _point_granularity_evaluation
 from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
 from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
+from ..evaluators import _count_anomalous_events
+from ..evaluators import _point_eval_with_events_strategy
+
 import unittest
 import pandas as pd
 import random as rnd
@@ -652,3 +655,73 @@ class TestEvaluators(unittest.TestCase):
         models={'paverage': PeriodicAverageAnomalyDetector() }
         evaluation_results = evaluator.evaluate(models=models,granularity='point')
 
+    def test_count_anomalous_events(self):
+        humi_temp_generator = HumiTempTimeseriesGenerator()
+        timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['step_uv'])
+        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        self.assertEqual(anomalous_events,1)
+        self.assertIsInstance(events_by_type,dict)
+        self.assertEqual(events_by_type['step_uv'],1)
+
+    def test_count_anomalous_events_with_point_anomaly(self):
+        humi_temp_generator = HumiTempTimeseriesGenerator()
+        timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['spike_uv'])
+        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        self.assertEqual(anomalous_events,1)
+        self.assertEqual(events_by_type['spike_uv'],1)
+
+    def test_point_eval_with_events_strategy(self):
+        # model output
+        series = generate_timeseries_df(entries=6, variables=1)
+        series['value_anomaly'] = [0,1,1,1,1,1]
+
+        anomaly_labels = pd.Series([None, 'anomaly_1', 'anomaly_1', None, None,'anomaly_1'])
+        anomaly_labels.index = series.index
+        evaluation_result = _point_eval_with_events_strategy(series,anomaly_labels)
+        self.assertAlmostEqual(evaluation_result['true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_result['true_positives_rate'],2/2)
+        self.assertAlmostEqual(evaluation_result['false_positives_count'],1)
+        self.assertAlmostEqual(evaluation_result['false_positives_ratio'],1/6)
+
+    def test_point_eval_with_events_strategy_and_breakdown(self):
+        # model output
+        series = generate_timeseries_df(entries=6, variables=1)
+        series['value_anomaly'] = [0,1,1,1,1,1]
+
+        anomaly_labels = pd.Series([None, 'anomaly_1', 'anomaly_1', None, None,'anomaly_1'])
+        anomaly_labels.index = series.index
+        evaluation_result = _point_eval_with_events_strategy(series,anomaly_labels,breakdown=True)
+        self.assertIn('anomaly_1_true_positives_count',evaluation_result.keys())
+        self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_rate'],1)
+
+    def test_eval_point_granularity_events_strategy(self):
+        dataset = [self.series1, self.series2, self.series3]
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events')
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],10/(21*3))
+
+    def test_eval_point_granularity_events_strategy_with_breakdown(self):
+        dataset = [self.series1, self.series2, self.series3]
+        minmax = MinMaxAnomalyDetector()
+        models={'detector_1': minmax}
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events',breakdown=True)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],10/(21*3))
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_true_positives_count'],4)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_true_positives_rate'],5/6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_rate'],1)
