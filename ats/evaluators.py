@@ -371,7 +371,7 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
         return one_series_evaluation_result
 
 def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
-    pass
+    raise NotImplementedError('Evaluation with events strategy and variable granularity not implemented')
 
 def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     detected_events_n = 0
