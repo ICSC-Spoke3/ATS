@@ -14,6 +14,15 @@ class _COMNHARAnomalyDetector(AnomalyDetector):
     Statistically robust anomaly detector based on COM, HAR, and NHAR methodologies.
     """
 
+    capabilities = {
+        'mode': 'unsupervised',
+        'streaming': False,
+        'context': 'series',
+        'granularity': 'point',
+        'multivariate': 'only',
+        'scope': 'specific'
+    }
+
     def __init__(self, fq=2 * np.pi / 30, fw=2 * np.pi / 7, trend=2, methods=('COM', 'HAR', 'NHAR')):
         self.fq = fq
         self.fw = fw

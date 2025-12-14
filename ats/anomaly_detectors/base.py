@@ -10,7 +10,45 @@ from ..utils import convert_timeseries_df_to_timeseries, convert_timeseries_to_t
 import logging
 logger = logging.getLogger(__name__)
 
+
+class classproperty:
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, obj, cls):
+        return self.func(cls)
+
+
 class AnomalyDetector():
+
+    allowed_capabilities = {
+        'mode': {'unsupervised', 'semi-supervised', 'weakly-supervised', 'supervised'},
+        'streaming': {True, False},
+        'context': {'point', 'window', 'series', 'dataset'},
+        'granularity': {'series', 'point', 'variable'},
+        'multivariate': {True, False, 'only'},
+        'scope': {'specific', 'agnostic'},
+    }
+
+    @classproperty
+    def capabilities(cls):
+        raise NotImplementedError(f'Capabilities are not set for {cls.__name__}')
+
+    def __new__(cls, *args, **kwargs):
+        cls._validate_capabilities(cls.capabilities, cls.allowed_capabilities)
+        return super().__new__(cls, *args, **kwargs)
+
+    @classmethod
+    def _validate_capabilities(cls, capabilities, allowed_capabilities):
+        missing = set(allowed_capabilities) - set(capabilities)
+        if missing:
+            raise ValueError(f'Missing required capabilities: {sorted(missing)} for {cls.__name__}')
+        for key, value in capabilities.items():
+            if key not in allowed_capabilities:
+                raise ValueError(f'Unknown capability: "{key}" for {cls.__name__}')
+            if value not in allowed_capabilities[key]:
+                raise ValueError(f'Invalid value "{value}" for capability "{key}" for {cls.__name__}')
+
 
     #========================
     #  Helpers
