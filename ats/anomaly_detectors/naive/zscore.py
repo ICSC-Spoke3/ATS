@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class ZScoreAnomalyDetector(AnomalyDetector):
-
+    
+    @AnomalyDetector.apply_method
     def apply(self, data, inplace=False):
 
         logger.info(f'Applying ZScoreAnomalyDetector with inplace={inplace}')
