@@ -383,7 +383,7 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     previous_anomaly_label = 0
     for timestamp in flagged_timeseries_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
-        flags_df = flagged_timeseries_df.filter(like='_anomaly')
+        flags_df = flagged_timeseries_df.filter(like='anomaly')
         # True if there is at least 1 variable detected as anomalous
         is_anomalous = flags_df.loc[timestamp].any()
         if anomaly_label is not None and is_anomalous:
@@ -411,8 +411,13 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     evaluation_result['false_positives_count'] = false_positives_n
     evaluation_result['false_positives_ratio'] = false_positives_n/len(flagged_timeseries_df)
 
-    for key in inserted_events_by_type.keys():
-        breakdown_info[key + '_true_positives_rate'] = breakdown_info[key + '_true_positives_count']/inserted_events_by_type[key]
+    for event in inserted_events_by_type.keys():
+        breakdown_key = event + '_true_positives_count'
+        if breakdown_key in breakdown_info.keys():
+            breakdown_info[event + '_true_positives_rate'] = breakdown_info[breakdown_key]/inserted_events_by_type[event]
+        else:
+            breakdown_info[breakdown_key] = 0
+            breakdown_info[event + '_true_positives_rate'] = 0
     if breakdown:
         return evaluation_result | breakdown_info
     else:
