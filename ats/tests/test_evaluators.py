@@ -11,8 +11,10 @@ from ..evaluators import _point_granularity_evaluation
 from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
 from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
+from ats.anomaly_detectors.stat.robust import NHARAnomalyDetector
 from ..evaluators import _count_anomalous_events
 from ..evaluators import _point_eval_with_events_strategy
+from ats.dataset_generators import HumiTempDatasetGenerator
 
 import unittest
 import pandas as pd
@@ -725,3 +727,31 @@ class TestEvaluators(unittest.TestCase):
         self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_true_positives_rate'],5/6)
         self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_count'],2)
         self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_rate'],1)
+
+    def test_correct_counting_false_positives_with_events_strategy(self):
+        effects = ['noise', 'clouds']
+        anomalies = ['spike_mv', 'step_mv']
+        generator = HumiTempDatasetGenerator(sampling_interval='60m')
+        evaluation_dataset = generator.generate(n_series = 1, effects = effects, anomalies = anomalies,
+                                                time_span = '90D', max_anomalies_per_series = 3, 
+                                                anomalies_ratio = 1.0, auto_repeat_anomalies=True)
+        models = {'minmax': MinMaxAnomalyDetector(), 
+                  'nhar': NHARAnomalyDetector(), 
+                  'p_avg': PeriodicAverageAnomalyDetector()
+                  }
+        evaluator = Evaluator(test_data = evaluation_dataset)
+
+        series = evaluation_dataset[0]
+        anomalous_events_n, events_by_type_n = _count_anomalous_events(series.loc[:,'anomaly_label'])
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events',breakdown=False)
+
+        for model in evaluation_results.keys():
+            tp_n = evaluation_results[model]['true_positives_count']
+            tp_rate = evaluation_results[model]['true_positives_rate']
+            if tp_rate:
+                self.assertAlmostEqual(anomalous_events_n, tp_n / tp_rate)
+
+            fp_n = evaluation_results[model]['false_positives_count']
+            fp_ratio = evaluation_results[model]['false_positives_ratio']
+            if fp_ratio:
+                self.assertAlmostEqual(len(series), fp_n / fp_ratio)
