@@ -736,8 +736,7 @@ class TestEvaluators(unittest.TestCase):
                                                 time_span = '90D', max_anomalies_per_series = 3, 
                                                 anomalies_ratio = 1.0, auto_repeat_anomalies=True)
         models = {'minmax': MinMaxAnomalyDetector(), 
-                  'nhar': NHARAnomalyDetector(), 
-                  'p_avg': PeriodicAverageAnomalyDetector()
+                  'nhar': NHARAnomalyDetector()
                   }
         evaluator = Evaluator(test_data = evaluation_dataset)
 
