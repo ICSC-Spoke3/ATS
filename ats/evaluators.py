@@ -408,7 +408,7 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     else:
         evaluation_result['true_positives_rate'] = None
     evaluation_result['false_positives_count'] = false_positives_n
-    evaluation_result['false_positives_ratio'] = false_positives_n/len(flagged_timeseries_df)
+    evaluation_result['false_positives_ratio'] = false_positives_n/len(anomaly_labels_df)
 
     for event in inserted_events_by_type.keys():
         breakdown_key = event + '_true_positives_count'
