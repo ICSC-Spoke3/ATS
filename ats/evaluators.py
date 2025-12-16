@@ -380,14 +380,15 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     evaluation_result = {}
     breakdown_info = {}
 
-    previous_anomaly_label = 0
+    previous_point_info = {'label': 0}
     for timestamp in flagged_timeseries_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
         flags_df = flagged_timeseries_df.filter(like='anomaly')
         # True if there is at least 1 variable detected as anomalous
         is_anomalous = flags_df.loc[timestamp].any()
-        if anomaly_label is not None and is_anomalous:
-            if anomaly_label != previous_anomaly_label:
+        point_info = {anomaly_label: is_anomalous}
+        if point_info != previous_point_info and is_anomalous:
+            if anomaly_label is not None:
                 detected_events_n += 1
 
                 breakdown_key = anomaly_label + '_true_positives_count'
@@ -396,12 +397,10 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
                 else:
                     breakdown_info[breakdown_key] = 1
 
-        elif anomaly_label is None and is_anomalous:
-            if anomaly_label != previous_anomaly_label:
+            else:
                 false_positives_n += 1
 
-        previous_timestamp = timestamp
-        previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
+        previous_point_info = point_info
 
     evaluation_result['true_positives_count'] = detected_events_n
     if inserted_events_n:
