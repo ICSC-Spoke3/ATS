@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from ..anomaly_detectors.naive import MinMaxAnomalyDetector
+from ..anomaly_detectors.naive import MinMaxAnomalyDetector, ZScoreAnomalyDetector
 from ..anomaly_detectors.ml.ifsom import IFSOMAnomalyDetector
 from ..anomaly_detectors.stat.robust import _COMNHARAnomalyDetector
 from ..utils import generate_timeseries_df, load_isp_format_wide_df, wide_df_to_list_of_timeseries_df, timeseries_df_to_list_of_timeseries_df
@@ -37,6 +37,23 @@ class TestNaiveAnomalyDetectors(unittest.TestCase):
         # 2025-06-10 21:00:00+00:00  0.656987  0.997649                0                1
         # 2025-06-10 22:00:00+00:00  0.989358  0.596698                1                0
         # 2025-06-10 23:00:00+00:00  0.412118 -0.352855                0                0
+
+        self.assertEqual(timeseries_df_scored.loc['2025-06-10 14:00:00+00:00', 'value_1_anomaly'], 0)
+        self.assertEqual(timeseries_df_scored.loc['2025-06-10 23:00:00+00:00', 'value_2_anomaly'], 0)
+
+        self.assertEqual(timeseries_df_scored.loc['2025-06-10 19:00:00+00:00', 'value_1_anomaly'], 1)
+        self.assertEqual(timeseries_df_scored.loc['2025-06-10 19:00:00+00:00', 'value_1_anomaly'], 1)
+
+        self.assertEqual(timeseries_df_scored.loc['2025-06-10 18:00:00+00:00', 'value_2_anomaly'], 1)
+        self.assertEqual(timeseries_df_scored.loc['2025-06-10 21:00:00+00:00', 'value_2_anomaly'], 1)
+
+    def test_zscore(self):
+
+        anomaly_detector = ZScoreAnomalyDetector()
+        timeseries_df = generate_timeseries_df(entries=10, variables=2)
+        timeseries_df_scored = anomaly_detector.apply(timeseries_df)
+
+        self.assertEqual(timeseries_df_scored.shape, (10,4))
 
         self.assertEqual(timeseries_df_scored.loc['2025-06-10 14:00:00+00:00', 'value_1_anomaly'], 0)
         self.assertEqual(timeseries_df_scored.loc['2025-06-10 23:00:00+00:00', 'value_2_anomaly'], 0)
