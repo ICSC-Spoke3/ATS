@@ -45,6 +45,15 @@ class IFSOMAnomalyDetector(AnomalyDetector):
     features computed using FATS in order to identify anomalous series within a data set.
     """
 
+    capabilities = {
+        'mode': 'unsupervised',
+        'streaming': False,
+        'context': 'dataset',
+        'granularity': 'series',
+        'multivariate': False,
+        'scope': 'specific'
+    }
+
     @staticmethod
     def _wide_df_to_timeseries_df_with_anomaly_labels(wide_df, anomaly_col="outliers"):
         """

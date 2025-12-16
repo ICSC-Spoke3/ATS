@@ -12,6 +12,15 @@ logger = logging.getLogger(__name__)
 
 class MinMaxAnomalyDetector(AnomalyDetector):
 
+    capabilities = {
+        'mode': 'unsupervised',
+        'streaming': False,
+        'context': 'series',
+        'granularity': 'point',
+        'multivariate': True,
+        'scope': 'specific'
+    }
+
     @AnomalyDetector.apply_method
     def apply(self, data, inplace=False):
 
