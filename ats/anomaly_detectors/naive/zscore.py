@@ -11,7 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class ZScoreAnomalyDetector(AnomalyDetector):
-    
+
+    capabilities = {
+        'mode': 'unsupervised',
+        'streaming': False,
+        'context': 'series',
+        'granularity': 'variable',
+        'multivariate': True,
+        'scope': 'specific'
+    }
+
     @AnomalyDetector.apply_method
     def apply(self, data, inplace=False):
 
