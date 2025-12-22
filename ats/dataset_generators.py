@@ -165,15 +165,12 @@ class HumiTempDatasetGenerator(DatasetGenerator):
             random_applied_effects = rnd.sample(random_effects, rnd.randint(0, len(random_effects))) 
             applied_effects = list(set(effects + random_applied_effects))
             
-            try:
-                series = self._generate_series(sampling_interval=self.sampling_interval,
+            series = self._generate_series(sampling_interval=self.sampling_interval,
                                         sub_time_span=sub_time_span,
                                         anomalies=anomalies_for_group,
                                         effects=applied_effects,
                                         max_anomalies_per_series=max_anomalies_per_series)
-            except Exception as e:
-                logger.error(f"Error generating series {i+1}: {e}")
-                continue
+
             logger.info(f"Generated dataset {len(dataset)+1} with effects: {applied_effects} and anomalies: {anomalies_for_group}  ")
             dataset.append(series)
     
