@@ -2,8 +2,6 @@ from timeseria.models.forecasters import ProphetForecaster
 from timeseria.models.anomaly_detectors import ModelBasedAnomalyDetector
 from ..base import TimeseriaAnomalyDetector
 
-# Prophet-based Anomaly Detector wrapper, accept only univariate data
-
 class _ProphetBaseDetector(ModelBasedAnomalyDetector):
     model_class = ProphetForecaster
 
