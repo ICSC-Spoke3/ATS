@@ -50,6 +50,20 @@ class TestDatasetGenerator(unittest.TestCase):
         with self.assertRaises(ValueError):
             generator.generate(effects=[],anomalies=['clouds'])
         generator.generate(effects=['clouds'],anomalies=['clouds','spike_mv'])  # Should not raise
+        with self.assertRaises(ValueError):
+            generator.generate(effects=['noise'],anomalies=['AAAAAA'])
+
+    def test_step_anomaly_error(self):
+        generator = HumiTempDatasetGenerator()
+        with self.assertRaises(NotImplementedError):
+            generator.generate(
+                n_series=5,
+                time_span='10D',
+                effects=['noise'],
+                anomalies=['step_uv'],
+                auto_repeat_anomalies=False,
+                anomalies_ratio=1.0
+            )  
 
     #def test_generate_random_effects(self):
       #  generator = HumiTempDatasetGenerator()
