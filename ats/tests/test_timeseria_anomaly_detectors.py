@@ -15,7 +15,8 @@ logger.setup()
 class TestTimeseriaAnomalyDetectors(unittest.TestCase):
     def setUp(self):
         # Generate a sample timeseries DataFrame for testing
-        self.data = generate_timeseries_df(entries=200, variables=2, freq='H')
+        self.data_mv = generate_timeseries_df(entries=200, variables=2, freq='H')
+        self.data_uv = generate_timeseries_df(entries=200, variables=1, freq='H')
 
     def test_timeseria_anomaly_detector_not_implemented(self):
         with self.assertRaises(NotImplementedError):
@@ -23,8 +24,8 @@ class TestTimeseriaAnomalyDetectors(unittest.TestCase):
             
     def test_periodic_average_anomaly_detector(self):
         detector = PeriodicAverageAnomalyDetector()
-        detector.fit(self.data)
-        applied_series = detector.apply(self.data)
+        detector.fit(self.data_mv)
+        applied_series = detector.apply(self.data_mv)
 
         self.assertIsInstance(applied_series, pd.DataFrame)
         self.assertIn('anomaly', applied_series.columns)
@@ -38,18 +39,15 @@ class TestTimeseriaAnomalyDetectors(unittest.TestCase):
         self.assertEqual(params['threshold'], 2.0)
     
     def test_prophet_anomaly_detector(self):
-        univariate_data = generate_timeseries_df(entries=200, variables=1, freq='H')
         detector = ProphetAnomalyDetector()
-        detector.fit(univariate_data)
-        applied_series = detector.apply(univariate_data)
+        detector.fit(self.data_uv)
+        applied_series = detector.apply(self.data_uv)
         self.assertIsInstance(applied_series, pd.DataFrame)
         self.assertIn('anomaly', applied_series.columns)
     
     def test_arima_anomaly_detector(self):
-        univariate_data = generate_timeseries_df(entries=200, variables=1, freq='H')
         detector = ARIMAAnomalyDetector()
-        detector.fit(univariate_data)
-        applied_series = detector.apply(univariate_data)
-
+        detector.fit(self.data_uv)
+        applied_series = detector.apply(self.data_uv)
         self.assertIsInstance(applied_series, pd.DataFrame)
         self.assertIn('anomaly', applied_series.columns)
