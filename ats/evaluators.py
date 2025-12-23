@@ -112,9 +112,6 @@ class Evaluator():
         return dataset_copies
 
     def evaluate(self,models={},granularity='point',strategy='flags',breakdown=False):
-        if strategy != 'flags':
-            raise NotImplementedError(f'Evaluation strategy {strategy} is not implemented')
-
         if not models:
             raise ValueError('There are no models to evaluate')
         if not self.test_data:
@@ -136,11 +133,23 @@ class Evaluator():
             flagged_dataset = _get_model_output(dataset_copies[j],model)
             for i,sample_df in enumerate(flagged_dataset):
                 if granularity == 'point':
-                    single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i],breakdown=breakdown)
+                    if strategy == 'flags':
+                        single_model_evaluation[f'sample_{i+1}'] = _point_granularity_evaluation(sample_df,anomaly_labels_list[i],breakdown=breakdown)
+                    elif strategy == 'events':
+                        single_model_evaluation[f'sample_{i+1}'] = _point_eval_with_events_strategy(sample_df,anomaly_labels_list[i],breakdown=breakdown)
+
                 elif granularity == 'variable':
-                    single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    if strategy == 'flags':
+                        single_model_evaluation[f'sample_{i+1}'] = _variable_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    elif strategy == 'events':
+                        single_model_evaluation[f'sample_{i+1}'] = _variable_eval_with_events_strategy(sample_df,anomaly_labels_list[i],breakdown=breakdown)
+
                 elif granularity == 'series':
-                    single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    if strategy == 'flags':
+                        single_model_evaluation[f'sample_{i+1}'] = _series_granularity_evaluation(sample_df,anomaly_labels_list[i], breakdown = breakdown)
+                    elif strategy == 'events':
+                        single_model_evaluation[f'sample_{i+1}'] = _series_eval_with_events_strategy(sample_df,anomaly_labels_list[i],breakdown=breakdown)
+
                 else:
                     raise ValueError(f'Unknown granularity {granularity}')
 
@@ -279,3 +288,78 @@ def _series_granularity_evaluation(flagged_timeseries_df,anomaly_labels_df,break
         return one_series_evaluation_result | breakdown_info
     else:
         return one_series_evaluation_result
+
+def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
+    raise NotImplementedError('Evaluation with events strategy and variable granularity not implemented')
+
+def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
+    detected_events_n = 0
+    false_positives_n = 0
+    inserted_events_n,inserted_events_by_type = _count_anomalous_events(anomaly_labels_df)
+    evaluation_result = {}
+    breakdown_info = {}
+
+    previous_point_info = {'label': 0}
+    for timestamp in flagged_timeseries_df.index:
+        anomaly_label = anomaly_labels_df.loc[timestamp]
+        flags_df = flagged_timeseries_df.filter(like='anomaly')
+        # True if there is at least 1 variable detected as anomalous
+        is_anomalous = flags_df.loc[timestamp].any()
+        point_info = {anomaly_label: is_anomalous}
+        if point_info != previous_point_info and is_anomalous:
+            if anomaly_label is not None:
+                detected_events_n += 1
+
+                breakdown_key = anomaly_label + '_true_positives_count'
+                if breakdown_key in breakdown_info.keys():
+                    breakdown_info[breakdown_key] += 1
+                else:
+                    breakdown_info[breakdown_key] = 1
+
+            else:
+                false_positives_n += 1
+
+        previous_point_info = point_info
+
+    evaluation_result['true_positives_count'] = detected_events_n
+    if inserted_events_n:
+        evaluation_result['true_positives_rate'] = detected_events_n/inserted_events_n
+    else:
+        evaluation_result['true_positives_rate'] = None
+    evaluation_result['false_positives_count'] = false_positives_n
+    evaluation_result['false_positives_ratio'] = false_positives_n/len(anomaly_labels_df)
+
+    for event in inserted_events_by_type.keys():
+        breakdown_key = event + '_true_positives_count'
+        if breakdown_key in breakdown_info.keys():
+            breakdown_info[event + '_true_positives_rate'] = breakdown_info[breakdown_key]/inserted_events_by_type[event]
+        else:
+            breakdown_info[breakdown_key] = 0
+            breakdown_info[event + '_true_positives_rate'] = 0
+    if breakdown:
+        return evaluation_result | breakdown_info
+    else:
+        return evaluation_result
+
+def _series_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=False):
+    raise NotImplementedError('Evaluation with events strategy and series granularity not implemented')
+
+def _count_anomalous_events(anomaly_labels_df):
+    anomalous_events_n = 0
+    events_by_type_n = {}
+    previous_anomaly_label = None
+    for timestamp in anomaly_labels_df.index:
+        anomaly_label = anomaly_labels_df.loc[timestamp]
+        if anomaly_label is not None:
+            if anomaly_label != previous_anomaly_label:
+                anomalous_events_n += 1
+
+                key = anomaly_label
+                if key in events_by_type_n.keys():
+                    events_by_type_n[key] +=1
+                else:
+                    events_by_type_n[key] =1
+
+        previous_timestamp = timestamp
+        previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
+    return anomalous_events_n, events_by_type_n

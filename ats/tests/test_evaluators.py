@@ -11,6 +11,11 @@ from ..evaluators import _point_granularity_evaluation
 from ..evaluators import _series_granularity_evaluation
 from ..evaluators import _get_breakdown_info
 from ..anomaly_detectors.stat.periodic_average import PeriodicAverageAnomalyDetector
+from ats.anomaly_detectors.stat.robust import NHARAnomalyDetector
+from ..evaluators import _count_anomalous_events
+from ..evaluators import _point_eval_with_events_strategy
+from ats.dataset_generators import HumiTempDatasetGenerator
+
 import unittest
 import pandas as pd
 import random as rnd
@@ -652,3 +657,234 @@ class TestEvaluators(unittest.TestCase):
         models={'paverage': PeriodicAverageAnomalyDetector() }
         evaluation_results = evaluator.evaluate(models=models,granularity='point')
 
+    def test_count_anomalous_events(self):
+        humi_temp_generator = HumiTempTimeseriesGenerator()
+        timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['step_uv'])
+        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        self.assertEqual(anomalous_events,1)
+        self.assertIsInstance(events_by_type,dict)
+        self.assertEqual(events_by_type['step_uv'],1)
+
+    def test_count_anomalous_events_with_point_anomaly(self):
+        humi_temp_generator = HumiTempTimeseriesGenerator()
+        timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['spike_uv'])
+        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        self.assertEqual(anomalous_events,1)
+        self.assertEqual(events_by_type['spike_uv'],1)
+
+    def test_point_eval_with_events_strategy(self):
+        # model output
+        series = generate_timeseries_df(entries=6, variables=1)
+        series['value_anomaly'] = [0,1,1,1,1,1]
+
+        anomaly_labels = pd.Series([None, 'anomaly_1', 'anomaly_1', None, None,'anomaly_1'])
+        anomaly_labels.index = series.index
+        evaluation_result = _point_eval_with_events_strategy(series,anomaly_labels)
+        self.assertAlmostEqual(evaluation_result['true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_result['true_positives_rate'],2/2)
+        self.assertAlmostEqual(evaluation_result['false_positives_count'],1)
+        self.assertAlmostEqual(evaluation_result['false_positives_ratio'],1/6)
+
+    def test_point_eval_with_events_strategy_and_breakdown(self):
+        # model output
+        series = generate_timeseries_df(entries=6, variables=1)
+        series['value_anomaly'] = [0,1,1,1,1,1]
+
+        anomaly_labels = pd.Series([None, 'anomaly_1', 'anomaly_1', None, None,'anomaly_1'])
+        anomaly_labels.index = series.index
+        evaluation_result = _point_eval_with_events_strategy(series,anomaly_labels,breakdown=True)
+        self.assertIn('anomaly_1_true_positives_count',evaluation_result.keys())
+        self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_result['anomaly_1_true_positives_rate'],1)
+
+    def test_eval_point_granularity_events_strategy(self):
+        dataset = [self.series1, self.series2, self.series3]
+        minmax1 = MinMaxAnomalyDetector()
+        minmax2 = MinMaxAnomalyDetector()
+        minmax3 = MinMaxAnomalyDetector()
+        models={'detector_1': minmax1,
+                'detector_2': minmax2,
+                'detector_3': minmax3
+                }
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events')
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],10/(21*3))
+
+    def test_eval_point_granularity_events_strategy_with_breakdown(self):
+        dataset = [self.series1, self.series2, self.series3]
+        minmax = MinMaxAnomalyDetector()
+        models={'detector_1': minmax}
+        evaluator = Evaluator(test_data=dataset)
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events',breakdown=True)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_count'],6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['true_positives_rate'],7/8)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['false_positives_ratio'],10/(21*3))
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_true_positives_count'],4)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_1_true_positives_rate'],5/6)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_count'],2)
+        self.assertAlmostEqual(evaluation_results['detector_1']['anomaly_2_true_positives_rate'],1)
+
+    def test_correct_counting_false_positives_with_events_strategy(self):
+        effects = ['noise', 'clouds']
+        anomalies = ['spike_mv', 'step_mv']
+        generator = HumiTempDatasetGenerator(sampling_interval='60m')
+        evaluation_dataset = generator.generate(n_series = 1, effects = effects, anomalies = anomalies,
+                                                time_span = '90D', max_anomalies_per_series = 3, 
+                                                anomalies_ratio = 1.0, auto_repeat_anomalies=True)
+        models = {'minmax': MinMaxAnomalyDetector(), 
+                  'nhar': NHARAnomalyDetector(),
+                  'p_avg': PeriodicAverageAnomalyDetector()
+                  }
+        evaluator = Evaluator(test_data = evaluation_dataset)
+
+        series = evaluation_dataset[0]
+        anomalous_events_n, events_by_type_n = _count_anomalous_events(series.loc[:,'anomaly_label'])
+        evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events',breakdown=False)
+
+        for model in evaluation_results.keys():
+            tp_n = evaluation_results[model]['true_positives_count']
+            tp_rate = evaluation_results[model]['true_positives_rate']
+            if tp_rate:
+                self.assertAlmostEqual(anomalous_events_n, tp_n / tp_rate)
+
+            fp_n = evaluation_results[model]['false_positives_count']
+            fp_ratio = evaluation_results[model]['false_positives_ratio']
+            if fp_ratio:
+                self.assertAlmostEqual(len(series), fp_n / fp_ratio)
+
+    def test_count_anomalous_events_on_synth_dataset(self):
+        anomalies = ['step_mv','pattern_mv','spike_mv']
+        generator = HumiTempDatasetGenerator(sampling_interval='60m')
+        evaluation_dataset = generator.generate(n_series = 3, effects = ['noise'], anomalies = anomalies,
+                                                time_span = '90D', max_anomalies_per_series = 3, 
+                                                anomalies_ratio = 1.0, auto_repeat_anomalies=True)
+        series_1 = evaluation_dataset[0]
+        '''for timestamp in series_1.index:
+            print(series_1.loc[timestamp,'anomaly_label'])'''
+        # series_1
+        # 1 step 
+        # 0 pattern
+        # 0 spike
+        anomalous_events_n, events_by_type_n = _count_anomalous_events(series_1.loc[:,'anomaly_label'])
+        self.assertIn('step_mv',events_by_type_n.keys())
+        self.assertEqual(events_by_type_n['step_mv'],1)
+        self.assertEqual(anomalous_events_n,1)
+
+        series_2 = evaluation_dataset[1]
+        '''for timestamp in series_2.index:
+            print(series_2.loc[timestamp,'anomaly_label'])'''
+        # series_2
+        # 1 step 
+        # 0 pattern
+        # 0 spike
+        anomalous_events_n_2, events_by_type_n_2 = _count_anomalous_events(series_2.loc[:,'anomaly_label'])
+        self.assertIn('step_mv',events_by_type_n_2.keys())
+        self.assertEqual(events_by_type_n_2['step_mv'],1)
+        self.assertEqual(anomalous_events_n_2,1)
+
+        series_3 = evaluation_dataset[2]
+        '''for timestamp in series_3.index:
+            print(series_3.loc[timestamp,'anomaly_label'])'''
+        # series_3
+        # 1 step 
+        # 1 pattern
+        # 1 spike
+        anomalous_events_n_3, events_by_type_n_3 = _count_anomalous_events(series_3.loc[:,'anomaly_label'])
+        self.assertIn('step_mv',events_by_type_n_3.keys())
+        self.assertIn('pattern_mv',events_by_type_n_3.keys())
+        self.assertEqual(events_by_type_n_3['step_mv'],1)
+        self.assertEqual(events_by_type_n_3['pattern_mv'],1)
+        self.assertEqual(events_by_type_n_3['spike_mv'],1)
+        self.assertEqual(anomalous_events_n_3,3)
+
+    def test_event_eval_on_p_avg(self):
+        anomalies = ['step_mv']
+        generator = HumiTempDatasetGenerator(sampling_interval='60m')
+        evaluation_dataset = generator.generate(n_series = 1, effects = ['noise'], anomalies = anomalies,
+                                                time_span = '90D', max_anomalies_per_series = 1, 
+                                                anomalies_ratio = 1.0, auto_repeat_anomalies=True)
+        series = evaluation_dataset[0]
+        '''for timestamp in series.index:
+            print(series.loc[timestamp,'anomaly_label'])'''
+        # series
+        # 1 step 
+        # 0 pattern
+        # 0 spike
+        anomalous_events_n, events_by_type_n = _count_anomalous_events(series.loc[:,'anomaly_label'])
+        self.assertIn('step_mv',events_by_type_n.keys())
+        self.assertEqual(events_by_type_n['step_mv'],1)
+        self.assertEqual(anomalous_events_n,1)
+
+        model = PeriodicAverageAnomalyDetector()
+        new_series = series.drop(columns=['anomaly_label'],inplace=False)
+        p_avg_output = model.apply(new_series)
+
+        anomalous_timestamps = []
+        for timestamp in p_avg_output.index:
+            is_anomalous = p_avg_output.filter(like='anomaly').loc[timestamp].any()
+            anomaly_label = series.loc[timestamp,'anomaly_label']
+            if anomaly_label is not None and is_anomalous:
+                anomalous_timestamps.append(timestamp)
+
+        start = anomalous_timestamps[0]
+        sampling_interval = pd.Timedelta(minutes=60)
+        consecutive_timestamp_n = 0
+        for timestamp in anomalous_timestamps:
+            are_consecutive = (timestamp - start) == sampling_interval
+            if are_consecutive:
+                consecutive_timestamp_n += 1
+            start = timestamp
+
+        detected_anomalies = len(anomalous_timestamps) - consecutive_timestamp_n
+        evaluator = Evaluator(test_data = evaluation_dataset)
+        evaluation_results = evaluator.evaluate(models={'p_avg':model},granularity='point',strategy='events',breakdown=False)
+        self.assertEqual(evaluation_results['p_avg']['true_positives_count'],detected_anomalies)
+        self.assertEqual(evaluation_results['p_avg']['true_positives_rate'],detected_anomalies/anomalous_events_n)
+
+    def test_event_eval_on_nhar(self):
+        anomalies = ['step_mv']
+        generator = HumiTempDatasetGenerator(sampling_interval='60m')
+        evaluation_dataset = generator.generate(n_series = 1, effects = ['noise'], anomalies = anomalies,
+                                                time_span = '90D', max_anomalies_per_series = 1, 
+                                                anomalies_ratio = 1.0, auto_repeat_anomalies=True)
+        series = evaluation_dataset[0]
+        '''for timestamp in series.index:
+            print(series.loc[timestamp,'anomaly_label'])'''
+        # series
+        # 1 step 
+        # 0 pattern
+        # 0 spike
+        anomalous_events_n, events_by_type_n = _count_anomalous_events(series.loc[:,'anomaly_label'])
+        self.assertIn('step_mv',events_by_type_n.keys())
+        self.assertEqual(events_by_type_n['step_mv'],1)
+        self.assertEqual(anomalous_events_n,1)
+
+        model = PeriodicAverageAnomalyDetector()
+        new_series = series.drop(columns=['anomaly_label'],inplace=False)
+        p_avg_output = model.apply(new_series)
+
+        anomalous_timestamps = []
+        for timestamp in p_avg_output.index:
+            is_anomalous = p_avg_output.filter(like='anomaly').loc[timestamp].any()
+            anomaly_label = series.loc[timestamp,'anomaly_label']
+            if anomaly_label is not None and is_anomalous:
+                anomalous_timestamps.append(timestamp)
+
+        start = anomalous_timestamps[0]
+        sampling_interval = pd.Timedelta(minutes=60)
+        consecutive_timestamp_n = 0
+        for timestamp in anomalous_timestamps:
+            are_consecutive = (timestamp - start) == sampling_interval
+            if are_consecutive:
+                consecutive_timestamp_n += 1
+            start = timestamp
+
+        detected_anomalies = len(anomalous_timestamps) - consecutive_timestamp_n
+        evaluator = Evaluator(test_data = evaluation_dataset)
+        evaluation_results = evaluator.evaluate(models={'nhar':model},granularity='point',strategy='events',breakdown=False)
+        self.assertEqual(evaluation_results['nhar']['true_positives_count'],detected_anomalies)
+        self.assertEqual(evaluation_results['nhar']['true_positives_rate'],detected_anomalies/anomalous_events_n)
