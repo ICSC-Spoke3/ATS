@@ -664,6 +664,11 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(anomalous_events,1)
         self.assertIsInstance(events_by_type,dict)
         self.assertEqual(events_by_type['step_uv'],1)
+        '''for timestamp in timeseries_df.index:
+            print(f"{timestamp}  {timeseries_df.loc[timestamp,'anomaly_label']}")'''
+        # 1973-05-25 01:17:00+00:00 - 1973-06-01 02:02:00+00:00
+        self.assertEqual(event_time_slots['step_uv'][0],pd.Timestamp('1973-05-25 01:17:00+00:00'))
+        self.assertEqual(event_time_slots['step_uv'][1],pd.Timestamp('1973-06-01 02:02:00+00:00'))
 
     def test_count_anomalous_events_with_point_anomaly(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
@@ -671,6 +676,11 @@ class TestEvaluators(unittest.TestCase):
         anomalous_events,events_by_type, event_time_slots = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
         self.assertEqual(anomalous_events,1)
         self.assertEqual(events_by_type['spike_uv'],1)
+        '''for timestamp in timeseries_df.index:
+            print(f"{timestamp}  {timeseries_df.loc[timestamp,'anomaly_label']}")'''
+        # 1973-05-02 15:47:00+00:00 - 1973-05-02 15:47:00+00:00
+        self.assertEqual(event_time_slots['spike_uv'][0],pd.Timestamp('1973-05-02 15:47:00+00:00'))
+        self.assertEqual(event_time_slots['spike_uv'][1],pd.Timestamp('1973-05-02 15:47:00+00:00'))
 
     def test_point_eval_with_events_strategy(self):
         # model output
@@ -788,7 +798,7 @@ class TestEvaluators(unittest.TestCase):
 
         series_3 = evaluation_dataset[2]
         '''for timestamp in series_3.index:
-            print(series_3.loc[timestamp,'anomaly_label'])'''
+            print(f"{timestamp}  {series_3.loc[timestamp,'anomaly_label']}")'''
         # series_3
         # 1 step 
         # 1 pattern
@@ -800,6 +810,15 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(events_by_type_n_3['pattern_mv'],1)
         self.assertEqual(events_by_type_n_3['spike_mv'],1)
         self.assertEqual(anomalous_events_n_3,3)
+        # spike : 1976-01-02 14:50:00+00:00 - 1976-01-02 14:50:00+00:00
+        self.assertEqual(event_time_slots_3['spike_mv'][0],pd.Timestamp('1976-01-02 14:50:00+00:00'))
+        self.assertEqual(event_time_slots_3['spike_mv'][1],pd.Timestamp('1976-01-02 14:50:00+00:00'))
+         # step : 1975-12-25 16:50:00+00:00 - 1976-01-02 03:50:00+00:00
+        self.assertEqual(event_time_slots_3['step_mv'][0],pd.Timestamp('1975-12-25 16:50:00+00:00'))
+        self.assertEqual(event_time_slots_3['step_mv'][1],pd.Timestamp('1976-01-02 03:50:00+00:00'))
+         # pattern : 1975-11-13 04:50:00+00:00 - 1975-11-23 08:50:00+00:00
+        self.assertEqual(event_time_slots_3['pattern_mv'][0],pd.Timestamp('1975-11-13 04:50:00+00:00'))
+        self.assertEqual(event_time_slots_3['pattern_mv'][1],pd.Timestamp('1975-11-23 08:50:00+00:00'))
 
     def test_event_eval_on_p_avg(self):
         anomalies = ['step_mv']
