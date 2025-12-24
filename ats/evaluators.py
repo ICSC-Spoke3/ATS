@@ -426,21 +426,21 @@ def _series_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=Fals
     raise NotImplementedError('Evaluation with events strategy and series granularity not implemented')
 
 def _count_anomalous_events(anomaly_labels_df):
-    anomalous_events_n = 0
-    events_by_type_n = {}
+    events_n = 0
+    event_type_counts = {}
     previous_anomaly_label = None
     for timestamp in anomaly_labels_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
         if anomaly_label is not None:
             if anomaly_label != previous_anomaly_label:
-                anomalous_events_n += 1
+                events_n += 1
 
                 key = anomaly_label
-                if key in events_by_type_n.keys():
-                    events_by_type_n[key] +=1
+                if key in event_type_counts.keys():
+                    event_type_counts[key] +=1
                 else:
-                    events_by_type_n[key] =1
+                    event_type_counts[key] =1
 
         previous_timestamp = timestamp
         previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
-    return anomalous_events_n, events_by_type_n
+    return events_n , event_type_counts
