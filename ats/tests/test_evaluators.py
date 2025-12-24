@@ -660,7 +660,7 @@ class TestEvaluators(unittest.TestCase):
     def test_count_anomalous_events(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
         timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['step_uv'])
-        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        anomalous_events,events_by_type, event_time_slots = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
         self.assertEqual(anomalous_events,1)
         self.assertIsInstance(events_by_type,dict)
         self.assertEqual(events_by_type['step_uv'],1)
@@ -668,7 +668,7 @@ class TestEvaluators(unittest.TestCase):
     def test_count_anomalous_events_with_point_anomaly(self):
         humi_temp_generator = HumiTempTimeseriesGenerator()
         timeseries_df = humi_temp_generator.generate(include_effect_label=False, anomalies=['spike_uv'])
-        anomalous_events,events_by_type = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
+        anomalous_events,events_by_type, event_time_slots = _count_anomalous_events(timeseries_df.loc[:,'anomaly_label'])
         self.assertEqual(anomalous_events,1)
         self.assertEqual(events_by_type['spike_uv'],1)
 
@@ -742,7 +742,7 @@ class TestEvaluators(unittest.TestCase):
         evaluator = Evaluator(test_data = evaluation_dataset)
 
         series = evaluation_dataset[0]
-        anomalous_events_n, events_by_type_n = _count_anomalous_events(series.loc[:,'anomaly_label'])
+        anomalous_events_n, events_by_type_n, event_time_slots= _count_anomalous_events(series.loc[:,'anomaly_label'])
         evaluation_results = evaluator.evaluate(models=models,granularity='point',strategy='events',breakdown=False)
 
         for model in evaluation_results.keys():
@@ -769,7 +769,7 @@ class TestEvaluators(unittest.TestCase):
         # 1 step 
         # 0 pattern
         # 0 spike
-        anomalous_events_n, events_by_type_n = _count_anomalous_events(series_1.loc[:,'anomaly_label'])
+        anomalous_events_n, events_by_type_n ,event_time_slots= _count_anomalous_events(series_1.loc[:,'anomaly_label'])
         self.assertIn('step_mv',events_by_type_n.keys())
         self.assertEqual(events_by_type_n['step_mv'],1)
         self.assertEqual(anomalous_events_n,1)
@@ -781,7 +781,7 @@ class TestEvaluators(unittest.TestCase):
         # 1 step 
         # 0 pattern
         # 0 spike
-        anomalous_events_n_2, events_by_type_n_2 = _count_anomalous_events(series_2.loc[:,'anomaly_label'])
+        anomalous_events_n_2, events_by_type_n_2,event_time_slots_2 = _count_anomalous_events(series_2.loc[:,'anomaly_label'])
         self.assertIn('step_mv',events_by_type_n_2.keys())
         self.assertEqual(events_by_type_n_2['step_mv'],1)
         self.assertEqual(anomalous_events_n_2,1)
@@ -793,7 +793,7 @@ class TestEvaluators(unittest.TestCase):
         # 1 step 
         # 1 pattern
         # 1 spike
-        anomalous_events_n_3, events_by_type_n_3 = _count_anomalous_events(series_3.loc[:,'anomaly_label'])
+        anomalous_events_n_3, events_by_type_n_3 , event_time_slots_3= _count_anomalous_events(series_3.loc[:,'anomaly_label'])
         self.assertIn('step_mv',events_by_type_n_3.keys())
         self.assertIn('pattern_mv',events_by_type_n_3.keys())
         self.assertEqual(events_by_type_n_3['step_mv'],1)
@@ -814,7 +814,7 @@ class TestEvaluators(unittest.TestCase):
         # 1 step 
         # 0 pattern
         # 0 spike
-        anomalous_events_n, events_by_type_n = _count_anomalous_events(series.loc[:,'anomaly_label'])
+        anomalous_events_n, events_by_type_n ,event_time_slots= _count_anomalous_events(series.loc[:,'anomaly_label'])
         self.assertIn('step_mv',events_by_type_n.keys())
         self.assertEqual(events_by_type_n['step_mv'],1)
         self.assertEqual(anomalous_events_n,1)
@@ -858,7 +858,7 @@ class TestEvaluators(unittest.TestCase):
         # 1 step 
         # 0 pattern
         # 0 spike
-        anomalous_events_n, events_by_type_n = _count_anomalous_events(series.loc[:,'anomaly_label'])
+        anomalous_events_n, events_by_type_n , event_time_slots= _count_anomalous_events(series.loc[:,'anomaly_label'])
         self.assertIn('step_mv',events_by_type_n.keys())
         self.assertEqual(events_by_type_n['step_mv'],1)
         self.assertEqual(anomalous_events_n,1)
