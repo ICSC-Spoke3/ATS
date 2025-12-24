@@ -376,7 +376,7 @@ def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=Fa
 def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     detected_events_n = 0
     false_positives_n = 0
-    inserted_events_n,inserted_events_by_type = _count_anomalous_events(anomaly_labels_df)
+    events_n, event_type_counts, event_time_slots = _count_anomalous_events(anomaly_labels_df)
     evaluation_result = {}
     breakdown_info = {}
 
@@ -403,17 +403,17 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
         previous_point_info = point_info
 
     evaluation_result['true_positives_count'] = detected_events_n
-    if inserted_events_n:
-        evaluation_result['true_positives_rate'] = detected_events_n/inserted_events_n
+    if events_n:
+        evaluation_result['true_positives_rate'] = detected_events_n/events_n
     else:
         evaluation_result['true_positives_rate'] = None
     evaluation_result['false_positives_count'] = false_positives_n
     evaluation_result['false_positives_ratio'] = false_positives_n/len(anomaly_labels_df)
 
-    for event in inserted_events_by_type.keys():
+    for event in  event_type_counts.keys():
         breakdown_key = event + '_true_positives_count'
         if breakdown_key in breakdown_info.keys():
-            breakdown_info[event + '_true_positives_rate'] = breakdown_info[breakdown_key]/inserted_events_by_type[event]
+            breakdown_info[event + '_true_positives_rate'] = breakdown_info[breakdown_key]/ event_type_counts[event]
         else:
             breakdown_info[breakdown_key] = 0
             breakdown_info[event + '_true_positives_rate'] = 0
@@ -428,6 +428,7 @@ def _series_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=Fals
 def _count_anomalous_events(anomaly_labels_df):
     events_n = 0
     event_type_counts = {}
+    event_time_slots = {}
     previous_anomaly_label = None
     for timestamp in anomaly_labels_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
@@ -443,4 +444,4 @@ def _count_anomalous_events(anomaly_labels_df):
 
         previous_timestamp = timestamp
         previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
-    return events_n , event_type_counts
+    return events_n , event_type_counts, event_time_slots
