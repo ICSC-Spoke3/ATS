@@ -432,15 +432,20 @@ def _count_anomalous_events(anomaly_labels_df):
     previous_anomaly_label = None
     for timestamp in anomaly_labels_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
-        if anomaly_label is not None:
-            if anomaly_label != previous_anomaly_label:
+        if anomaly_label != previous_anomaly_label:
+            if anomaly_label is not None:
                 events_n += 1
-
                 key = anomaly_label
-                if key in event_type_counts.keys():
+                if anomaly_label in event_type_counts.keys():
                     event_type_counts[key] +=1
+                    event_time_slots[key].append(timestamp)
                 else:
                     event_type_counts[key] =1
+                    event_time_slots[key] = []
+                    event_time_slots[key].append(timestamp)
+
+            else:
+                event_time_slots[key].append(previous_timestamp)
 
         previous_timestamp = timestamp
         previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
