@@ -1,5 +1,7 @@
 from .anomaly_detectors.naive import MinMaxAnomalyDetector
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 from copy import deepcopy
 
 def _format_for_anomaly_detector(df,synthetic=False):
@@ -153,6 +155,85 @@ class Evaluator():
             j+=1
 
         return models_scores
+
+    @staticmethod
+    def summary(evaluation, full=False):
+        if full:
+            df = pd.DataFrame.from_dict(evaluation, orient='index')
+        else:
+            df = pd.DataFrame.from_dict(evaluation, orient='index').filter(['true_positives_count',
+                                                                            'true_positives_rate',
+                                                                            'false_positives_count',
+                                                                            'false_positives_rate'])
+        return df
+
+    @staticmethod
+    def plot(evaluation, plot_type='radar', log_compress=None):
+
+        if type != 'radar':
+            raise ValueError('Only "radar" plot type is currently supported')
+
+        def radar_plot(scores_dict, title):
+            original_labels = list(scores_dict.keys())
+            labels=[]
+            for label in original_labels:
+                labels.append(label.replace('_', '\n'))
+            values = list(scores_dict.values())
+
+            # Number of variables
+            num_vars = len(labels)
+
+            # Angles for each axis
+            angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+
+            # Close the plot (repeat first value)
+            values += values[:1]
+            angles += angles[:1]
+
+            # Create polar plot
+            fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+
+            # Draw outline
+            ax.plot(angles, values, linewidth=2, zorder=2)
+            ax.fill(angles, values, alpha=0.25, zorder=1)
+
+            # Set labels
+            ax.set_thetagrids(np.degrees(angles[:-1]), labels)
+            ax.tick_params(axis="x", pad=12) #20
+
+            # Value range (0–1)
+            ax.set_ylim(0, 1)
+
+            # Optional grid styling
+            ax.set_rlabel_position(0)
+            ax.yaxis.grid(True)
+            ax.xaxis.grid(True)
+            ax.set_yticklabels([])
+
+            #ax.set_title(title, y=1.08)
+            ax.set_title(title, pad=20)
+
+            #plt.tight_layout()
+            plt.show()
+
+        def apply_log_compress(x, alpha=100):
+            """
+            Compress values toward 1.
+            alpha > 0 controls strength (higher = more compression)
+            """
+            return np.log1p(alpha * x) / np.log1p(alpha)
+
+        for model in evaluation:
+            scores = {}
+            for item in evaluation[model]:
+                if item.endswith('_true_positives_rate'):
+                    if log_compress:
+                        value = apply_log_compress(evaluation[model][item], alpha=log_compress)
+                    else:
+                        value = evaluation[model][item]
+                    scores[item.replace('_true_positives_rate','')] = value
+
+            radar_plot(scores, title="Model \"{}\"".format(model)) # detection strengths
 
 def _get_model_output(dataset,model):
     if not isinstance(dataset,list):
