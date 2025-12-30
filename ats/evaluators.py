@@ -446,5 +446,8 @@ def _count_anomalous_events(anomaly_labels_df):
                 event_time_slots[key].append(previous_timestamp)
 
         previous_timestamp = timestamp
-        previous_anomaly_label = anomaly_labels_df.loc[previous_timestamp]
+        previous_anomaly_label = anomaly_label
+    # To manage series ending with an anomaly
+    if previous_anomaly_label is not None:
+        event_time_slots[key].append(previous_timestamp)
     return events_n , event_type_counts, event_time_slots
