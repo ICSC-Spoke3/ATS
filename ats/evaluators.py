@@ -433,14 +433,16 @@ def _count_anomalous_events(anomaly_labels_df):
         if anomaly_label != previous_anomaly_label:
             if anomaly_label is not None:
                 events_n += 1
+                # To manage series with adjoining anomalies
+                if previous_anomaly_label is not None:
+                    event_time_slots[key].append(previous_timestamp)
                 key = anomaly_label
                 if anomaly_label in event_type_counts.keys():
                     event_type_counts[key] +=1
                     event_time_slots[key].append(timestamp)
                 else:
                     event_type_counts[key] =1
-                    event_time_slots[key] = []
-                    event_time_slots[key].append(timestamp)
+                    event_time_slots[key] = [timestamp]
 
             else:
                 event_time_slots[key].append(previous_timestamp)
