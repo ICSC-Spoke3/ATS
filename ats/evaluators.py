@@ -380,43 +380,41 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     evaluation_result = {}
     breakdown_info = {}
 
+    flags_df = flagged_timeseries_df.filter(like='anomaly')
     previous_point_info = {'label': 0}
     for timestamp in flagged_timeseries_df.index:
         anomaly_label = anomaly_labels_df.loc[timestamp]
-        flags_df = flagged_timeseries_df.filter(like='anomaly')
         # True if there is at least 1 variable detected as anomalous
         is_anomalous = flags_df.loc[timestamp].any()
         point_info = {anomaly_label: is_anomalous}
         if point_info != previous_point_info and is_anomalous:
-            if anomaly_label is not None:
-                detected_events_n += 1
-
-                breakdown_key = anomaly_label + '_true_positives_count'
-                if breakdown_key in breakdown_info.keys():
-                    breakdown_info[breakdown_key] += 1
-                else:
-                    breakdown_info[breakdown_key] = 1
-
-            else:
+            if anomaly_label is None:
                 false_positives_n += 1
-
         previous_point_info = point_info
+
+    evaluation_result['false_positives_count'] = false_positives_n
+    evaluation_result['false_positives_ratio'] = false_positives_n/len(anomaly_labels_df)
+
+    for anomaly, anomaly_time_slots in event_time_slots.items():
+        anomaly_n = len(anomaly_time_slots)//2
+        events_n += anomaly_n
+        detected_anomaly_n = 0
+        for i in range(0,len(anomaly_time_slots),2):
+            start = anomaly_time_slots[i]
+            stop = anomaly_time_slots[i+1]
+            is_detected = flags_df.loc[start:stop].any().any()
+            if is_detected:
+                detected_anomaly_n +=1
+        breakdown_info[anomaly + 'true_positives_count'] = detected_anomaly_n
+        breakdown_info[anomaly + 'true_positives_rate'] = detected_anomaly_n/anomaly_n
+        detected_events_n += detected_anomaly_n
 
     evaluation_result['true_positives_count'] = detected_events_n
     if events_n:
         evaluation_result['true_positives_rate'] = detected_events_n/events_n
     else:
         evaluation_result['true_positives_rate'] = None
-    evaluation_result['false_positives_count'] = false_positives_n
-    evaluation_result['false_positives_ratio'] = false_positives_n/len(anomaly_labels_df)
 
-    for event in  event_type_counts.keys():
-        breakdown_key = event + '_true_positives_count'
-        if breakdown_key in breakdown_info.keys():
-            breakdown_info[event + '_true_positives_rate'] = breakdown_info[breakdown_key]/ event_type_counts[event]
-        else:
-            breakdown_info[breakdown_key] = 0
-            breakdown_info[event + '_true_positives_rate'] = 0
     if breakdown:
         return evaluation_result | breakdown_info
     else:
