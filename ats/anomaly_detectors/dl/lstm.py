@@ -3,13 +3,21 @@ from timeseria.models.anomaly_detectors import LSTMAnomalyDetector as TimeseriaL
 
 class LSTMAnomalyDetector(TimeseriaAnomalyDetector):
 
-    capabilities = {
-        'mode': 'semi-supervised',
-        'streaming': True,
-        'context': 'window',
-        'granularity': 'point',
-        'multivariate': True,
-        'scope': 'agnostic'
+    _capabilities = {
+        'training': {
+            'mode': 'semi-supervised',
+            'update': False
+        },
+        'inference': {
+            'streaming': False,
+            'dependency': 'window',
+            'granularity': 'point-labels'
+        },
+        'data': {
+            'dimensionality': ['univariate-single',
+                               'multivariate-single'],
+            'sampling': 'regular'
+        }
     }
 
     model_class = TimeseriaLSTMAnomalyDetector

@@ -8,6 +8,25 @@ from tslies.utils import Data
 
 
 class BNNAnomalyDetector(AnomalyDetector):
+
+    _capabilities = {
+        'training': {
+            'mode': None,
+            'update': False
+        },
+        'inference': {
+            'streaming': False,
+            'dependency': 'series',
+            'granularity': 'point-labels'
+        },
+        'data': {
+            'dimensionality': ['multivariate-single'],
+            'sampling': 'regular'
+        }
+    }
+
+
+
     def __init__(self, hyperparams='default'):
         """
         Initialize the BNN anomaly detector with the provided hyperparameters.

@@ -3,13 +3,21 @@ from timeseria.models.anomaly_detectors import LinearRegressionAnomalyDetector a
 
 class LinearRegressionAnomalyDetector(TimeseriaAnomalyDetector):
 
-    capabilities = {
-        'mode': 'semi-supervised',
-        'streaming': True,
-        'context': 'window',
-        'granularity': 'point',
-        'multivariate': False,
-        'scope': 'agnostic'
+    _capabilities = {
+        'training': {
+            'mode': 'semi-supervised',
+            'update': False
+        },
+        'inference': {
+            'streaming': False,
+            'dependency': 'window',
+            'granularity': 'point-labels'
+        },
+        'data': {
+            'dimensionality': ['univariate-single',
+                               'multivariate-single'],
+            'sampling': 'regular'
+        }
     }
 
     model_class = TimeseriaLinearRegressionAnomalyDetector
