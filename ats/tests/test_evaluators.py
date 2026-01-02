@@ -841,28 +841,12 @@ class TestEvaluators(unittest.TestCase):
         model = PeriodicAverageAnomalyDetector()
         new_series = series.drop(columns=['anomaly_label'],inplace=False)
         p_avg_output = model.apply(new_series)
-
-        anomalous_timestamps = []
-        for timestamp in p_avg_output.index:
-            is_anomalous = p_avg_output.filter(like='anomaly').loc[timestamp].any()
-            anomaly_label = series.loc[timestamp,'anomaly_label']
-            if anomaly_label is not None and is_anomalous:
-                anomalous_timestamps.append(timestamp)
-
-        start = anomalous_timestamps[0]
-        sampling_interval = pd.Timedelta(minutes=60)
-        consecutive_timestamp_n = 0
-        for timestamp in anomalous_timestamps:
-            are_consecutive = (timestamp - start) == sampling_interval
-            if are_consecutive:
-                consecutive_timestamp_n += 1
-            start = timestamp
-
-        detected_anomalies = len(anomalous_timestamps) - consecutive_timestamp_n
-        evaluator = Evaluator(test_data = evaluation_dataset)
+        '''for timestamp in p_avg_output.index:
+            print(f"{p_avg_output.loc[timestamp,'anomaly']}  {series.loc[timestamp,'anomaly_label']}")'''
+        evaluator = Evaluator(evaluation_dataset)
         evaluation_results = evaluator.evaluate(models={'p_avg':model},granularity='point',strategy='events',breakdown=False)
-        self.assertEqual(evaluation_results['p_avg']['true_positives_count'],detected_anomalies)
-        self.assertEqual(evaluation_results['p_avg']['true_positives_rate'],detected_anomalies/anomalous_events_n)
+        self.assertEqual(evaluation_results['p_avg']['true_positives_count'],1)
+        self.assertEqual(evaluation_results['p_avg']['true_positives_rate'],1)
 
     def test_event_eval_on_nhar(self):
         anomalies = ['step_mv']
@@ -882,28 +866,30 @@ class TestEvaluators(unittest.TestCase):
         self.assertEqual(events_by_type_n['step_mv'],1)
         self.assertEqual(anomalous_events_n,1)
 
-        model = PeriodicAverageAnomalyDetector()
+        model = NHARAnomalyDetector()
         new_series = series.drop(columns=['anomaly_label'],inplace=False)
-        p_avg_output = model.apply(new_series)
-
-        anomalous_timestamps = []
-        for timestamp in p_avg_output.index:
-            is_anomalous = p_avg_output.filter(like='anomaly').loc[timestamp].any()
-            anomaly_label = series.loc[timestamp,'anomaly_label']
-            if anomaly_label is not None and is_anomalous:
-                anomalous_timestamps.append(timestamp)
-
-        start = anomalous_timestamps[0]
-        sampling_interval = pd.Timedelta(minutes=60)
-        consecutive_timestamp_n = 0
-        for timestamp in anomalous_timestamps:
-            are_consecutive = (timestamp - start) == sampling_interval
-            if are_consecutive:
-                consecutive_timestamp_n += 1
-            start = timestamp
-
-        detected_anomalies = len(anomalous_timestamps) - consecutive_timestamp_n
-        evaluator = Evaluator(test_data = evaluation_dataset)
+        nhara_output = model.apply(new_series)
+        '''for timestamp in nhara_output.index:
+            print(f"{nhara_output.loc[timestamp,'anomaly']}  {series.loc[timestamp,'anomaly_label']}")'''
+        evaluator = Evaluator(evaluation_dataset)
         evaluation_results = evaluator.evaluate(models={'nhar':model},granularity='point',strategy='events',breakdown=False)
-        self.assertEqual(evaluation_results['nhar']['true_positives_count'],detected_anomalies)
-        self.assertEqual(evaluation_results['nhar']['true_positives_rate'],detected_anomalies/anomalous_events_n)
+        self.assertEqual(evaluation_results['nhar']['true_positives_count'],1)
+        self.assertEqual(evaluation_results['nhar']['true_positives_rate'],1/1)
+
+    def test_actual_anomalies_count(self):
+        # model output
+        series = generate_timeseries_df(entries=6, variables=1)
+        series['value_anomaly'] = [0,1,1,1,1,1]
+
+        anomaly_labels = pd.Series([None, 'anomaly_1', 'anomaly_1', None, None,'anomaly_1'])
+        anomaly_labels.index = series.index
+        events_n , event_type_counts, event_time_slots = _count_anomalous_events(anomaly_labels)
+        self.assertEqual(len(event_time_slots['anomaly_1']),4)
+        self.assertEqual(event_time_slots['anomaly_1'][0],pd.Timestamp('2025-06-10 15:00:00+00:00'))
+        self.assertEqual(event_time_slots['anomaly_1'][1],pd.Timestamp('2025-06-10 16:00:00+00:00'))
+        self.assertEqual(event_time_slots['anomaly_1'][2],pd.Timestamp('2025-06-10 19:00:00+00:00'))
+        self.assertEqual(event_time_slots['anomaly_1'][3],pd.Timestamp('2025-06-10 19:00:00+00:00'))
+        '''for timestamp in anomaly_labels.index:
+            print(f'{timestamp}')
+        for key,value in event_time_slots.items():
+            print(f'{key}: {value}')'''

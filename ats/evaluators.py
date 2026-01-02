@@ -376,6 +376,7 @@ def _variable_eval_with_events_strategy(sample_df,anomaly_labels_df,breakdown=Fa
 def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,breakdown=False):
     detected_events_n = 0
     false_positives_n = 0
+    total_events_n = 0
     events_n, event_type_counts, event_time_slots = _count_anomalous_events(anomaly_labels_df)
     evaluation_result = {}
     breakdown_info = {}
@@ -396,8 +397,8 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
     evaluation_result['false_positives_ratio'] = false_positives_n/len(anomaly_labels_df)
 
     for anomaly, anomaly_time_slots in event_time_slots.items():
-        anomaly_n = len(anomaly_time_slots)//2
-        events_n += anomaly_n
+        anomaly_n = int(len(anomaly_time_slots))/2
+        total_events_n += anomaly_n
         detected_anomaly_n = 0
         for i in range(0,len(anomaly_time_slots),2):
             start = anomaly_time_slots[i]
@@ -411,7 +412,7 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
 
     evaluation_result['true_positives_count'] = detected_events_n
     if events_n:
-        evaluation_result['true_positives_rate'] = detected_events_n/events_n
+        evaluation_result['true_positives_rate'] = detected_events_n/total_events_n
     else:
         evaluation_result['true_positives_rate'] = None
 
