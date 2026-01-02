@@ -893,3 +893,64 @@ class TestEvaluators(unittest.TestCase):
             print(f'{timestamp}')
         for key,value in event_time_slots.items():
             print(f'{key}: {value}')'''
+
+    def test_event_eval_on_dataset(self):
+        generator = HumiTempDatasetGenerator(sampling_interval='2h')
+        evaluation_dataset = generator.generate(
+        n_series = 2,
+        effects = [],
+        anomalies = ['spike_mv'],
+        time_span = '5D',
+        max_anomalies_per_series = 3,
+        anomalies_ratio = 1.0,
+        auto_repeat_anomalies=True,
+        )
+        series_1 = evaluation_dataset[0]
+        '''for timestamp in series_1.index:
+            print(f"{series_1.loc[timestamp,'anomaly_label']}")'''
+        # Anomalies in series_1
+        # 1 spike
+
+        series_2 = evaluation_dataset[1]
+        '''for timestamp in series_2.index:
+            print(f"{series_2.loc[timestamp,'anomaly_label']}")'''
+        # Anomalies in series_2
+        # 1 spike
+        anomaly_detectors = {}
+        anomaly_detectors['minmax'] = MinMaxAnomalyDetector()
+        anomaly_detectors['nhar'] = NHARAnomalyDetector()
+        evaluator = Evaluator(evaluation_dataset)
+        evaluation = evaluator.evaluate(anomaly_detectors,
+                                        granularity='point',
+                                        strategy='events',
+                                        breakdown=True)
+
+        new_series_1 = series_1.drop(columns=['anomaly_label'],inplace=False)
+        new_series_2 = series_2.drop(columns=['anomaly_label'],inplace=False)
+        new_dataset = [new_series_1,new_series_2]
+
+        minmax_output = _get_model_output(new_dataset,anomaly_detectors['minmax'])
+        '''for timestamp in minmax_output[0].index:
+            print(f"{series_1.loc[timestamp,'anomaly_label']}  {minmax_output[0].loc[timestamp,'temperature_anomaly']}  {minmax_output[0].loc[timestamp,'humidity_anomaly']}")'''
+        '''for timestamp in minmax_output[1].index:
+            print(f"{series_2.loc[timestamp,'anomaly_label']}  {minmax_output[1].loc[timestamp,'temperature_anomaly']}  {minmax_output[1].loc[timestamp,'humidity_anomaly']}")'''
+
+        self.assertEqual(evaluation['minmax']['true_positives_count'],2)
+        self.assertEqual(evaluation['minmax']['true_positives_rate'],1)
+        self.assertEqual(evaluation['minmax']['false_positives_count'],2)
+        self.assertEqual(evaluation['minmax']['false_positives_ratio'],1/60)
+        self.assertEqual(evaluation['minmax']['spike_mv_true_positives_count'],2)
+        self.assertEqual(evaluation['minmax']['spike_mv_true_positives_rate'],1)
+
+        nhar_output = _get_model_output(new_dataset,anomaly_detectors['nhar'])
+        '''for timestamp in nhar_output[0].index:
+            print(f"{series_1.loc[timestamp,'anomaly_label']}  {nhar_output[0].loc[timestamp,'anomaly']}  {timestamp}")
+        for timestamp in nhar_output[1].index:
+            print(f"{series_2.loc[timestamp,'anomaly_label']}  {nhar_output[1].loc[timestamp,'anomaly']}  {timestamp}")'''
+
+        self.assertEqual(evaluation['nhar']['true_positives_count'],2)
+        self.assertAlmostEqual(evaluation['nhar']['true_positives_rate'],1)
+        #self.assertEqual(evaluation['nhar']['false_positives_count'],5)
+        #self.assertAlmostEqual(evaluation['nhar']['false_positives_ratio'],5/120)
+        self.assertEqual(evaluation['nhar']['spike_mv_true_positives_count'],2)
+        self.assertAlmostEqual(evaluation['nhar']['spike_mv_true_positives_rate'],1)
