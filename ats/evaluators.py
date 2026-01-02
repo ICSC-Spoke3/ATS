@@ -405,8 +405,8 @@ def _point_eval_with_events_strategy(flagged_timeseries_df,anomaly_labels_df,bre
             is_detected = flags_df.loc[start:stop].any().any()
             if is_detected:
                 detected_anomaly_n +=1
-        breakdown_info[anomaly + 'true_positives_count'] = detected_anomaly_n
-        breakdown_info[anomaly + 'true_positives_rate'] = detected_anomaly_n/anomaly_n
+        breakdown_info[anomaly + '_true_positives_count'] = detected_anomaly_n
+        breakdown_info[anomaly + '_true_positives_rate'] = detected_anomaly_n/anomaly_n
         detected_events_n += detected_anomaly_n
 
     evaluation_result['true_positives_count'] = detected_events_n
