@@ -38,7 +38,7 @@ Notes:
 | Capability     | Value             | Comment |
 |---------------|--------------------|---------|
 | **Training:mode**  | none | No training required |
-| **Training:scope**  | none | No training required  |
+| **Training:update**  | no | No training required  |
 | **Inference:streaming** | no | Requires to see all the data |
 | **Inference:context*** |  point | Needs just one point to mark |
 | **Inference:granularity** | label | Can mark per-label |
