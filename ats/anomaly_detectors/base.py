@@ -11,6 +11,139 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------
+# Taxonomy specification
+# ---------------------------
+
+ALLOWED_CAPABILITIES = {
+    'training': {
+        'mode': {
+            None,
+            'unsupervised',
+            'semi-supervised',
+            'weakly-supervised',
+            'supervised',
+        },
+        'update': {
+            True,
+            False
+        },
+    },
+    'inference': {
+        'streaming': {
+            True,
+            False
+        },
+        'dependency': {
+            'point',
+            'window',
+            'series',
+        },
+        'granularity': {
+            'point',
+            'point-labels',
+            'series',
+            'series-labels',
+        },
+    },
+    'data': {
+        'dimensionality': {
+            'univariate-single',
+            'multivariate-single',
+            'univariate-multi',
+            'multivariate-multi',
+        },
+        'sampling': {
+            'regular',
+            'irregular',
+        },
+    },
+}
+
+
+# ---------------------------
+# Validation logic
+# ---------------------------
+
+def validate_capabilities(capabilities):
+    '''
+    Validate a model capability dictionary.
+
+    Raises
+    ------
+    ValueError
+        If the capability specification is invalid.
+    '''
+    _validate_capability_structure(capabilities)
+    _validate_capability_values(capabilities)
+    _validate_capability_cross_constraints(capabilities)
+
+
+# ---------------------------
+# Helpers
+# ---------------------------
+
+def _validate_capability_structure(capabilities):
+    for section in ALLOWED_CAPABILITIES:
+        if section not in capabilities:
+            raise ValueError(f"Missing required capability section: '{section}'")
+
+        if not isinstance(capabilities[section], dict):
+            raise ValueError(f"Capability section '{section}' must be a dictionary")
+
+        for key in ALLOWED_CAPABILITIES[section]:
+            if key not in capabilities[section]:
+                raise ValueError(
+                    f"Missing required capability section key '{section}.{key}'"
+                )
+
+
+def _validate_capability_values(capabilities):
+    for section, fields in ALLOWED_CAPABILITIES.items():
+        for field, allowed in fields.items():
+            value = capabilities[section][field]
+
+            if isinstance(value, (list, set, tuple)):
+                invalid = set(value) - allowed
+                if invalid:
+                    raise ValueError(
+                        f"Invalid value(s) for capability section key '{section}.{field}': {invalid}. "
+                        f"Allowed: {allowed}"
+                    )
+            else:
+                if value not in allowed:
+                    raise ValueError(
+                        f"Invalid value for capability section key '{section}.{field}': '{value}'. "
+                        f"Allowed: {allowed}"
+                    )
+
+
+def _validate_capability_cross_constraints(capabilities):
+    training_mode = capabilities['training']['mode']
+    training_update = capabilities['training']['update']
+    inference_streaming = capabilities['inference']['streaming']
+    inference_dependency = capabilities['inference']['dependency']
+    granularity = capabilities['inference']['granularity']
+
+    # Training constraints
+    if training_mode is None and training_update is not False:
+        raise ValueError(
+            'Capability training update must be False when training mode is None'
+        )
+
+    # Streaming constraints
+    if inference_streaming is True:
+        if inference_dependency in {'series-single', 'series-multi'}:
+            raise ValueError(
+                'Capability inference streaming cannot require full series dependency'
+            )
+
+    # Granularity vs context
+    if granularity == 'series' and inference_dependency in {'point', 'window'}:
+        raise ValueError(
+            'Capability inference granularity for series-level is incompatible with point/window inference dependency'
+        )
+
 class classproperty:
     def __init__(self, func):
         self.func = func
@@ -21,33 +154,15 @@ class classproperty:
 
 class AnomalyDetector():
 
-    allowed_capabilities = {
-        'mode': {'unsupervised', 'semi-supervised', 'weakly-supervised', 'supervised'},
-        'streaming': {True, False},
-        'context': {'point', 'window', 'series', 'dataset'},
-        'granularity': {'series', 'point', 'variable'},
-        'multivariate': {True, False, 'only'},
-        'scope': {'specific', 'agnostic'},
-    }
-
     @classproperty
     def capabilities(cls):
-        raise NotImplementedError(f'Capabilities are not set for {cls.__name__}')
-
-    def __new__(cls, *args, **kwargs):
-        cls._validate_capabilities(cls.capabilities, cls.allowed_capabilities)
-        return super().__new__(cls, *args, **kwargs)
-
-    @classmethod
-    def _validate_capabilities(cls, capabilities, allowed_capabilities):
-        missing = set(allowed_capabilities) - set(capabilities)
-        if missing:
-            raise ValueError(f'Missing required capabilities: {sorted(missing)} for {cls.__name__}')
-        for key, value in capabilities.items():
-            if key not in allowed_capabilities:
-                raise ValueError(f'Unknown capability: "{key}" for {cls.__name__}')
-            if value not in allowed_capabilities[key]:
-                raise ValueError(f'Invalid value "{value}" for capability "{key}" for {cls.__name__}')
+        try:
+            cls._capabilities
+        except AttributeError:
+            raise NotImplementedError(f'Capabilities are not set for {cls.__name__}') from None
+        else:
+            validate_capabilities(cls._capabilities)
+            return cls._capabilities
 
 
     #========================
@@ -140,7 +255,7 @@ class AnomalyDetector():
     def apply(self, data, *args, **kwargs):
 
         """
-        Apply the anomaly detector on some (time series) data.
+        Apply the anomaly detector on some (time series) data, the the minimum amount of information being the inference dependency.
 
         Args:
             data (pd.DataFrame or list[pd.DataFrame]): A single time series (in pandas DataFrame format) or a list of time series (in pandas DataFrame format).

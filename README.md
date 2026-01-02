@@ -1,55 +1,86 @@
 # Anomalies in Time Series (ATS)
 
-This repository provides clean, ready to use interfaces for common anomaly detection techniques in time series data, as well as novel implementations.
+This repository provides a modular framework with clean, well-defined interfaces for time series anomaly detection. It includes both classical methods and novel example implementations, making it easy to experiment with, extend, and compare approaches.
 
-It also offers a synthetic benchmark to be used more as testbed for understanding each method pros and cons (since benchmarking the unknown is mostly useless [1])
+Each model has well-defined `capabilites`, following a specific [taxonomy](TAXONOMY.md) which allows to clearly state what models can and cannot do, from an operational standpoint. For example:
 
-Example notebooks are as well provides, and can be found int he root of the repository.
+```
+>>> LSTMAnomalyDetector.capabilities
+{
+  "training": {
+    "mode": "semi-supervised",
+    "update": False
+  },
+  "inference": {
+    "streaming": true,
+    "dependency": "window",
+    "granularity": "point-labels"
+  },
+  "data": {
+    "dimensionality": ["univariate-single",
+                       "multivariate-single"],
+    "sampling": "regular"
+  }
+}
+```
+
+It also offers a synthetic data generator for testing purposes, and an evaluator focusing more on model strengths and weaknesses rather than absolute performance.
+
+Example notebooks are provided as well, and can be found in the root of the repository.
 
 
-## Supported methods
+## Example models
 
-This is a list of the various methodologies available, together with their capabilities and class/module names. Each also states if it can work on single series (univariate or multivariate), lists of series (univariate or multivariate), or both.
-
----
-
-`MinMaxAnomalyDetector`
-
-- **Description:** trivial anomaly detector based on the minimum and maximum values of the time series
-- **Type:** unsupervised
-- **Works on:** single series (uv or mv)
-- **Real time:** no
-- **Module:** `anomaly_detectors.naive.minmax`
-
----
-
-`IFSOMAnomalyDetector`
-
-- **Description:** anomaly detector based on Isolation Forest and Self-organizing maps [3]
-- **Type:** unsupervised
-- **Works on:** lists of series (uv)
-- **Real time:** no
-- **Module:** `anomaly_detectors.stats.ifsom`
-
----
-
-`COMAnomalyDetector`
-
-- **Description:** Robust anomaly detection technique based on the covariance matrix [2]
-- **Type:** unsupervised
-- **Works on:** single series (mv) or lists of series (uv)
-- **Real time:** no
-- **Module:** `anomaly_detectors.stats.robust`
+This is a non-exhaustive list of the models implemented in the framework, together with their module/class names.
 
 ---
 
-`NHARAnomalyDetector`
+### MinMaxAnomalyDetector
 
-- **Description:** Robust anomaly detection technique based on non-linear regression via neural networks and residuals modeling [2]
-- **Type:** unsupervised
-- **Works on:** single series (mv) or lists of series (uv)
-- **Real time:** no
-- **Module:** `anomaly_detectors.stats.robust`
+A trivial anomaly detector based on the minimum and maximum values of the time series.
+
+**class:** : `anomaly_detectors.naive.minmax.MinMaxAnomalyDetector `
+
+---
+
+### PeriodicAverageAnomalyDetector
+
+A simple statistical method based on computing average values over a given period.
+
+**class:** : `anomaly_detectors.stat.periodic_average.PeriodicAverageAnomalyDetector `
+
+---
+
+### IFSOMAnomalyDetector
+
+Anomaly detector based on Isolation Forest and Self-organizing maps [1]
+
+- **class:** `anomaly_detectors.ml.ifsom.IFSOMAnomalyDetector `
+
+---
+
+### COMAnomalyDetector
+
+A robust anomaly detector based on the Comedian (COM) estimator [2]
+
+**class:** `anomaly_detectors.stats.robust.COMAnomalyDetector`
+
+---
+
+### NHARAnomalyDetector
+
+A robust anomaly detection technique based on non-linear regression via neural networks and residuals modelling [2]
+
+- **class:** `anomaly_detectors.stats.robust.HARAnomalyDetector `
+
+---
+
+
+### LSTMAnomalyDetector
+
+An anomaly detector based on capturing time series dynamics via a LSTM neural network [3]
+
+- **class:** `anomaly_detectors.dl.lstm.LSTMAnomalyDetector `
 
 ---
 
@@ -73,8 +104,8 @@ Optionally:
 
 ## References
 
-[1] **Robust anomaly detection for time series data in sensor-based critical systems**. Stefano Alberto Russo https://arts.units.it/handle/11368/3107341 
+[1] **Anomaly Detection in High-Dimensional Bank Account Balances via Robust Methods**. Federico Maddanu, Tommaso Proietti, Riccardo Crupi https://arxiv.org/abs/2511.11143 
 
-[2] **Anomaly Detection in High-Dimensional Bank Account Balances via Robust Methods**. Federico Maddanu, Tommaso Proietti, Riccardo Crupi https://arxiv.org/abs/2511.11143 
+[2] **Navigating AGN variability with self-organizing maps**. Ylenia Maruccia, Demetra De Cicco, Stefano Cavuoti, Giuseppe Riccio, Paula Sánchez-Sáez, Maurizio Paolillo, Noemi Lery Borrelli, Riccardo Crupi, Massimo Brescia https://www.aanda.org/articles/aa/pdf/2025/07/aa53866-25.pdf
 
-[3] **Navigating AGN variability with self-organizing maps**. Ylenia Maruccia, Demetra De Cicco, Stefano Cavuoti, Giuseppe Riccio, Paula Sánchez-Sáez, Maurizio Paolillo, Noemi Lery Borrelli, Riccardo Crupi, Massimo Brescia https://www.aanda.org/articles/aa/pdf/2025/07/aa53866-25.pdf
+[3] **Timeseria: an object-oriented time series processing library**. Stefano Alberto Russo, Giuliano Taffoni, Luca Bortolussi, https://www.sciencedirect.com/science/article/pii/S2352711025000032
