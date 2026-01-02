@@ -1,6 +1,6 @@
 # Anomalies in Time Series (ATS)
 
-This repository provides clean, ready to use interfaces for common anomaly detection models on time series data, as well as novel implementations.
+This repository provides a modular framework with clean, well-defined interfaces for time series anomaly detection. It includes both classical methods and novel example implementations, making it easy to experiment with, extend, and compare approaches.
 
 Each model has well-defined `capabilites`, following a specific [taxonomy](TAXONOMY.md) which allows to clearly state what models can and cannot do, from an operational standpoint. For example:
 
@@ -29,9 +29,9 @@ It also offers a synthetic data generator for testing purposes, and an evaluator
 Example notebooks are provided as well, and can be found in the root of the repository.
 
 
-## Supported methods
+## Example models
 
-This is a list of the various methodologies available as of today, together with their class/module names.
+This is a non-exhaustive list of the models implemented in the framework, together with their module/class names.
 
 ---
 
@@ -43,17 +43,25 @@ A trivial anomaly detector based on the minimum and maximum values of the time s
 
 ---
 
+### PeriodicAverageAnomalyDetector
+
+A simple statistical method based on computing average values over a given period.
+
+**class:** : `anomaly_detectors.stat.periodic_average.PeriodicAverageAnomalyDetector `
+
+---
+
 ### IFSOMAnomalyDetector
 
-Anomaly detector based on Isolation Forest and Self-organizing maps [3]
+Anomaly detector based on Isolation Forest and Self-organizing maps [1]
 
-- **class:** `anomaly_detectors.stats.ifsom.IFSOMAnomalyDetector `
+- **class:** `anomaly_detectors.ml.ifsom.IFSOMAnomalyDetector `
 
 ---
 
 ### COMAnomalyDetector
 
-Robust anomaly detection technique based on the covariance matrix [2]
+A robust anomaly detector based on the Comedian (COM) estimator [2]
 
 **class:** `anomaly_detectors.stats.robust.COMAnomalyDetector`
 
@@ -61,9 +69,18 @@ Robust anomaly detection technique based on the covariance matrix [2]
 
 ### NHARAnomalyDetector
 
-Robust anomaly detection technique based on non-linear regression via neural networks and residuals modeling [2]
+A robust anomaly detection technique based on non-linear regression via neural networks and residuals modelling [2]
 
-- **class:** `anomaly_detectors.stats.robust. NHARAnomalyDetector `
+- **class:** `anomaly_detectors.stats.robust.HARAnomalyDetector `
+
+---
+
+
+### LSTMAnomalyDetector
+
+An anomaly detector based on capturing time series dynamics via a LSTM neural network [3]
+
+- **class:** `anomaly_detectors.dl.lstm.LSTMAnomalyDetector `
 
 ---
 
@@ -90,3 +107,5 @@ Optionally:
 [1] **Anomaly Detection in High-Dimensional Bank Account Balances via Robust Methods**. Federico Maddanu, Tommaso Proietti, Riccardo Crupi https://arxiv.org/abs/2511.11143 
 
 [2] **Navigating AGN variability with self-organizing maps**. Ylenia Maruccia, Demetra De Cicco, Stefano Cavuoti, Giuseppe Riccio, Paula Sánchez-Sáez, Maurizio Paolillo, Noemi Lery Borrelli, Riccardo Crupi, Massimo Brescia https://www.aanda.org/articles/aa/pdf/2025/07/aa53866-25.pdf
+
+[3] **Timeseria: an object-oriented time series processing library**. Stefano Alberto Russo, Giuliano Taffoni, Luca Bortolussi, https://www.sciencedirect.com/science/article/pii/S2352711025000032
