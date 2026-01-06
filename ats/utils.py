@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Utilities"""
 
+import os
+import random
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -430,3 +432,14 @@ def timeseries_df_to_list_of_timeseries_df(timeseries_df, anomaly_labels=False):
 def list_of_timeseries_df_to_timeseries_df(list_of_timeseries_df):
     return pd.concat(list_of_timeseries_df, axis=1)
 
+def ensure_full_reproducibility(seed=0):
+    random.seed(seed)
+    np.random.seed(seed)
+    try:
+        import tensorflow as tf
+    except ImportError:
+        pass
+    else:
+        tf.random.set_seed(seed)
+        tf.config.experimental.enable_op_determinism()
+        os.environ["TF_DETERMINISTIC_OPS"] = "1"
