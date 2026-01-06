@@ -1,12 +1,11 @@
 import os
 import unittest
-import numpy as np
 import pandas as pd
 
 from ..anomaly_detectors.naive import MinMaxAnomalyDetector, ZScoreAnomalyDetector
 from ..anomaly_detectors.ml.ifsom import IFSOMAnomalyDetector
 from ..anomaly_detectors.stat.robust import _COMNHARAnomalyDetector
-from ..utils import generate_timeseries_df, load_isp_format_wide_df, wide_df_to_list_of_timeseries_df, timeseries_df_to_list_of_timeseries_df
+from ..utils import generate_timeseries_df, load_isp_format_wide_df, wide_df_to_list_of_timeseries_df, timeseries_df_to_list_of_timeseries_df, ensure_full_reproducibility 
 from ..anomaly_detectors.stat.support_functions import generate_contaminated_dataframe
 
 # Setup logging
@@ -68,7 +67,7 @@ class TestNaiveAnomalyDetectors(unittest.TestCase):
 class TestStatAnomalyDetectors(unittest.TestCase):
 
     def setUp(self):
-        np.random.seed(0)
+        ensure_full_reproducibility()
 
     def test_robust_on_multivariate(self):
 
@@ -118,7 +117,7 @@ class TestStatAnomalyDetectors(unittest.TestCase):
 class TestMLAnomalyDetectors(unittest.TestCase):
 
     def setUp(self):
-        np.random.seed(0)
+        ensure_full_reproducibility()
 
     def test_ifsom(self):
 
