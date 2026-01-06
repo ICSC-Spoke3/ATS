@@ -15,6 +15,7 @@ from ats.anomaly_detectors.stat.robust import NHARAnomalyDetector
 from ..evaluators import _count_anomalous_events
 from ..evaluators import _point_eval_with_events_strategy
 from ats.dataset_generators import HumiTempDatasetGenerator
+from ..utils import ensure_full_reproducibility
 
 import unittest
 import pandas as pd
@@ -29,9 +30,7 @@ logger.setup()
 class TestEvaluators(unittest.TestCase):
 
     def setUp(self):
-
-        rnd.seed(123)
-        np.random.seed(123)
+        ensure_full_reproducibility(123)
 
         self.series1 = generate_timeseries_df(entries=5, variables=2)
         self.series1['anomaly_label'] = [None, 'anomaly_2', 'anomaly_1', None, 'anomaly_1']
@@ -950,7 +949,7 @@ class TestEvaluators(unittest.TestCase):
 
         self.assertEqual(evaluation['nhar']['true_positives_count'],2)
         self.assertAlmostEqual(evaluation['nhar']['true_positives_rate'],1)
-        #self.assertEqual(evaluation['nhar']['false_positives_count'],5)
-        #self.assertAlmostEqual(evaluation['nhar']['false_positives_ratio'],5/120)
+        self.assertEqual(evaluation['nhar']['false_positives_count'],6)
+        self.assertAlmostEqual(evaluation['nhar']['false_positives_ratio'],6/120)
         self.assertEqual(evaluation['nhar']['spike_mv_true_positives_count'],2)
         self.assertAlmostEqual(evaluation['nhar']['spike_mv_true_positives_rate'],1)
